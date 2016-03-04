@@ -1,0 +1,80 @@
+{% extends "base.html" %} 
+{% block content %}
+	<div class="container">
+	<nav>
+		<ul class="pager">
+        {% if movies.has_prev %}
+			<li class="previous">
+			<a href="{{ url_for('list_movies', page=movies.prev_num) }}"><span
+aria-hidden="true">&larr;</span> Page {{ movies.prev_num }}</a>
+			</li>
+	{% endif %}
+        {% if movies.has_next %}
+			<li class="next">
+			<a href="{{ url_for('list_movies', page=movies.next_num) }}">Page {{ movies.next_num }} <span
+aria-hidden="true">&rarr;</span></a>
+			</li>
+	 {% endif %}
+		</ul>
+	</nav>
+	</div>
+	<div class="container">
+		<table class="table table-striped">
+		<!-- Display the users name -->
+		<thead>
+		<td/>
+		<td/>
+		<th>
+			<td class="text-center"><strong>Mes Notes</strong></td>
+			<td/>
+			{% for cur_user in users %}
+				{% if g.user.id != cur_user.id %}
+				<td class="text-center"><strong>{{ cur_user.nickname }}</strong></td>
+				{% endif %}
+			{% endfor %}
+		</th>
+		</thead>
+		
+	      {% for movie in movies.items %}
+		<tr>
+			<td><a href="{{ url_for('show_movie',movie_id=movie.id) }}">{{movie.name}}</a></td>
+			<td>{{movie.year}}</td>
+			<td> {{ movie.director }}</td>
+
+			{% for cur_user in users %}
+				{% if g.user.id == cur_user.id %}
+					{% set local_mark = [] %}
+					{% for cur_mark in movie.marked_by_users %}
+							{% if cur_mark.user.id == cur_user.id %}
+								{% set _ = local_mark.append(cur_mark.mark) %}
+							{% endif %}
+					{% endfor %}
+
+					{% if local_mark %}
+						<td class="text-center" style="color:red"><strong>{{ local_mark[0] }}</strong></td>
+					{% else %}
+						<td class="text-center"><a href="{{ url_for('mark_movie',movie_id_form=movie.id) }}" class="btn btn-primary btn-xs">Noter</a></td>
+					{% endif %}
+				{% endif %}
+			{% endfor %}
+			<td class="col-md-1"/>
+			{% for cur_user in users %}
+				{% if g.user.id != cur_user.id %}
+					{% set local_mark = [] %}
+					{% for cur_mark in movie.marked_by_users %}
+							{% if cur_mark.user.id == cur_user.id %}	
+								{% set _ = local_mark.append(cur_mark.mark) %}
+							{% endif %}
+					{% endfor %}
+					{% if local_mark %}
+						<td class="text-center">{{ local_mark[0] }}</td>
+					{% else %}
+						<td class="text-center">-</wtd>
+					{% endif %}
+				{% endif %}
+			{% endfor %}
+		</tr>
+	      {% endfor %}
+		</table>
+	</div>
+{% endblock %}

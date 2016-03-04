@@ -1,0 +1,115 @@
+{% extends "base.html" %} 
+{% block content %}
+	<div class="container">
+	<div class="centered text-center">
+		<h1>{{ movie.name }}</h1>
+	</div>
+	<div class="centered text-center">
+		<h4>({{ movie.year }})</h4>
+	</div>
+	<div class="row">
+		<div class="col-md-2">
+			{% if movie.poster_path != None %}
+			<img src="/static/posters/{{ movie.poster_path }}"/>
+			{% else %}
+			<div class="jumbotron text-center">Pas d'affiche</div>
+			{% endif %}
+		</div>
+		<div class="col-md-10">
+			<table class="table table-striped">
+				<tr class="text-left">
+				 <td>Real:</td>
+				 <td>{{ movie.director }}</td>
+				</tr>
+				<tr class="text-left">
+				 <td>Annee:</td>
+				 <td>{{ movie.year }}</td>
+				</tr>
+				<tr class="text-left">
+				 <td>Type:</td>
+				<td> {{ movie.type_object.type }} </td>
+				</tr>
+				<tr class="text-left">
+				 <td>Fiche Allocine:</td>
+				 <td>{{ movie.url }}</td>
+				</tr>
+				<tr class="text-left">
+				 <td>Origine:</td>
+				 <td>{{ movie.origin_object.origin }}</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	</div>
+	<div class="container">	
+	<nav>
+		<ul class="pager">
+        {% if movie_prev %}
+			<li class="previous">
+			<a href="{{ url_for('show_movie', movie_id=movie_prev.id) }}"><span
+aria-hidden="true">&larr;</span> {{ movie_prev.name }}</a>
+			</li>
+	{% endif %}
+        {% if movie_next %}
+			<li class="next">
+			<a href="{{ url_for('show_movie', movie_id=movie_next.id) }}"> {{ movie_next.name }} <span
+aria-hidden="true">&rarr;</span></a>
+			</li>
+	 {% endif %}
+		</ul>
+	</nav>
+	</div>
+	<hr/>
+	<div class="container">
+	{% if mark %}
+		{% if marked_flag %}
+			<div class="alert alert-info text-center">
+			<div>
+				Film noté
+			</div>
+				<a href="{{ url_for('show_movie',movie_id=movie.id) }}" class="btn btn-primary">Voir les notes</a>
+			</div>
+		{% else %}	
+			{%from "_formhelpers.html" import render_field %}
+			<form method="post" action="" name="markmovie">
+				{{ form.hidden_tag() }}
+				{{ render_field(form.mark) }}
+				{{ render_field(form.comment) }}
+    			        {{ render_field(form.seen_where) }}
+				<input type="submit" class="btn btn-success center-block" value="Noter">
+			</form>
+		{% endif %}
+	{% else %}
+		{% if movie.marked_by_users|length == 0 %}
+			<div class="alert alert-info text-center">
+			<div>
+				Pas de note pour ce film
+			</div>
+		{% else %}
+			<div class="centered text-center">
+				<h2>Notes</h2>
+			</div>
+			<table class="table table-striped">
+			{% for user_mark in movie.marked_by_users %}
+				<tr>
+					<td class="col-md-2 text-right">
+						{{ user_mark.user.nickname }}
+					</td>
+					<td class="col-md-2 text-center">
+						<strong>{{ user_mark.mark }}
+					</td>
+					<td class="col-md-8 text-justify">
+						{{ user_mark.comment }}
+					</td>
+				</tr>
+			{% endfor %}
+			</table>
+		{% endif %}
+		{% if not marked_flag %}
+			<div class="text-center">
+			<a href="{{ url_for('mark_movie',movie_id_form=movie.id) }}" class="btn btn-primary">Noter ce film</a>
+			</div>
+		{% endif %}
+	{% endif %}
+	</div>
+{% endblock %}

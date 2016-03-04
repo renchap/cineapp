@@ -1,0 +1,14 @@
+<!-- extend from base layout -->
+{% extends "base.html" %}
+
+{% block content %}
+	{%from "_formhelpers.html" import render_field %}
+	<form method="post" action"" name="adduser">
+		{{ form.hidden_tag() }}
+		{{ render_field(form.username) }}
+		{{ render_field(form.email) }}
+		{{ render_field(form.password) }}
+		{{ render_field(form.confirm) }}
+		<p><input type="submit" value="Sign In"></p>
+	</form>
+{% endblock %}

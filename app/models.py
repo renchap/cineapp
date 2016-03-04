@@ -1,0 +1,93 @@
+# -*- coding: utf-8 -*-
+from app import db
+from sqlalchemy import desc
+
+class User(db.Model):
+
+	__tablename__ = "users"
+
+	id = db.Column(db.Integer, primary_key=True)
+	nickname = db.Column(db.String(64), index=True, unique=True)
+	password = db.Column(db.String(255))
+	email = db.Column(db.String(120), index=True, unique=True)
+	added_movies = db.relationship('Movie', backref='added_by', lazy='dynamic')
+
+	@property
+	def is_authenticated(self):
+		return True
+
+	@property
+	def is_active(self):
+		return True
+
+	@property
+	def is_anonymous(self):
+		return False
+
+	def get_id(self):
+		try:
+			return unicode(self.id) # Python 2
+		except NameError:
+			return str(self.id) # Python 3
+
+	def __repr__(self):
+		return '<User %r>' % (self.nickname)
+	
+
+class Type(db.Model):
+	
+	__tablename__ = "types"
+	
+	id = db.Column(db.String(5),primary_key=True)
+	type = db.Column(db.String(20), unique=True)
+	movies = db.relationship('Movie', backref='type_object', lazy='dynamic')
+
+class Origin(db.Model):
+	
+	__tablename__ = "origins"
+	
+	id = db.Column(db.String(5),primary_key=True)
+	origin = db.Column(db.String(50), unique=True)
+	movies = db.relationship('Movie', backref='origin_object', lazy='dynamic')
+
+class Movie(db.Model):
+
+	__tablename__ = "movies"
+
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(100), unique=True, index=True)
+	year = db.Column(db.Integer, index=True)
+	type = db.Column(db.String(5), db.ForeignKey('types.id'),index=True)
+	url = db.Column(db.String(100), index=True)
+	origin = db.Column(db.String(5), db.ForeignKey('origins.id'), index=True)
+	director = db.Column(db.String(50), index=True)
+	poster_path = db.Column(db.String(255))
+	added_by_user = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+	def __repr__(self):
+		return '<Movie %r>' % (self.name)
+
+	def next(self):
+		"""
+			Return the next item into the database
+		"""
+		return db.session.query(Movie).filter(Movie.id > self.id).order_by(Movie.id).first()
+
+	def prev(self):
+		"""
+			Return the previous item into the database
+		"""
+		return db.session.query(Movie).filter(Movie.id < self.id).order_by(desc(Movie.id)).first()
+
+class Mark(db.Model):
+	
+	__tablename__ = "marks"
+
+	user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+	movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), primary_key=True)
+	seen_when = db.Column(db.Date)
+	seen_where = db.Column(db.String(4))
+	mark = db.Column(db.Integer)
+	comment = db.Column(db.String(255))
+	movie = db.relationship('Movie', backref='marked_by_users')
+	user = db.relationship('User', backref='marked_movies')
