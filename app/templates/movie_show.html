@@ -5,7 +5,7 @@
 		<h1>{{ movie.name }}</h1>
 	</div>
 	<div class="centered text-center">
-		<h4>({{ movie.year }})</h4>
+		<h4>({{ movie.release_date }})</h4>
 	</div>
 	<div class="row">
 		<div class="col-md-2">
@@ -22,16 +22,16 @@
 				 <td>{{ movie.director }}</td>
 				</tr>
 				<tr class="text-left">
-				 <td>Annee:</td>
-				 <td>{{ movie.year }}</td>
+				 <td>Sortie:</td>
+				 <td>{{ movie.release_date }}</td>
 				</tr>
 				<tr class="text-left">
 				 <td>Type:</td>
 				<td> {{ movie.type_object.type }} </td>
 				</tr>
 				<tr class="text-left">
-				 <td>Fiche Allocine:</td>
-				 <td>{{ movie.url }}</td>
+				 <td>Fiche:</td>
+				 <td><a href="{{ movie.url }}">{{ movie.url }}</a></td>
 				</tr>
 				<tr class="text-left">
 				 <td>Origine:</td>

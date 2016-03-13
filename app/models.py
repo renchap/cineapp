@@ -56,7 +56,7 @@ class Movie(db.Model):
 
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(100), unique=True, index=True)
-	year = db.Column(db.Integer, index=True)
+	release_date = db.Column(db.Date, index=True)
 	type = db.Column(db.String(5), db.ForeignKey('types.id'),index=True)
 	url = db.Column(db.String(100), index=True)
 	origin = db.Column(db.String(5), db.ForeignKey('origins.id'), index=True)
