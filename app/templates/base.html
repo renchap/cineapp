@@ -73,7 +73,7 @@
 				  <span aria-hidden="true">&times;</span>
 			</button>
 		{% for category, message in messages %}
-			{{ message.decode('utf-8') }}
+			{{ message.decode('utf-8') }}<br/>
 		{% endfor %}
 		</div>
 	{% endif %}
