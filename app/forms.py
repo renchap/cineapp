@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from flask.ext.wtf import Form
-from wtforms import StringField, PasswordField
+from flask.ext.wtf.html5 import SearchField
+from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError
 from app.models import Origin, Type
@@ -42,3 +43,30 @@ class MarkMovieForm(Form):
 			raise ValidationError('Pas un chiffre')
 		if int(field.data) < 0 or int(field.data) > 20:
 			raise ValidationError('Note Incorrecte')
+
+class SearchMovieForm(Form):
+	search = StringField('Nom du film', [DataRequired()])
+	submit_search = SubmitField('Chercher')
+
+class SelectMovieForm(Form):
+	movie = RadioField('Film', choices=[], coerce=int)
+	submit_select = SubmitField('Selectioner')
+
+	# Specific constructer in order to pass a movie list
+	def __init__(self,movies_list=[]):
+		
+		# Call the parent constructor
+		super(SelectMovieForm, self).__init__()
+		
+		# Local variable
+		choice_list=[]
+		for cur_movie in movies_list:
+			choice_list.append((cur_movie['id'], cur_movie['title']))
+
+		self.movie.choices = choice_list
+
+class ConfirmMovieForm(Form):
+	origin = QuerySelectField(query_factory=get_origins, get_label='origin')
+	type = QuerySelectField(query_factory=get_types,get_label='type')
+	movie_id = HiddenField()
+	submit_confirm = SubmitField("Ajouter le film")

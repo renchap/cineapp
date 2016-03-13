@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from flask import render_template, flash, redirect, url_for, g, request
+from flask import render_template, flash, redirect, url_for, g, request, session
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from app import app, db, lm
-from .forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm
+from .forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm
 from .models import User, Movie, Mark
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from bcrypt import hashpw, gensalt
 from wtforms.ext.sqlalchemy.orm import model_form
 from flask.ext.wtf import Form
 from datetime import datetime
+import config
+from .tvmdb import search_movies,get_movie,download_poster
 
 @app.route('/')
 @app.route('/index')
@@ -116,34 +118,81 @@ def mark_movie(movie_id_form):
 @app.route('/movies/add', methods=['GET','POST'])
 @login_required
 def add_movie():
-	# Generate the form directly from Model
-	form = AddMovieForm()
-	
-	# Let's add the movie into the database
-	# For origin and type since we use a QuerySelectField, we get an object !
-	# So we need to get the attribute
-	if form.validate_on_submit():
-		movie=Movie(name=form.name.data,
-			year=form.year.data,
-			url=form.url.data,
-			director=form.director.data,
-			origin=form.origin.data.id,
-			type=form.type.data.id,
-			added_by_user=g.user.id
-		)
+	# First, generate all the forms that we going to use in the view
+	search_form=SearchMovieForm() 
+	select_form=SelectMovieForm()
+	confirm_form=ConfirmMovieForm()
 
+	# Search form is validated => Let's fetch the movirs from tvdb.org
+	if search_form.submit_search.data  and search_form.validate_on_submit():
+		select_form=SelectMovieForm(search_movies(search_form.search.data))
+
+		# Put it in a session in order to to the validation
+		session['query_movie'] = search_form.search.data
+		
+		# Display the selection form
+		if len(select_form.movie.choices) == 0:
+			flash("Aucun film correspondant","danger")
+			return render_template('add_movie_wizard.html', search_form=search_form)
+		else:
+			return render_template('select_movie_wizard.html', select_form=select_form)
+
+	
+	# Validate selection form
+	if select_form.submit_select.data:
+
+		# Fetch the query from the previous form in order to fill correctly the radio choices
+		movie_query = session.get('query_movie', None)
+		if movie_query != None:
+			select_form=SelectMovieForm(search_movies(movie_query))
+
+		if select_form.validate_on_submit():
+		
+			# Fetch the query from the previous form in order to fill correctly the radio choices
+			movie_query = session.get('query_movie', None)
+			if movie_query != None:
+				select_form=SelectMovieForm(search_movies(movie_query))
+
+			# Last step : Set type and origin and add the movie
+			movie_to_create=get_movie(select_form.movie.data)
+			confirm_form.movie_id.data=select_form.movie.data
+
+			# Go to the final confirmation form
+			return render_template('confirm_movie_wizard.html', movie=movie_to_create, form=confirm_form)
+	
+	# Confirmation form => add into the database
+	if confirm_form.submit_confirm.data and confirm_form.validate_on_submit():
+
+		# Form is okay => We can add the movie
+		movie_to_create=get_movie(confirm_form.movie_id.data)
+		movie_to_create.added_by_user=g.user.id
+		movie_to_create.type=confirm_form.type.data.id
+		movie_to_create.origin=confirm_form.origin.data.id
+
+		# Add the movie in the database
 		try:
-			db.session.add(movie)
+			db.session.add(movie_to_create)
 			db.session.flush()
-			new_movie_id=movie.id
+			new_movie_id=movie_to_create.id
 			db.session.commit()
 			flash('Film ajouté','success')
+
+			# Donwload the poster and update the database
+			if download_poster(movie_to_create):
+				flash('Affiche téléchargée','success')
+			else:
+				flash('Impossible de rettéléchar le poster','warning')
+			
+			# Movie added ==> Go to the mark form !
 			return redirect(url_for('mark_movie',movie_id_form=new_movie_id))
-		except IntegrityError:
+
+		except IntegrityError as e:
+			flash('Film already exists','danger')
 			db.session.rollback()
-			flash('Impossible d\'ajouter le film','danger')
-		
-	return render_template('add_movie.html', form=form)
+			return redirect(url_for('add_movie'))
+
+	# If we are here, that means we want to display the first form
+	return render_template('add_movie_wizard.html', search_form=search_form)
 
 @app.route('/my/marks')
 @app.route('/my/marks/<int:page>')
