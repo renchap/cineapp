@@ -1,0 +1,20 @@
+{% extends "base.html" %} 
+{% block content %}
+	<div class="container">
+		<div class="text-center">
+			<h1>Ajout d'un film</h1>
+		</div>
+		{%from "_formhelpers.html" import render_field %}
+		<form action="" method="post" name="searchmovie">
+			{{ search_form.hidden_tag() }}
+	        <div class="input-group">
+			{{ render_field(search_form.search,label_visible=false,message=False,placeholder="Fast and furious 7, Les Tuche") }} 
+		    <div class="input-group-btn">
+			{{ search_form.submit_search(class="btn btn-success center-block") }}	
+		    </div>
+		</div>
+			
+		</form>
+        </div>
+
+{% endblock %}
