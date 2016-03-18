@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
-from app import db
+from app import app,db
 from sqlalchemy import desc
+import flask.ext.whooshalchemy as whooshalchemy
+from whoosh.analysis import CharsetFilter, StemmingAnalyzer
+from whoosh import fields
+from whoosh.support.charset import accent_map
+from whoosh.support.charset import default_charset, charset_table_to_dict
 
 class User(db.Model):
 
@@ -54,6 +59,11 @@ class Movie(db.Model):
 
 	__tablename__ = "movies"
 
+	# Settings for FTS (WooshAlchemy)
+	__searchable__ = [ 'name', 'director' ]
+	charmap = charset_table_to_dict(default_charset)
+	__analyzer__ =  StemmingAnalyzer() | CharsetFilter(charmap)
+
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(100), unique=True, index=True)
 	release_date = db.Column(db.Date, index=True)
@@ -91,3 +101,6 @@ class Mark(db.Model):
 	comment = db.Column(db.String(255))
 	movie = db.relationship('Movie', backref='marked_by_users')
 	user = db.relationship('User', backref='marked_movies')
+
+# Enable FTS indexation
+whooshalchemy.whoosh_index(app, Movie)
