@@ -5,13 +5,13 @@
 		<ul class="pager">
         {% if movies.has_prev %}
 			<li class="previous">
-			<a href="{{ url_for('list_movies', page=movies.prev_num) }}"><span
+			<a href="{{ url_for(route_rule, page=movies.prev_num) }}"><span
 aria-hidden="true">&larr;</span> Page {{ movies.prev_num }}</a>
 			</li>
 	{% endif %}
         {% if movies.has_next %}
 			<li class="next">
-			<a href="{{ url_for('list_movies', page=movies.next_num) }}">Page {{ movies.next_num }} <span
+			<a href="{{ url_for(route_rule, page=movies.next_num) }}">Page {{ movies.next_num }} <span
 aria-hidden="true">&rarr;</span></a>
 			</li>
 	 {% endif %}
@@ -19,6 +19,7 @@ aria-hidden="true">&rarr;</span></a>
 	</nav>
 	</div>
 	<div class="container">
+		{% if movies.items|length != 0 %}
 		<table class="table table-striped">
 		<!-- Display the users name -->
 		<thead>
@@ -34,7 +35,6 @@ aria-hidden="true">&rarr;</span></a>
 			{% endfor %}
 		</th>
 		</thead>
-		
 	      {% for movie in movies.items %}
 		<tr>
 			<td><a href="{{ url_for('show_movie',movie_id=movie.id) }}">{{movie.name}}</a></td>
@@ -76,5 +76,6 @@ aria-hidden="true">&rarr;</span></a>
 		</tr>
 	      {% endfor %}
 		</table>
+	{% endif %}
 	</div>
 {% endblock %}
