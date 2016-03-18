@@ -1,6 +1,11 @@
 {% extends "base.html" %} 
 {% block content %}
 	<div class="container">
+		{% if route_rule == 'filter_mode' %}
+		<h1 class="text-center">Recherche : {{ session['query'] }}</h1>
+		{% else %}
+		<h1 class="text-center">Liste des films</h1>
+		{% endif %}
 	<nav>
 		<ul class="pager">
         {% if movies.has_prev %}
