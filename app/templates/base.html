@@ -49,6 +49,14 @@
 					{% endif %}
 				</ul>
 				{% if g.user.is_authenticated %}
+					{%from "_formhelpers.html" import render_field %}
+					<form class="navbar-form navbar-nav navbar-left" method="post" action="{{ url_for('filter_form') }}">
+						{{ g.search_form.hidden_tag() }}
+						<div class="form-group">
+							{{ render_field(g.search_form.search,label_visible=false,message=false,placeholder="Les Tuche, Spielberg") }}
+							{{ g.search_form.submit_search(class="btn btn-default") }}	
+					        </div>
+					</form>
 					<ul class="nav navbar-nav navbar-right">
 					<li>
 						<p class="navbar-text">

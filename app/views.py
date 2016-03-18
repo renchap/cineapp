@@ -25,6 +25,9 @@ def before_request():
 	# g set by flask
 	g.user = current_user
 
+	# Make the search form available in all templates (Including base.html)
+	g.search_form = SearchMovieForm()
+
 @app.route('/login', methods=['GET','POST'])
 def login():
 
@@ -56,14 +59,42 @@ def logout():
 	logout_user()
 	return redirect(url_for('index'))
 
-@app.route('/movies/list')
 @app.route('/movies/list/<int:page>')
+@app.route('/movies/list')
+@app.route('/movies/filter', methods=[ 'GET', 'POST' ], endpoint="filter_form")
+@app.route('/movies/filter/<int:page>', endpoint="filter_mode")
 def list_movies(page=1):
-	movies = Movie.query.paginate(page,20,False)
+
+	# Let's check if we are in list mode or filter mode
+	url_rule=request.url_rule
+	if url_rule.rule == "/movies/filter" or url_rule.rule == "/movies/filter/<int:page>":
+		# Tell to the pagination system that we are in filter mode
+		route_rule="filter_mode"
+
+		# We are in filter mode
+		if g.search_form.submit_search.data == True:
+			# Form has been posted
+			if g.search_form.validate_on_submit():
+				filter_string=g.search_form.search.data
+				session['query']=filter_string
+		else:
+			# We are in filter mode with a pagination request
+			filter_string=session.get('query',None)
+			print filter_string
+
+		# Let's do the search with a filter
+		movies = Movie.query.whoosh_search(filter_string).paginate(page,20,False)
+		if len(movies.items) == 0:
+			flash("Aucun resultat pour cette recherche","danger")
+	else:
+		# Tell to the pagination system that we are in list mode
+		route_rule="list_movies"
+		movies = Movie.query.paginate(page,20,False)
 
 	# Let's fetch all the users, I will need them
 	users = User.query.all()
-	return render_template('movies_list.html', movies=movies, users=users)
+
+	return render_template('movies_list.html', movies=movies, users=users,route_rule=route_rule)
 
 @app.route('/movies/show/<int:movie_id>')
 @login_required
