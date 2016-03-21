@@ -11,7 +11,10 @@ from wtforms.ext.sqlalchemy.orm import model_form
 from flask.ext.wtf import Form
 from datetime import datetime
 import config
+import json
 from .tvmdb import search_movies,get_movie,download_poster
+from sqlalchemy import desc
+import re
 
 @app.route('/')
 @app.route('/index')
@@ -70,6 +73,7 @@ def list_movies(page=1):
 	if url_rule.rule == "/movies/filter" or url_rule.rule == "/movies/filter/<int:page>":
 		# Tell to the pagination system that we are in filter mode
 		route_rule="filter_mode"
+		session['search_type']="filter"
 
 		# We are in filter mode
 		if g.search_form.submit_search.data == True:
@@ -89,12 +93,95 @@ def list_movies(page=1):
 	else:
 		# Tell to the pagination system that we are in list mode
 		route_rule="list_movies"
+		session['search_type']="list"
 		movies = Movie.query.paginate(page,20,False)
 
 	# Let's fetch all the users, I will need them
 	users = User.query.all()
 
 	return render_template('movies_list.html', movies=movies, users=users,route_rule=route_rule)
+
+@app.route('/movies/json', methods=['GET','POST'])
+@login_required
+def update_datatable():
+
+	# Local variables for handling the datatable
+	args = json.loads(request.values.get("args"))
+	columns = args.get("columns")
+	start = args.get('start')
+	length = args.get('length')
+	draw = args.get('draw')
+	order_by=args.get('order')
+	order_column=columns[order_by[0]['column']]['data']
+	order_dir=order_by[0]['dir']
+
+	# Guess which is the sort column
+	m=re.match('other_marks.(.*)',order_column)
+
+	if m != None:
+		filter_user=m.group(1)
+	elif order_column == "my_mark":
+		filter_user = g.user.id
+	else:
+		filter_user = None
+	
+	if filter_user != None:
+		# We need a special query for sorting records by logged user mark
+		if order_dir == "desc":
+			if session.get('search_type') == 'list': 
+				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
+				count_movies=Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).count()
+			elif session.get('search_type') == 'filter':
+				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
+				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).count()
+		else:
+			if session.get('search_type') == 'list': 
+				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).order_by(Mark.mark).slice(int(start),int(start) + int(length))
+				count_movies=Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).count()
+			elif session.get('search_type') == 'filter':
+				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).order_by(Mark.mark).slice(int(start),int(start) + int(length))
+				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).count()
+	else:
+
+		if session.get('search_type') == 'list': 
+			movies = Movie.query.order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
+			count_movies=Movie.query.count()
+		elif session.get('search_type') == 'filter':
+			movies = Movie.query.whoosh_search(session.get('query')).order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
+			count_movies=Movie.query.whoosh_search(session.get('query')).count()
+
+	# Let's fetch all the users, I will need them
+	users = User.query.all()
+
+	# Init the dictionnary
+	dict_movie = { "draw": draw , "recordsTotal": count_movies, "recordsFiltered" : count_movies, "data": []}
+	for cur_movie in movies:
+		# Fetch the note for the logged user
+		my_mark=-1
+		my_when="-"
+		for cur_mark in cur_movie.marked_by_users:
+			if cur_mark.user_id == g.user.id:
+				my_mark=cur_mark.mark
+				my_when=str(cur_mark.seen_when)
+
+		# Fill a dictionnary with marks for all the others users
+		dict_mark = {}
+		dict_where = {}
+		dict_when = {}
+		for cur_user in users:
+			dict_mark[cur_user.id]="-"
+			dict_where[cur_user.id]="-"
+			dict_when[cur_user.id]="-"
+			for cur_mark in cur_movie.marked_by_users:
+				if cur_mark.user.id == cur_user.id:
+					dict_mark[cur_user.id]=cur_mark.mark		
+					dict_when[cur_user.id]=str(cur_mark.seen_when)
+
+		# Create the json object for the datatable
+		dict_movie["data"].append({"DT_RowData": { "link": url_for("show_movie",movie_id=cur_movie.id), "mark_link": url_for("mark_movie",movie_id_form=cur_movie.id)}, "id": cur_movie.id,"name": cur_movie.name, "director": cur_movie.director, "my_mark": my_mark, "my_when": my_when, "other_marks": dict_mark, "other_where": dict_where, "other_when": dict_when })
+
+	# Send the json object to the browser
+	return json.dumps(dict_movie) 
 
 @app.route('/movies/show/<int:movie_id>')
 @login_required
