@@ -13,6 +13,11 @@
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
+	<!-- Datatables lib -->
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/t/bs-3.3.6/dt-1.10.11/datatables.min.css"/>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.11/js/dataTables.bootstrap.min.js"></script>
+
 	<!-- Style sheet for custom styles -->
 	<link href="/static/styles.css" rel="stylesheet">
 
@@ -30,7 +35,7 @@
 			      </button>
 			      <a class="navbar-brand" href="{{ url_for('index') }}">CineApp</a>
 			 </div>	
-			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+		<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 				<ul class="nav navbar-nav">
 					{% if g.user.is_authenticated %}
 					<li class="dropdown">
@@ -50,13 +55,13 @@
 				</ul>
 				{% if g.user.is_authenticated %}
 					{%from "_formhelpers.html" import render_field %}
-					<form class="navbar-form navbar-nav navbar-left" method="post" action="{{ url_for('filter_form') }}">
-						{{ g.search_form.hidden_tag() }}
-						<div class="form-group">
-							{{ render_field(g.search_form.search,label_visible=false,message=false,placeholder="Les Tuche, Spielberg") }}
-							{{ g.search_form.submit_search(class="btn btn-default") }}	
-					        </div>
-					</form>
+						<form class="navbar-form navbar-left" method="post" action="{{ url_for('filter_form') }}">
+							<div class="form-group">
+							{{ g.search_form.hidden_tag() }}
+							{{ g.search_form.search(class="form-control",placeholder="Les Tuche, Spielberg") }}	
+							</div>
+							{{ g.search_form.submit_search(class="btn btn-default") }}
+						</form>
 					<ul class="nav navbar-nav navbar-right">
 					<li>
 						<p class="navbar-text">
