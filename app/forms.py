@@ -2,16 +2,19 @@
 
 from flask.ext.wtf import Form
 from flask.ext.wtf.html5 import SearchField
-from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField
+from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError
-from app.models import Origin, Type
+from app.models import Origin, Type,User
 
 def get_origins():
 	return Origin.query.all()
 
 def get_types():
 	return Type.query.all()
+
+def get_users():
+	return User.query.all()
 
 class LoginForm(Form):
 	username = StringField('username', validators=[DataRequired()])
@@ -70,3 +73,9 @@ class ConfirmMovieForm(Form):
 	type = QuerySelectField(query_factory=get_types,get_label='type')
 	movie_id = HiddenField()
 	submit_confirm = SubmitField("Ajouter le film")
+
+class FilterForm(Form):
+	origin = QuerySelectField('Origine',query_factory=get_origins, get_label='origin',allow_blank=True,blank_text=u'--Pas de filtre--')
+	type = QuerySelectField('Type',query_factory=get_types,get_label='type',allow_blank=True,blank_text=u'--Pas de filtre--')
+	seen_where = QuerySelectField('Vu au cine par',query_factory=get_users,get_label='nickname',allow_blank=True,blank_text=u'--Pas de filtre--')
+	submit_filter = SubmitField("Filtrer")

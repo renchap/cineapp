@@ -3,7 +3,7 @@
 from flask import render_template, flash, redirect, url_for, g, request, session
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from app import app, db, lm
-from .forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm
+from .forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm
 from .models import User, Movie, Mark
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from bcrypt import hashpw, gensalt
@@ -13,7 +13,8 @@ from datetime import datetime
 import config
 import json
 from .tvmdb import search_movies,get_movie,download_poster
-from sqlalchemy import desc
+from sqlalchemy import desc, or_, and_, Table
+from sqlalchemy.sql.expression import select
 import re
 
 @app.route('/')
@@ -68,6 +69,9 @@ def logout():
 @app.route('/movies/filter/<int:page>', endpoint="filter_mode")
 def list_movies(page=1):
 
+	# Display the search form
+	filter_form = FilterForm()
+
 	# Let's check if we are in list mode or filter mode
 	url_rule=request.url_rule
 	if url_rule.rule == "/movies/filter" or url_rule.rule == "/movies/filter/<int:page>":
@@ -75,31 +79,51 @@ def list_movies(page=1):
 		route_rule="filter_mode"
 		session['search_type']="filter"
 
+		print filter_form.submit_filter.data
+
 		# We are in filter mode
 		if g.search_form.submit_search.data == True:
-			# Form has been posted
+			# We come from the form into the navbar
 			if g.search_form.validate_on_submit():
 				filter_string=g.search_form.search.data
 				session['query']=filter_string
+
+		elif filter_form.submit_filter.data == True:
+			# We come from the filter form above the datatable
+			# Build the filter request
+
+			if filter_form.origin.data == None and filter_form.type.data == None and filter_form.seen_where.data == None:
+				# All filter are empty => Let's display the list
+				return redirect(url_for('list_movies'))
+
+			session['search_type']="filter_origin_type"
+			filter_dict = {'origin' : None, 'type': None, 'seen_where' : None}
+
+			if filter_form.origin.data != None:
+				filter_dict['origin'] = filter_form.origin.data.id
+
+			if filter_form.type.data != None:
+				filter_dict['type'] = filter_form.type.data.id
+
+			if filter_form.seen_where.data != None:
+				filter_dict['seen_where'] = filter_form.seen_where.data.id
+
+
+			session['query']=filter_dict
 		else:
 			# We are in filter mode with a pagination request
 			filter_string=session.get('query',None)
-			print filter_string
 
-		# Let's do the search with a filter
-		movies = Movie.query.whoosh_search(filter_string).paginate(page,20,False)
-		if len(movies.items) == 0:
-			flash("Aucun resultat pour cette recherche","danger")
 	else:
+
 		# Tell to the pagination system that we are in list mode
 		route_rule="list_movies"
 		session['search_type']="list"
-		movies = Movie.query.paginate(page,20,False)
 
 	# Let's fetch all the users, I will need them
 	users = User.query.all()
 
-	return render_template('movies_list.html', movies=movies, users=users,route_rule=route_rule)
+	return render_template('movies_list.html', users=users,route_rule=route_rule,filter_form=filter_form)
 
 @app.route('/movies/json', methods=['GET','POST'])
 @login_required
@@ -127,10 +151,34 @@ def update_datatable():
 	
 	if filter_user != None:
 		# We need a special query for sorting records by logged user mark
+
+		# Let's build the filtered requested following what has been posted in the filter form
+		filter_fields=session.get('query')
+		movies_query = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user)
+
+		if filter_fields['origin'] != None:
+			movies_query = movies_query.filter(Movie.origin==filter_fields['origin'])
+
+		if filter_fields['type'] != None:
+			movies_query = movies_query.filter(Movie.type==filter_fields['type'])
+
+		if filter_fields['seen_where'] != None:
+			movies_seen_in_theater = Mark.query.filter(Mark.user_id==filter_fields['seen_where']).filter(Mark.seen_where=='C').all()
+			array_movies_seen_in_theater = []
+
+			for cur_movie_seen_in_theater in movies_seen_in_theater:
+				array_movies_seen_in_theater.append(cur_movie_seen_in_theater.movie_id)
+
+			movies_query = movies_query.filter(Mark.movie_id.in_(array_movies_seen_in_theater))
+
 		if order_dir == "desc":
 			if session.get('search_type') == 'list': 
 				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).count()
+			elif session.get('search_type') == 'filter_origin_type':
+				movies = movies_query.order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
+				count_movies=movies_query.count()
+					
 			elif session.get('search_type') == 'filter':
 				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).count()
@@ -138,6 +186,9 @@ def update_datatable():
 			if session.get('search_type') == 'list': 
 				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).order_by(Mark.mark).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).count()
+			elif session.get('search_type') == 'filter_origin_type':
+				movies = movies_query.order_by(Mark.mark).slice(int(start),int(start) + int(length))
+				count_movies=movies_query.count()
 			elif session.get('search_type') == 'filter':
 				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).order_by(Mark.mark).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).count()
@@ -146,6 +197,25 @@ def update_datatable():
 		if session.get('search_type') == 'list': 
 			movies = Movie.query.order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
 			count_movies=Movie.query.count()
+
+		elif session.get('search_type') == 'filter_origin_type':
+			# Let's build the filtered requested following what has been posted in the filter form
+			filter_fields=session.get('query')
+			movies_query = Movie.query
+
+			if filter_fields['origin'] != None:
+				movies_query = movies_query.filter(Movie.origin==filter_fields['origin'])
+
+			if filter_fields['type'] != None:
+				movies_query = movies_query.filter(Movie.type==filter_fields['type'])
+
+			if filter_fields['seen_where'] !=None:
+				movies_query = movies_query.join(Mark).filter_by(user_id=filter_fields['seen_where']).filter(Mark.seen_where=='C')
+
+			# Build the request
+			movies = movies_query.order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
+			count_movies=movies_query.count()
+
 		elif session.get('search_type') == 'filter':
 			movies = Movie.query.whoosh_search(session.get('query')).order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
 			count_movies=Movie.query.whoosh_search(session.get('query')).count()
@@ -159,10 +229,12 @@ def update_datatable():
 		# Fetch the note for the logged user
 		my_mark=-1
 		my_when="-"
+		my_where=""
 		for cur_mark in cur_movie.marked_by_users:
 			if cur_mark.user_id == g.user.id:
 				my_mark=cur_mark.mark
-				my_when=str(cur_mark.seen_when)
+				my_when=str(cur_mark.seen_when.strftime("%Y"))
+				my_where=cur_mark.seen_where
 
 		# Fill a dictionnary with marks for all the others users
 		dict_mark = {}
@@ -175,10 +247,11 @@ def update_datatable():
 			for cur_mark in cur_movie.marked_by_users:
 				if cur_mark.user.id == cur_user.id:
 					dict_mark[cur_user.id]=cur_mark.mark		
-					dict_when[cur_user.id]=str(cur_mark.seen_when)
+					dict_where[cur_user.id]=cur_mark.seen_where
+					dict_when[cur_user.id]=str(cur_mark.seen_when.strftime("%Y"))
 
 		# Create the json object for the datatable
-		dict_movie["data"].append({"DT_RowData": { "link": url_for("show_movie",movie_id=cur_movie.id), "mark_link": url_for("mark_movie",movie_id_form=cur_movie.id)}, "id": cur_movie.id,"name": cur_movie.name, "director": cur_movie.director, "my_mark": my_mark, "my_when": my_when, "other_marks": dict_mark, "other_where": dict_where, "other_when": dict_when })
+		dict_movie["data"].append({"DT_RowData": { "link": url_for("show_movie",movie_id=cur_movie.id), "mark_link": url_for("mark_movie",movie_id_form=cur_movie.id)}, "id": cur_movie.id,"name": cur_movie.name, "director": cur_movie.director, "my_mark": my_mark, "my_when": my_when, "my_where": my_where, "other_marks": dict_mark, "other_where": dict_where, "other_when": dict_when })
 
 	# Send the json object to the browser
 	return json.dumps(dict_movie) 

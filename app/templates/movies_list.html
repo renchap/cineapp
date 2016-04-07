@@ -32,12 +32,28 @@
 					}
 				 },
 				 { "data": "my_when",
+				   "render": function(data,type,row) {
+						if (row.my_where == 'C')  {
+							return row.my_when + " (C)"
+						} else {
+							return row.my_when
+						}
+					},
+			
 				   "orderable": false
 				 },
 			{% for cur_user in users %}
 				{% if g.user.id != cur_user.id %}
 				 { "data": "other_marks.{{ cur_user.id }}" },
-				 { "data": "other_when.{{ cur_user.id }}","orderable":false },
+				 { "data": "other_when.{{ cur_user.id }}",
+				   "render" : function(data,type,row) {
+						if (row.other_where[{{cur_user.id}}]  == 'C')  {
+							return row.other_when[{{cur_user.id}}] + " (C)"
+						} else {
+							return row.other_when[{{cur_user.id}}] 
+						}
+					},
+				   "orderable":false },
 				{%endif%}
 			{% endfor %}
 			  ],
@@ -59,30 +75,29 @@
 	} );
 	</script>
 	<div class="container">
-		{% if route_rule == 'filter_mode' %}
+		{% if session['search_type'] == 'filter' %}
 		<h1 class="text-center">Recherche Personnalisée: {{ session['query'] }}</h1>
+		{% elif session['search_type'] == 'filter_origin_type' %}
+		<h1 class="text-center">Recherche par filtre</h1>
 		{% else %}
 		<h1 class="text-center">Liste des films</h1>
 		{% endif %}
-<!--	<nav>
-		<ul class="pager">
-        {% if movies.has_prev %}
-			<li class="previous">
-			<a href="{{ url_for(route_rule, page=movies.prev_num) }}"><span
-aria-hidden="true">&larr;</span> Page {{ movies.prev_num }}</a>
-			</li>
-	{% endif %}
-        {% if movies.has_next %}
-			<li class="next">
-			<a href="{{ url_for(route_rule, page=movies.next_num) }}">Page {{ movies.next_num }} <span
-aria-hidden="true">&rarr;</span></a>
-			</li>
-	 {% endif %}
-		</ul>
-	</nav>-->
 	</div>
 	<div class="container">
-		{% if movies.items|length != 0 %}
+		<div class="row">
+			<!-- Filter Form -->
+			<div>
+				<form class="form-inline text-center" method="post" role="form" action={{ url_for('filter_form') }}>
+					{{ render_field(filter_form.origin) }}	
+					{{ render_field(filter_form.type) }}	
+					{{ render_field(filter_form.seen_where) }}	
+					{{ render_field(filter_form.submit_filter,label_visible=false,class="btn btn-success") }}
+				</form>
+				
+			</div>
+		</div>
+	</div>
+	<div class="container">
 		<table class="table table-striped" id="movielist">
 		<!-- Display the users name -->
 		<thead>
@@ -109,6 +124,5 @@ aria-hidden="true">&rarr;</span></a>
 		</tr>
 		</thead>
 		</table>
-	{% endif %}
 	</div>
 {% endblock %}
