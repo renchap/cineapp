@@ -150,7 +150,6 @@ def update_datatable():
 		filter_user = None
 	
 	if filter_user != None:
-		# We need a special query for sorting records by logged user mark
 
 		# Let's build the filtered requested following what has been posted in the filter form
 		filter_fields=session.get('query')
@@ -163,14 +162,24 @@ def update_datatable():
 			movies_query = movies_query.filter(Movie.type==filter_fields['type'])
 
 		if filter_fields['seen_where'] != None:
+
+			# We want to sort movies for a specific user keeping the seen_where filter enabled
+			# So we want to see movies seen in theater (or not) by a user sorting these movies by marks of another user
+			# Since we sort by marks, we don't want to see movies without a mark for that user
+			# So we need that to build that specific subquery.
+
+			# First let's fetch the movies seen by a user in theaters
 			movies_seen_in_theater = Mark.query.filter(Mark.user_id==filter_fields['seen_where']).filter(Mark.seen_where=='C').all()
 			array_movies_seen_in_theater = []
 
+			# Then build a list of these movies
 			for cur_movie_seen_in_theater in movies_seen_in_theater:
 				array_movies_seen_in_theater.append(cur_movie_seen_in_theater.movie_id)
-
+			
+			# Finally let's build the filter that will be used later building the query
 			movies_query = movies_query.filter(Mark.movie_id.in_(array_movies_seen_in_theater))
 
+		# Sort my desc marks
 		if order_dir == "desc":
 			if session.get('search_type') == 'list': 
 				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
@@ -182,6 +191,8 @@ def update_datatable():
 			elif session.get('search_type') == 'filter':
 				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).count()
+
+		# Sort by asc marks
 		else:
 			if session.get('search_type') == 'list': 
 				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).order_by(Mark.mark).slice(int(start),int(start) + int(length))
@@ -194,10 +205,12 @@ def update_datatable():
 				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).count()
 	else:
 
+		# If we are are => No sort. Just filter or list display.
 		if session.get('search_type') == 'list': 
 			movies = Movie.query.order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
 			count_movies=Movie.query.count()
 
+		# Let's use the filter form
 		elif session.get('search_type') == 'filter_origin_type':
 			# Let's build the filtered requested following what has been posted in the filter form
 			filter_fields=session.get('query')
@@ -216,6 +229,7 @@ def update_datatable():
 			movies = movies_query.order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
 			count_movies=movies_query.count()
 
+		# Here, this is for the string search (Movie or director)
 		elif session.get('search_type') == 'filter':
 			movies = Movie.query.whoosh_search(session.get('query')).order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
 			count_movies=Movie.query.whoosh_search(session.get('query')).count()
