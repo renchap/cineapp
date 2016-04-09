@@ -5,13 +5,22 @@ from flask.ext.mail import Message
 from app import mail, db
 from .models import User
 from config import MAIL_SENDER
+from threading import Thread
+from app import app
+
+# Send mail into a dedicated thread in order to avoir the web app to wait
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
 
 # Wrapper function for sending mails using flask-mail plugin
 def send_email(subject, sender, recipients, text_body):
     msg = Message(subject, sender=sender, recipients=recipients)
     msg.body = text_body
-    mail.send(msg)
+    thr = Thread(target=send_async_email, args=[app, msg])
+    thr.start()
 
+# Function which sends notifications to users when a movie is added
 def add_movie_notification(movie):
 	users = User.query.all()
 	you_user = False
