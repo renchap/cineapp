@@ -3,6 +3,7 @@ from flask.ext.login import login_user, logout_user, current_user, login_require
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, session
 from flask.ext.session import Session
+from flask.ext.mail import Mail
 
 app = Flask(__name__)
 
@@ -20,5 +21,8 @@ lm.login_view = 'login'
 # Session Manager Init
 sess = Session()
 sess.init_app(app)
+
+# Mail engine init
+mail = Mail(app)
 
 from app import views, models
