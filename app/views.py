@@ -13,6 +13,7 @@ from datetime import datetime
 import config
 import json
 from .tvmdb import search_movies,get_movie,download_poster
+from .emails import add_movie_notification
 from sqlalchemy import desc, or_, and_, Table
 from sqlalchemy.sql.expression import select
 import re
@@ -387,6 +388,9 @@ def add_movie():
 				flash('Affiche téléchargée','success')
 			else:
 				flash('Impossible de rettéléchar le poster','warning')
+
+			# Movie has been added => Send notifications
+			add_movie_notification(movie_to_create)
 			
 			# Movie added ==> Go to the mark form !
 			return redirect(url_for('mark_movie',movie_id_form=new_movie_id))
