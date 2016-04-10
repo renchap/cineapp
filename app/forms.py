@@ -2,7 +2,7 @@
 
 from flask.ext.wtf import Form
 from flask.ext.wtf.html5 import SearchField
-from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField
+from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField, TextAreaField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError
 from app.models import Origin, Type,User
@@ -36,15 +36,15 @@ class AddMovieForm(Form):
 
 class MarkMovieForm(Form):
 	mark = StringField('Note du Film', [DataRequired()])
-	comment = StringField('Commentaire du Film', [DataRequired()])
-	seen_where = StringField('Ou j\'ai vu le film', [DataRequired()])
+	comment = TextAreaField('Commentaire du Film', [DataRequired()])
+	seen_where = SelectField('Ou j\'ai vu le film', choices=[('C', u'Cinéma'), ('A', 'Autres')])
 
 	def validate_mark(form,field):
 		try:
-			int(field.data)
+			float(field.data)
 		except ValueError:
 			raise ValidationError('Pas un chiffre')
-		if int(field.data) < 0 or int(field.data) > 20:
+		if float(field.data) < 0 or float(field.data) > 20:
 			raise ValidationError('Note Incorrecte')
 
 class SearchMovieForm(Form):
