@@ -6,6 +6,7 @@ from app import app, db, lm
 from .forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm
 from .models import User, Movie, Mark
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
+from sqlalchemy.orm.exc import FlushError
 from bcrypt import hashpw, gensalt
 from wtforms.ext.sqlalchemy.orm import model_form
 from flask.ext.wtf import Form
@@ -13,7 +14,7 @@ from datetime import datetime
 import config
 import json
 from .tvmdb import search_movies,get_movie,download_poster
-from .emails import add_movie_notification
+from .emails import add_movie_notification, mark_movie_notification
 from sqlalchemy import desc, or_, and_, Table
 from sqlalchemy.sql.expression import select
 import re
@@ -309,11 +310,19 @@ def mark_movie(movie_id_form):
 			db.session.add(mark)
 			db.session.commit()
 			flash('Note ajoutée','success')
+
+			# Send notification
+			mark_movie_notification(mark)
 			return redirect(url_for('show_movie',movie_id=movie_id_form))
 			
 		except IntegrityError:
 			db.session.rollback()
-			flash('Impossible d\'ajouter la note')
+			flash('Impossible d\'ajouter la note','danger')
+			return render_template('movie_show.html', movie=movie, mark=True, marked_flag=False, form=form)
+
+		except FlushError:
+			db.session.rollback()
+			flash('Impossible d\'ajouter la note','danger')
 			return render_template('movie_show.html', movie=movie, mark=True, marked_flag=False, form=form)
 
 	if marked_movie is None:

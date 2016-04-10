@@ -22,7 +22,7 @@ def send_email(subject, sender, recipients, text_body):
 
 # Function which sends notifications to users when a movie is added
 def add_movie_notification(movie):
-	users = User.query.all()
+	users = User.query.filter_by(notif_enabled=1).all()
 	you_user = False
 	for cur_user in users:
 		# Check if the cur_user is the logged user who added the movie
@@ -32,3 +32,17 @@ def add_movie_notification(movie):
 	
 		send_email('[Cineapp] - Ajout d\'un film' , MAIL_SENDER,[ cur_user.email ] ,
 		render_template('add_movie_notification.txt', dest_user=cur_user, add_user=g.user,movie=movie,you_user=you_user))
+
+# Function which sends notifications to users when a movie is added
+def mark_movie_notification(mark):
+	users = User.query.filter_by(notif_enabled=1).all()
+	for cur_user in users:
+		# Check if the cur_user is the logged user who added the movie
+		# in order to change the mail text
+		if cur_user.id==g.user.id:
+			you_user=True
+		else:
+			you_user=False
+	
+		send_email('[Cineapp] - Note d\'un film' , MAIL_SENDER,[ cur_user.email ] ,
+		render_template('mark_movie_notification.txt', dest_user=cur_user, add_user=g.user,mark=mark,you_user=you_user))

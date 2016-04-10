@@ -1,0 +1,12 @@
+Yo {{ dest_user.nickname }},
+{% if you_user == True %}
+Tu viens de noter le film {{ mark.movie.name }} avec la note {{ mark.mark }}.
+{% else %}
+{{ add_user.nickname }} vient de noter le film {{ mark.movie.name }} avec la note {{ mark.mark }}
+{% endif %}
+Le commentaire est : {{ mark.comment }}
+
+Pour voir la fiche du film : {{ url_for('show_movie', movie_id=mark.movie.id, _external=True) }}
+
+--
+CineApp

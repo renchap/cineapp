@@ -15,6 +15,7 @@ class User(db.Model):
 	nickname = db.Column(db.String(64), index=True, unique=True)
 	password = db.Column(db.String(255))
 	email = db.Column(db.String(120), index=True, unique=True)
+	notif_enabled = db.Column(db.Boolean)
 	added_movies = db.relationship('Movie', backref='added_by', lazy='dynamic')
 
 	@property
@@ -97,7 +98,7 @@ class Mark(db.Model):
 	movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), primary_key=True)
 	seen_when = db.Column(db.Date)
 	seen_where = db.Column(db.String(4))
-	mark = db.Column(db.Integer)
+	mark = db.Column(db.Float)
 	comment = db.Column(db.String(255))
 	movie = db.relationship('Movie', backref='marked_by_users')
 	user = db.relationship('User', backref='marked_movies')
