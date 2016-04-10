@@ -4,7 +4,7 @@
             <label for="{{ field.id }}" class="control-label">{{ field.label }}</label>
         {% endif %}
         {{ field(class_='form-control', **kwargs) }}
-        {% if message == False and field.errors %}
+        {% if message and field.errors %}
             {% for e in field.errors %}
                 <p class="help-block">{{ e }}</p>
             {% endfor %}

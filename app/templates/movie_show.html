@@ -73,8 +73,8 @@ aria-hidden="true">&rarr;</span></a>
 			{%from "_formhelpers.html" import render_field %}
 			<form method="post" action="" name="markmovie">
 				{{ form.hidden_tag() }}
-				{{ render_field(form.mark) }}
-				{{ render_field(form.comment) }}
+				{{ render_field(form.mark,message=True) }}
+				{{ render_field(form.comment,message=True) }}
     			        {{ render_field(form.seen_where) }}
 				<input type="submit" class="btn btn-success center-block" value="Noter">
 			</form>
