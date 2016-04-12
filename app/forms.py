@@ -2,7 +2,7 @@
 
 from flask.ext.wtf import Form
 from flask.ext.wtf.html5 import SearchField
-from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField, TextAreaField
+from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField, TextAreaField, BooleanField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError
 from app.models import Origin, Type,User
@@ -79,3 +79,10 @@ class FilterForm(Form):
 	type = QuerySelectField('Type',query_factory=get_types,get_label='type',allow_blank=True,blank_text=u'--Pas de filtre--')
 	seen_where = QuerySelectField('Vu au cine par',query_factory=get_users,get_label='nickname',allow_blank=True,blank_text=u'--Pas de filtre--')
 	submit_filter = SubmitField("Filtrer")
+
+class UserForm(Form):
+	email = StringField('Adresse Email', [DataRequired('Champ Requis'), Email(message="Adresse E-Mail Incorrecte")])
+	notif_enabled = BooleanField()
+	password = PasswordField('Mot de passe',[DataRequired('Champ Requis'), EqualTo('confirm',message='Les mots de passe ne correspondent pas')])
+	confirm = PasswordField('Confirmation mot de passe',[DataRequired('Champ Requis')])
+	submit_user = SubmitField("Sauver")

@@ -3,7 +3,7 @@
 from flask import render_template, flash, redirect, url_for, g, request, session
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from app import app, db, lm
-from .forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm
+from .forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm, UserForm
 from .models import User, Movie, Mark
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy.orm.exc import FlushError
@@ -17,6 +17,7 @@ from .tvmdb import search_movies,get_movie,download_poster
 from .emails import add_movie_notification, mark_movie_notification
 from sqlalchemy import desc, or_, and_, Table
 from sqlalchemy.sql.expression import select
+import urllib, hashlib
 import re
 
 @app.route('/')
@@ -441,3 +442,31 @@ def add_user():
 		except IntegrityError:
 			flash('Utilisateur déjà existant')
 	return render_template('add_user_form.html', form=form)
+
+@app.route('/my/profile', methods=['GET', 'POST'])
+@login_required
+def edit_user_profile():
+
+	# Init the form
+	form=UserForm(obj=g.user)
+
+	# Gravatar test
+	gravatar_url = "http://www.gravatar.com/avatar/" + hashlib.sha256(g.user.email.lower()).hexdigest() + "?"
+	gravatar_url += urllib.urlencode({'d':"identicon",'s':str(100)})
+	print gravatar_url
+
+	if form.validate_on_submit():
+		# Update the User object
+		g.user.email = form.email.data
+		g.user.notif_enabled = form.notif_enabled.data
+		g.user.password = hashpw(form.password.data.encode('utf-8'),gensalt())
+
+		try:
+			db.session.add(g.user)
+			db.session.commit()
+			flash('Informations mises à jour','success')
+		except:
+			flash('Impossible de mettre à jour l\'utilisateur', 'danger')
+
+	# Fetch the object for the current logged_in user
+	return render_template('edit_profile.html',form=form,gravatar_url=gravatar_url)
