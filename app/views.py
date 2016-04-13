@@ -450,11 +450,6 @@ def edit_user_profile():
 	# Init the form
 	form=UserForm(obj=g.user)
 
-	# Gravatar test
-	gravatar_url = "http://www.gravatar.com/avatar/" + hashlib.sha256(g.user.email.lower()).hexdigest() + "?"
-	gravatar_url += urllib.urlencode({'d':"identicon",'s':str(100)})
-	print gravatar_url
-
 	if form.validate_on_submit():
 		# Update the User object
 		g.user.email = form.email.data
@@ -469,4 +464,4 @@ def edit_user_profile():
 			flash('Impossible de mettre à jour l\'utilisateur', 'danger')
 
 	# Fetch the object for the current logged_in user
-	return render_template('edit_profile.html',form=form,gravatar_url=gravatar_url)
+	return render_template('edit_profile.html',form=form)
