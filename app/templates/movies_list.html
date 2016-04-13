@@ -104,10 +104,19 @@
 		<thead>
 		<tr>
 		<td colspan="2"></td>
-		<th colspan="2" class="text-center"">Mes Notes</th>
+		<th colspan="2" class="text-center">
+	  		<div>
+				<img src="http://www.gravatar.com/avatar/{{ g.user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
+			</div>
+			<strong>Mes Notes</strong>
+		</th>
 			{% for cur_user in users %}
 				{% if g.user.id != cur_user.id %}
-				<th colspan="2" class="text-center"><strong>{{ cur_user.nickname }}</strong></th>
+				<th colspan="2" class="text-center">
+		  		<div>
+					<img src="http://www.gravatar.com/avatar/{{ cur_user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
+				</div>
+				<strong>{{ cur_user.nickname }}</strong></th>
 				{% endif %}
 			{% endfor %}	
 		</tr>

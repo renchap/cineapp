@@ -15,6 +15,7 @@ class User(db.Model):
 	nickname = db.Column(db.String(64), index=True, unique=True)
 	password = db.Column(db.String(255))
 	email = db.Column(db.String(120), index=True, unique=True)
+	avatar = db.Column(db.String(255), unique=True)
 	notif_enabled = db.Column(db.Boolean)
 	added_movies = db.relationship('Movie', backref='added_by', lazy='dynamic')
 
