@@ -14,7 +14,7 @@ from datetime import datetime
 import config
 import json
 from .tvmdb import search_movies,get_movie,download_poster
-from .emails import add_movie_notification, mark_movie_notification
+from .emails import add_movie_notification, mark_movie_notification, add_homework_notification
 from sqlalchemy import desc, or_, and_, Table
 from sqlalchemy.sql.expression import select
 import urllib, hashlib
@@ -81,8 +81,6 @@ def list_movies(page=1):
 		# Tell to the pagination system that we are in filter mode
 		route_rule="filter_mode"
 		session['search_type']="filter"
-
-		print filter_form.submit_filter.data
 
 		# We are in filter mode
 		if g.search_form.submit_search.data == True:
@@ -257,18 +255,32 @@ def update_datatable():
 		dict_mark = {}
 		dict_where = {}
 		dict_when = {}
+		dict_homework = {}
 		for cur_user in users:
-			dict_mark[cur_user.id]="-"
+			dict_mark[cur_user.id]=None
 			dict_where[cur_user.id]="-"
 			dict_when[cur_user.id]="-"
+			dict_homework[cur_user.id]={ "when" : None, "link" : url_for("add_homework",movie_id=cur_movie.id,user_id=cur_user.id)}
 			for cur_mark in cur_movie.marked_by_users:
 				if cur_mark.user.id == cur_user.id:
 					dict_mark[cur_user.id]=cur_mark.mark		
 					dict_where[cur_user.id]=cur_mark.seen_where
-					dict_when[cur_user.id]=str(cur_mark.seen_when.strftime("%Y"))
+					dict_homework[cur_user.id]["when"]=str(cur_mark.homework_when)
+
+					# Convert the date object only if seen_when field is not null (Homework UC)
+					if cur_mark.seen_when != None:
+						dict_when[cur_user.id]=str(cur_mark.seen_when.strftime("%Y"))
 
 		# Create the json object for the datatable
-		dict_movie["data"].append({"DT_RowData": { "link": url_for("show_movie",movie_id=cur_movie.id), "mark_link": url_for("mark_movie",movie_id_form=cur_movie.id)}, "id": cur_movie.id,"name": cur_movie.name, "director": cur_movie.director, "my_mark": my_mark, "my_when": my_when, "my_where": my_where, "other_marks": dict_mark, "other_where": dict_where, "other_when": dict_when })
+		dict_movie["data"].append({"DT_RowData": { "link": url_for("show_movie",movie_id=cur_movie.id), "mark_link": url_for("mark_movie",movie_id_form=cur_movie.id),"homework_link": dict_homework},
+		"id": cur_movie.id,"name": cur_movie.name, 
+		"director": cur_movie.director,
+		"my_mark": my_mark, "my_when": my_when,
+		"my_where": my_where, 
+		"other_marks": dict_mark, 
+		"other_where": dict_where,
+		"other_when": dict_when,
+		"other_homework_when" : dict_homework })
 
 	# Send the json object to the browser
 	return json.dumps(dict_movie) 
@@ -465,3 +477,24 @@ def edit_user_profile():
 
 	# Fetch the object for the current logged_in user
 	return render_template('edit_profile.html',form=form)
+
+@app.route('/homework/add/<int:movie_id>/<int:user_id>')
+def add_homework(movie_id,user_id):
+	
+	# Create the mark object
+	mark=Mark(user_id=user_id,movie_id=movie_id,homework_who=g.user.id,homework_when=datetime.now())
+
+	# Add the object to the database
+	try:
+		db.session.add(mark)
+		db.session.commit()
+		flash('Notification de devoir envoyée','success')
+	
+	except Exception,e: 
+		flash('Impossible de creer le devoir','danger')
+		return redirect(url_for('list_movies'))
+
+	# Send email notification
+	add_homework_notification(mark)
+	
+	return redirect(url_for('list_movies'))

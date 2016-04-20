@@ -46,3 +46,9 @@ def mark_movie_notification(mark):
 	
 		send_email('[Cineapp] - Note d\'un film' , MAIL_SENDER,[ cur_user.email ] ,
 		render_template('mark_movie_notification.txt', dest_user=cur_user, add_user=g.user,mark=mark,you_user=you_user))
+
+# Function which sends notification to user who received an homework
+def add_homework_notification(mark):
+	# For the homework, just send a mail to the user who has to handle the homework.
+	send_email('[Cineapp] - Attribution d\'un devoir', MAIL_SENDER,[ mark.user.email ],
+	render_template('add_homework_notification.txt', dest_user=mark.user, homework_who=mark.homework_who_user, movie=mark.movie))

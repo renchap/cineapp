@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from app import app,db
-from sqlalchemy import desc
+from sqlalchemy import desc,text, DefaultClause
 import flask.ext.whooshalchemy as whooshalchemy
 from whoosh.analysis import CharsetFilter, StemmingAnalyzer
 from whoosh import fields
@@ -101,8 +101,13 @@ class Mark(db.Model):
 	seen_where = db.Column(db.String(4))
 	mark = db.Column(db.Float)
 	comment = db.Column(db.String(255))
+	homework_when = db.Column(db.Date)
+	# Server_default allow to put the column with DEFAULT VALUE to NULL which is mandatory if we want the foreign key to be added
+	# If the value is not NULL, the default value is O so the foreign constraint is violated
+	homework_who = db.Column(db.Integer,db.ForeignKey('users.id'),nullable=True,server_default=text('NULL'))
 	movie = db.relationship('Movie', backref='marked_by_users')
-	user = db.relationship('User', backref='marked_movies')
+	user = db.relationship('User', backref='marked_movies',foreign_keys='Mark.user_id')
+	homework_who_user = db.relationship('User', backref='given_homework',foreign_keys='Mark.homework_who')
 
 # Enable FTS indexation
 whooshalchemy.whoosh_index(app, Movie)

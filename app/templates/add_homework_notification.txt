@@ -1,0 +1,10 @@
+Yo {{ dest_user.nickname }},
+
+{{ homework_who.nickname }} vient de te donner un devoir.
+
+Le film que tu dois regarder est : {{ movie.name }}
+
+Pour le noter : {{ url_for('show_movie', movie_id=movie.id, _external=True) }}
+
+--
+CineApp
