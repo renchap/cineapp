@@ -4,7 +4,7 @@ from flask import render_template, flash, redirect, url_for, g, request, session
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from app import app, db, lm
 from .forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm, UserForm
-from .models import User, Movie, Mark
+from .models import User, Movie, Mark, Origin, Type
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy.orm.exc import FlushError
 from bcrypt import hashpw, gensalt
@@ -17,6 +17,7 @@ from .tvmdb import search_movies,get_movie,download_poster
 from .emails import add_movie_notification, mark_movie_notification, add_homework_notification
 from sqlalchemy import desc, or_, and_, Table
 from sqlalchemy.sql.expression import select
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
 import urllib, hashlib
 import re
 
@@ -66,7 +67,6 @@ def logout():
 	logout_user()
 	return redirect(url_for('index'))
 
-@app.route('/movies/list/<int:page>')
 @app.route('/movies/list')
 @app.route('/movies/filter', methods=[ 'GET', 'POST' ], endpoint="filter_form")
 @app.route('/movies/filter/<int:page>', endpoint="filter_mode")
@@ -74,6 +74,15 @@ def list_movies(page=1):
 
 	# Display the search form
 	filter_form = FilterForm()
+
+	# Fetch the query string or dict => We'll need it later
+	session_query=session.get('query')
+	
+	# If clear_table session variable is set to false, that means we come from add_homework
+	if session.pop('clear_table',None) == False:
+		clear_table=False
+	else:
+		clear_table=True
 
 	# Let's check if we are in list mode or filter mode
 	url_rule=request.url_rule
@@ -97,6 +106,7 @@ def list_movies(page=1):
 				# All filter are empty => Let's display the list
 				return redirect(url_for('list_movies'))
 
+			# Put the forms parameter into a session object in order to be handled by the datatable
 			session['search_type']="filter_origin_type"
 			filter_dict = {'origin' : None, 'type': None, 'seen_where' : None}
 
@@ -109,8 +119,31 @@ def list_movies(page=1):
 			if filter_form.seen_where.data != None:
 				filter_dict['seen_where'] = filter_form.seen_where.data.id
 
-
 			session['query']=filter_dict
+
+		elif isinstance(session_query,dict):
+			# We come from an homework link and we want to fill the form
+			session['search_type']="filter_origin_type"
+			
+			# Rebuild the form setting default values stores into the session object
+			# We need to check if the variable is not or none in order to avoid an exception
+			if session_query['origin'] == None:
+				origin = None
+			else:
+				origin=Origin.query.get(session_query['origin'])
+
+			if session_query['type'] == None:
+				type = None
+			else:
+				type=Type.query.get(session_query['type'])
+
+			if session_query['seen_where'] == None:
+				seen_where=None
+			else:
+				seen_where=User.query.get(session_query['seen_where'])
+
+			# Recreate the form with the set default values
+			filter_form=FilterForm(origin=origin,type=type,seen_where=seen_where)
 		else:
 			# We are in filter mode with a pagination request
 			filter_string=session.get('query',None)
@@ -124,7 +157,7 @@ def list_movies(page=1):
 	# Let's fetch all the users, I will need them
 	users = User.query.all()
 
-	return render_template('movies_list.html', users=users,route_rule=route_rule,filter_form=filter_form)
+	return render_template('movies_list.html', users=users,route_rule=route_rule,filter_form=filter_form,clear_table=clear_table)
 
 @app.route('/movies/json', methods=['GET','POST'])
 @login_required
@@ -484,17 +517,36 @@ def add_homework(movie_id,user_id):
 	# Create the mark object
 	mark=Mark(user_id=user_id,movie_id=movie_id,homework_who=g.user.id,homework_when=datetime.now())
 
+	# We want to add an homework => Set a session variable in order to tell to the list_movies table not cleaning the table
+	session['clear_table']=False
+
 	# Add the object to the database
 	try:
 		db.session.add(mark)
 		db.session.commit()
-		flash('Notification de devoir envoyée','success')
+		flash('Devoir ajouté','success')
 	
 	except Exception,e: 
 		flash('Impossible de creer le devoir','danger')
 		return redirect(url_for('list_movies'))
 
 	# Send email notification
-	add_homework_notification(mark)
-	
-	return redirect(url_for('list_movies'))
+	mail_status = add_homework_notification(mark)
+	if mail_status == 0:
+		flash('Notification envoyée','success')
+	elif mail_status == 1:
+		flash('Erreur lors de l\'envoi de la notifiction','danger')
+	elif mail_status == 2:
+		flash('Aucune notification à envoyer','warning')
+
+	search_type = session.get('search_type')
+
+	if search_type == "filter":
+		# We are in filter mode => Display the custom search list
+		return redirect(url_for('filter_form'))
+	elif search_type == "filter_origin_type":
+		# The filter form is used => Display the filtered list
+		return redirect(url_for('filter_form'))
+	else: 
+		# Display the normal list
+		return redirect(url_for('list_movies'))

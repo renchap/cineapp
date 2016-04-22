@@ -2,9 +2,15 @@
 {% block content %}
 	<script>
 	$(document).ready(function() {
+	    {% if clear_table == True %}
+	    var table = $('#movielist').DataTable();
+            table.state.clear();
+	    table.destroy();
+	    {% endif %}
 	    $('#movielist').DataTable(
 			{ "searching":false,
 			  "ordering":true,
+			  "stateSave": true,
 			  "processing": true,
 			  "serverSide": true,
 			  "ajax": {
