@@ -512,6 +512,7 @@ def edit_user_profile():
 	return render_template('edit_profile.html',form=form)
 
 @app.route('/homework/add/<int:movie_id>/<int:user_id>')
+@login_required
 def add_homework(movie_id,user_id):
 	
 	# Create the mark object
