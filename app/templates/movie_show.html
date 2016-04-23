@@ -96,10 +96,18 @@ aria-hidden="true">&rarr;</span></a>
 						{{ user_mark.user.nickname }}
 					</td>
 					<td class="col-md-2 text-center">
-						<strong>{{ user_mark.mark }}
+						{% if user_mark.mark != None %}
+						<strong>{{ user_mark.mark }}</strong>
+						{% else %}
+						<button disabled="true" class="btn btn-warning btn-xs">Devoir en cours</button>
+						{% endif %}
 					</td>
 					<td class="col-md-8 text-justify">
+						{% if user_mark.comment != None %}
 						{{ user_mark.comment }}
+						{% else %}
+						<em>N/A</em>
+						{% endif %}
 					</td>
 				</tr>
 			{% endfor %}
