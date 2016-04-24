@@ -14,10 +14,15 @@
 	      
 	      <!-- edit form column -->
 	      <div class="col-md-9 personal-info">
+		{% if state == "user" %}
 		<h3>Informations Utilisateur</h3>
+		{% elif state == "password" %}
+		<h3>Changement du mot de passe</h3>
+		{% endif %}
 		
 		<form class="form-horizontal" role="form" method="post" action="">
 			{{ form.hidden_tag() }}
+		  {% if state == "user" %}
 		  <div class="form-group">
 		    <label class="col-lg-3 control-label">Email:</label>
 		    <div class="col-lg-8">
@@ -32,18 +37,20 @@
 			{{ render_field(form.notif_enabled,label_visible=false,parse_class=false) }}
 		    </div>
 		  </div>
+		  {% elif state=="password" %}
 		  <div class="form-group">
-		    <label class="col-md-3 control-label">Password:</label>
+		    <label class="col-md-3 control-label">Mot de passe:</label>
 		    <div class="col-md-8">
-			{{ render_field(form.password,label_visible=false) }}
+			{{ render_field(form.password,label_visible=false,message=true) }}
 		    </div>
 		  </div>
 		  <div class="form-group">
-		    <label class="col-md-3 control-label">Confirm password:</label>
+		    <label class="col-md-3 control-label">Confirmation:</label>
 		    <div class="col-md-8">
 			{{ render_field(form.confirm,label_visible=false) }}
 		    </div>
 		  </div>
+		  {% endif %}
 		  <div class="form-group">
 		    <label class="col-md-3 control-label"></label>
 		    <div class="col-md-8">

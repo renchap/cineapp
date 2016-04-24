@@ -83,6 +83,9 @@ class FilterForm(Form):
 class UserForm(Form):
 	email = StringField('Adresse Email', [DataRequired('Champ Requis'), Email(message="Adresse E-Mail Incorrecte")])
 	notif_enabled = BooleanField()
+	submit_user = SubmitField("Sauver")
+
+class PasswordForm(Form):
 	password = PasswordField('Mot de passe',[DataRequired('Champ Requis'), EqualTo('confirm',message='Les mots de passe ne correspondent pas')])
 	confirm = PasswordField('Confirmation mot de passe',[DataRequired('Champ Requis')])
-	submit_user = SubmitField("Sauver")
+	submit_user = SubmitField("Changer le mot de passe")
