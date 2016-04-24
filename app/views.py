@@ -281,7 +281,11 @@ def update_datatable():
 		for cur_mark in cur_movie.marked_by_users:
 			if cur_mark.user_id == g.user.id:
 				my_mark=cur_mark.mark
-				my_when=str(cur_mark.seen_when.strftime("%Y"))
+
+				# Convert the date object only if seen_when field is not null (Homework UC)
+				if cur_mark.seen_when != None:
+					my_when=str(cur_mark.seen_when.strftime("%Y"))
+
 				my_where=cur_mark.seen_where
 
 		# Fill a dictionnary with marks for all the others users
@@ -327,7 +331,7 @@ def show_movie(movie_id):
 	# Let's check if the movie has already been marked
 	marked_movie=Mark.query.get((g.user.id,movie_id))
 
-	if marked_movie is None:
+	if marked_movie is None or marked_movie.mark == None:
 		return render_template('movie_show.html', movie=movie, movie_next=movie.next(),movie_prev=movie.prev(),marked_flag=False)
 	else:
 		return render_template('movie_show.html', movie=movie, movie_next=movie.next(),movie_prev=movie.prev(),marked_flag=True)
@@ -371,7 +375,7 @@ def mark_movie(movie_id_form):
 			flash('Impossible d\'ajouter la note','danger')
 			return render_template('movie_show.html', movie=movie, mark=True, marked_flag=False, form=form)
 
-	if marked_movie is None:
+	if marked_movie is None or marked_movie.mark == None:
 		return render_template('movie_show.html', movie=movie, mark=True, marked_flag=False, form=form)
 	else:
 		return render_template('movie_show.html', movie=movie, mark=True, marked_flag=True)

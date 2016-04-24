@@ -29,7 +29,7 @@
 				{ "data": "director" },
 				{ "data": "my_mark",
 				  "render": function(data,type,row) {
-						if (row.my_mark == -1)  {
+						if (row.my_mark == null)  {
   							return '<a class=\"btn btn-primary btn-xs\" href=' + row.DT_RowData.mark_link + '>Noter</a>'
 						} else {
 							return "<strong>" + row.my_mark + "</strong>"
