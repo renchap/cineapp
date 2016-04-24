@@ -23,12 +23,12 @@
 		<div class="col-md-6">
 			<h1 class="text-center">Devoirs donnés</h1>
 			<table class="table table-striped" id="givenhomework">
-			<td>
+			<tr>
 				<th class="text-center">Titre du film</th>
 				<th class="text-center">Réalisateur</th>
 				<th class="text-center" style="width:20%;">Donné à:</th>
 				<th class="text-center"></th>
-			</th>
+			</tr>
 			{% for cur_homework in given_homeworks %}
 			<tr>
 				<td class="text-center">{{ cur_homework.movie.name }}</td>
