@@ -3,7 +3,7 @@
 from flask import render_template, flash, redirect, url_for, g, request, session
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from app import app, db, lm
-from .forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm, UserForm
+from .forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm, UserForm, PasswordForm
 from .models import User, Movie, Mark, Origin, Type
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy.orm.exc import FlushError
@@ -494,12 +494,11 @@ def edit_user_profile():
 
 	# Init the form
 	form=UserForm(obj=g.user)
-
+	
 	if form.validate_on_submit():
 		# Update the User object
 		g.user.email = form.email.data
 		g.user.notif_enabled = form.notif_enabled.data
-		g.user.password = hashpw(form.password.data.encode('utf-8'),gensalt())
 
 		try:
 			db.session.add(g.user)
@@ -509,7 +508,28 @@ def edit_user_profile():
 			flash('Impossible de mettre à jour l\'utilisateur', 'danger')
 
 	# Fetch the object for the current logged_in user
-	return render_template('edit_profile.html',form=form)
+	return render_template('edit_profile.html',form=form,state="user")
+
+@app.route('/my/password', methods=['GET', 'POST'])
+@login_required
+def change_user_password():
+
+	# Init the form
+	form=PasswordForm(obj=g.user)
+
+	# Check the form and validation the password check is ok
+	if form.validate_on_submit():
+		# Let's fetch the password from the form
+		g.user.password = hashpw(form.password.data.encode('utf-8'),gensalt())
+		try:
+			db.session.add(g.user)
+			db.session.commit()
+			flash('Mot de passe mis à jour','success')
+		except:
+			flash('Impossible de mettre à jour le mot de passe', 'danger')
+	
+	# Fetch the object for the current logged_in user
+	return render_template('edit_profile.html',form=form,state="password")
 
 @app.route('/homework/add/<int:movie_id>/<int:user_id>')
 @login_required
