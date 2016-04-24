@@ -571,3 +571,15 @@ def add_homework(movie_id,user_id):
 	else: 
 		# Display the normal list
 		return redirect(url_for('list_movies'))
+
+@app.route('/homework/list')
+@login_required
+def list_homeworks():
+
+	# Fetch homeworks given by a user
+	my_homeworks = Mark.query.filter(and_(Mark.user_id == g.user.id, Mark.mark == None))
+	
+	# Fetch homeworks given to other users	
+	given_homeworks = Mark.query.filter(and_(Mark.homework_who == g.user.id, Mark.mark == None))
+
+	return render_template('list_homeworks.html',my_homeworks=my_homeworks,given_homeworks=given_homeworks)
