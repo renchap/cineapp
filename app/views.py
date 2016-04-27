@@ -218,26 +218,27 @@ def update_datatable():
 		# Sort my desc marks
 		if order_dir == "desc":
 			if session.get('search_type') == 'list': 
-				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
+				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).filter(Mark.mark != None).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).count()
+
 			elif session.get('search_type') == 'filter_origin_type':
-				movies = movies_query.order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
-				count_movies=movies_query.count()
+				movies = movies_query.filter(Mark.mark != None).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
+				count_movies=movies_query.filter(Mark.mark != None).count()
 					
 			elif session.get('search_type') == 'filter':
-				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
-				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).count()
+				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).filter(Mark.mark != None).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
+				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).filter(Mark.mark != None).count()
 
 		# Sort by asc marks
 		else:
 			if session.get('search_type') == 'list': 
-				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).order_by(Mark.mark).slice(int(start),int(start) + int(length))
+				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).filter(Mark.mark != None).order_by(Mark.mark).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).count()
 			elif session.get('search_type') == 'filter_origin_type':
-				movies = movies_query.order_by(Mark.mark).slice(int(start),int(start) + int(length))
-				count_movies=movies_query.count()
+				movies = movies_query.filter(Mark.mark != None).order_by(Mark.mark).slice(int(start),int(start) + int(length))
+				count_movies=movies_query.filter(Mark.mark != None).count()
 			elif session.get('search_type') == 'filter':
-				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).order_by(Mark.mark).slice(int(start),int(start) + int(length))
+				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).filter(Mark.mark != None).order_by(Mark.mark).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).count()
 	else:
 
