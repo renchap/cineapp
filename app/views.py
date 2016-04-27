@@ -189,29 +189,31 @@ def update_datatable():
 		filter_fields=session.get('query')
 		movies_query = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user)
 
-		if filter_fields['origin'] != None:
-			movies_query = movies_query.filter(Movie.origin==filter_fields['origin'])
+		# Check that we have a real list in order to avoid an exception	
+		if filter_fields is list:
+			if filter_fields['origin'] != None:
+				movies_query = movies_query.filter(Movie.origin==filter_fields['origin'])
 
-		if filter_fields['type'] != None:
-			movies_query = movies_query.filter(Movie.type==filter_fields['type'])
+			if filter_fields['type'] != None:
+				movies_query = movies_query.filter(Movie.type==filter_fields['type'])
 
-		if filter_fields['seen_where'] != None:
+			if filter_fields['seen_where'] != None:
 
-			# We want to sort movies for a specific user keeping the seen_where filter enabled
-			# So we want to see movies seen in theater (or not) by a user sorting these movies by marks of another user
-			# Since we sort by marks, we don't want to see movies without a mark for that user
-			# So we need that to build that specific subquery.
+				# We want to sort movies for a specific user keeping the seen_where filter enabled
+				# So we want to see movies seen in theater (or not) by a user sorting these movies by marks of another user
+				# Since we sort by marks, we don't want to see movies without a mark for that user
+				# So we need that to build that specific subquery.
 
-			# First let's fetch the movies seen by a user in theaters
-			movies_seen_in_theater = Mark.query.filter(Mark.user_id==filter_fields['seen_where']).filter(Mark.seen_where=='C').all()
-			array_movies_seen_in_theater = []
+				# First let's fetch the movies seen by a user in theaters
+				movies_seen_in_theater = Mark.query.filter(Mark.user_id==filter_fields['seen_where']).filter(Mark.seen_where=='C').all()
+				array_movies_seen_in_theater = []
 
-			# Then build a list of these movies
-			for cur_movie_seen_in_theater in movies_seen_in_theater:
-				array_movies_seen_in_theater.append(cur_movie_seen_in_theater.movie_id)
-			
-			# Finally let's build the filter that will be used later building the query
-			movies_query = movies_query.filter(Mark.movie_id.in_(array_movies_seen_in_theater))
+				# Then build a list of these movies
+				for cur_movie_seen_in_theater in movies_seen_in_theater:
+					array_movies_seen_in_theater.append(cur_movie_seen_in_theater.movie_id)
+				
+				# Finally let's build the filter that will be used later building the query
+				movies_query = movies_query.filter(Mark.movie_id.in_(array_movies_seen_in_theater))
 
 		# Sort my desc marks
 		if order_dir == "desc":
