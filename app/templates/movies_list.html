@@ -54,9 +54,9 @@
 			           "render": function(data,type,row) {
 					if (row.other_marks[{{cur_user.id}}]  == null)  {
 						if (row.DT_RowData.homework_link[{{cur_user.id}}]["when"] == null) {
-							return '<a class=\"btn btn-success btn-xs\" href=' + row.DT_RowData.homework_link[{{cur_user.id}}]["link"] + '>Donner un devoir</a>'
+							return '<a class=\"btn btn-success btn-xs\" href=' + row.DT_RowData.homework_link[{{cur_user.id}}]["link"] + '>Devoir</a>'
 						} else {
-							return '<button disabled="true" class=\"btn btn-warning btn-xs\">Devoir en cours</button>'
+							return '<button disabled="true" class=\"btn btn-warning btn-xs\">Devoir</button>'
 						}
 					} else {
 						return row.other_marks[{{cur_user.id}}] 
