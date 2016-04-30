@@ -37,7 +37,7 @@ class AddMovieForm(Form):
 class MarkMovieForm(Form):
 	mark = StringField('Note du Film', [DataRequired()])
 	comment = TextAreaField('Commentaire du Film', [DataRequired()])
-	seen_where = SelectField('Ou j\'ai vu le film', choices=[('C', u'Cinéma'), ('A', 'Autres')])
+	seen_where = RadioField('Ou j\'ai vu le film', choices=[('C', u'Cinema'), ('M', 'Maison')], default='M')
 
 	def validate_mark(form,field):
 		try:
