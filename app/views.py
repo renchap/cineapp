@@ -275,12 +275,14 @@ def update_datatable():
 	dict_movie = { "draw": draw , "recordsTotal": count_movies, "recordsFiltered" : count_movies, "data": []}
 	for cur_movie in movies:
 		# Fetch the note for the logged user
-		my_mark=-1
+		my_mark=None
 		my_when="-"
 		my_where=""
+		my_comment=""
 		for cur_mark in cur_movie.marked_by_users:
 			if cur_mark.user_id == g.user.id:
 				my_mark=cur_mark.mark
+				my_comment = cur_mark.comment
 
 				# Convert the date object only if seen_when field is not null (Homework UC)
 				if cur_mark.seen_when != None:
@@ -293,8 +295,10 @@ def update_datatable():
 		dict_where = {}
 		dict_when = {}
 		dict_homework = {}
+		dict_comments = {}
 		for cur_user in users:
 			dict_mark[cur_user.id]=None
+			dict_comments[cur_user.id]=None
 			dict_where[cur_user.id]="-"
 			dict_when[cur_user.id]="-"
 			dict_homework[cur_user.id]={ "when" : None, "link" : url_for("add_homework",movie_id=cur_movie.id,user_id=cur_user.id)}
@@ -302,6 +306,7 @@ def update_datatable():
 				if cur_mark.user.id == cur_user.id:
 					dict_mark[cur_user.id]=cur_mark.mark		
 					dict_where[cur_user.id]=cur_mark.seen_where
+					dict_comments[cur_user.id]=cur_mark.comment
 					dict_homework[cur_user.id]["when"]=str(cur_mark.homework_when)
 
 					# Convert the date object only if seen_when field is not null (Homework UC)
@@ -312,11 +317,14 @@ def update_datatable():
 		dict_movie["data"].append({"DT_RowData": { "link": url_for("show_movie",movie_id=cur_movie.id), "mark_link": url_for("mark_movie",movie_id_form=cur_movie.id),"homework_link": dict_homework},
 		"id": cur_movie.id,"name": cur_movie.name, 
 		"director": cur_movie.director,
-		"my_mark": my_mark, "my_when": my_when,
+		"my_mark": my_mark, 
+		"my_when": my_when,
 		"my_where": my_where, 
+		"my_comment": my_comment,
 		"other_marks": dict_mark, 
 		"other_where": dict_where,
 		"other_when": dict_when,
+		"other_comments": dict_comments,
 		"other_homework_when" : dict_homework })
 
 	# Send the json object to the browser
