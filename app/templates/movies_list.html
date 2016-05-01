@@ -7,7 +7,7 @@
             table.state.clear();
 	    table.destroy();
 	    {% endif %}
-	    $('#movielist').DataTable(
+	    var table = $('#movielist').DataTable(
 			{ "searching":false,
 			  "ordering":true,
 			  "stateSave": true,
@@ -33,7 +33,7 @@
 						if (row.my_mark == null)  {
   							return '<a class=\"btn btn-primary btn-xs\" href=' + row.DT_RowData.mark_link + '>Noter</a>'
 						} else {
-							return "<strong>" + row.my_mark + "</strong>"
+							return '<span title="Commentaire du film" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="' + row.my_comment + '">' + row.my_mark + "</span>"
 						}
 					
 					}
@@ -60,7 +60,7 @@
 							return '<button disabled="true" class=\"btn btn-warning btn-xs\">Devoir</button>'
 						}
 					} else {
-						return row.other_marks[{{cur_user.id}}] 
+							return '<span title="Commentaire du film" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="' + row.other_comments[{{cur_user.id}}] + '">' + row.other_marks[{{cur_user.id}}] + "</span>"
 					}
 				   }
 				 },
@@ -91,8 +91,13 @@
 				},
 			}
 		);
+	
+		// Enable popover on table redraw	
+		table.on( 'draw', function () {
+	                    $('[data-toggle="popover"]').popover();
+		} );
 	} );
-	</script>
+	</script> 
 	<div class="container">
 		{% if session['search_type'] == 'filter' %}
 		<h1 class="text-center">Recherche Personnalisée: {{ session['query'] }}</h1>
