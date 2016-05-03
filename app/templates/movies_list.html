@@ -33,7 +33,7 @@
 						if (row.my_mark == null)  {
   							return '<a class=\"btn btn-primary btn-xs\" href=' + row.DT_RowData.mark_link + '>Noter</a>'
 						} else {
-							return '<span title="Commentaire du film" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="' + row.my_comment + '">' + row.my_mark + "</span>"
+							return '<span title="' + row.name +'" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="' + row.my_comment + '">' + row.my_mark + "</span>"
 						}
 					
 					}

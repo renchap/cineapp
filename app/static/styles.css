@@ -5,3 +5,10 @@
 }
 
 th.dt-center, td.dt-center { text-align: center; }
+
+.popover-title {
+    background-color: #000000;
+    color: #FFFFFF;
+    font-size: 20px;
+    text-align:center;
+}
