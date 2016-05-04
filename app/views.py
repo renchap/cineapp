@@ -356,21 +356,26 @@ def mark_movie(movie_id_form):
 
 	# Mark the movie and display the correct page
 	if form.validate_on_submit():
-		mark=Mark(user_id=g.user.id,
-			movie_id=movie.id,
-			seen_when=datetime.utcnow(),
-			seen_where=form.seen_where.data,
-			mark=form.mark.data,
-			comment=form.comment.data
-		)	
 
+		if marked_movie == None:
+			marked_movie=Mark(user_id=g.user.id,
+				movie_id=movie.id,
+				seen_when=datetime.utcnow(),
+				seen_where=form.seen_where.data,
+				mark=form.mark.data,
+				comment=form.comment.data
+			)	
+		else:
+			marked_movie.mark=form.mark.data
+			marked_movie.comment=form.comment.data
+			
 		try:
-			db.session.add(mark)
+			db.session.add(marked_movie)
 			db.session.commit()
 			flash('Note ajoutée','success')
 
 			# Send notification
-			mark_movie_notification(mark)
+			mark_movie_notification(marked_movie)
 			return redirect(url_for('show_movie',movie_id=movie_id_form))
 			
 		except IntegrityError:
