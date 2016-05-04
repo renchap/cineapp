@@ -454,7 +454,7 @@ def add_movie():
 			if download_poster(movie_to_create):
 				flash('Affiche téléchargée','success')
 			else:
-				flash('Impossible de rettéléchar le poster','warning')
+				flash('Impossible de télécharger le poster','warning')
 
 			# Movie has been added => Send notifications
 			add_movie_notification(movie_to_create)
@@ -463,7 +463,7 @@ def add_movie():
 			return redirect(url_for('mark_movie',movie_id_form=new_movie_id))
 
 		except IntegrityError as e:
-			flash('Film already exists','danger')
+			flash('Film déjà existant','danger')
 			db.session.rollback()
 			return redirect(url_for('add_movie'))
 
@@ -495,9 +495,9 @@ def add_user():
 		try:
 			db.session.add(user)
 			db.session.commit()
-			flash('Utilisateur added')
+			flash('Utilisateur ajouté')
 		except IntegrityError:
-			flash('Utilisateur déjà existant')
+			flash('Utilisateur déjà existant')
 	return render_template('add_user_form.html', form=form)
 
 @app.route('/my/profile', methods=['GET', 'POST'])
