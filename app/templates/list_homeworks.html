@@ -3,6 +3,15 @@
 	<div class="container">
 		<div class="col-md-6">
 			<h1 class="text-center">Mes devoirs</h1>
+			<!-- My Homeworks filter form -->
+			<div>
+				<form class="form-inline text-center" method="post" role="form" action={{ url_for('list_homeworks') }}>
+					{{ my_homework_filter_form.hidden_tag() }}
+					{{ render_field(my_homework_filter_form.user_filter) }}	
+					{{ render_field(my_homework_filter_form.submit_homework,label_visible=false,class="btn btn-success") }}
+				</form>
+				
+			</div>
 			<table class="table table-striped" id="myhomeworks">
 			<tr>
 				<th class="text-center">Titre du film</th>
@@ -15,13 +24,27 @@
 				<td class="text-center">{{ cur_homework.movie.name }}</td>
 				<td class="text-center">{{ cur_homework.movie.director }}</td>
 				<td class="text-center">{{ cur_homework.homework_who_user.nickname }} </td>
+				{% if cur_homework.mark == None %}
   			        <td class="text-center"><a class="btn btn-primary btn-xs" href="{{ url_for('mark_movie',movie_id_form=cur_homework.movie.id) }}">Noter</a>
+				{% else %}
+  			       	<td class="text-center"><a class="disabled btn btn-success btn-xs">Noté</a>
+				{% endif %}
 			</tr>
 			{% endfor %}
 			</table>
 		</div>
 		<div class="col-md-6">
 			<h1 class="text-center">Devoirs donnés</h1>
+			<!-- Given Homeworks filter form -->
+			<div>
+				<form class="form-inline text-center" method="post" role="form" action={{ url_for('list_homeworks') }}>
+					{{ given_homework_filter_form.hidden_tag() }}
+					{{ render_field(given_homework_filter_form.user_filter) }}	
+
+					{{ render_field(given_homework_filter_form.submit_homework,label_visible=false,class="btn btn-success") }}
+				</form>
+				
+			</div>
 			<table class="table table-striped" id="givenhomework">
 			<tr>
 				<th class="text-center">Titre du film</th>
@@ -34,7 +57,13 @@
 				<td class="text-center">{{ cur_homework.movie.name }}</td>
 				<td class="text-center">{{ cur_homework.movie.director }}</td>
 				<td class="text-center">{{ cur_homework.user.nickname }} </td>
-  			        <td class="text-center"><a class="btn btn-primary btn-xs" href="{{ url_for('show_movie',movie_id=cur_homework.movie.id) }}">Fiche du film</a>
+				{% if cur_homework.mark == None %}
+  			       	<td class="text-center"><a class="disabled btn btn-warning btn-xs">En cours</a>
+				{% else %}
+  			       	<td class="text-center"><a class="disabled btn btn-success btn-xs">Terminé</a>
+				{% endif %}
+				
+	
 			</tr>
 			{% endfor %}
 			</table>

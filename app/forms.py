@@ -89,3 +89,15 @@ class PasswordForm(Form):
 	password = PasswordField('Mot de passe',[DataRequired('Champ Requis'), EqualTo('confirm',message='Les mots de passe ne correspondent pas')])
 	confirm = PasswordField('Confirmation mot de passe',[DataRequired('Champ Requis')])
 	submit_user = SubmitField("Changer le mot de passe")
+
+class HomeworkForm(Form):
+	user_filter = QuerySelectField('Vu au cine par',query_factory=get_users,get_label='nickname',allow_blank=True,blank_text=u'--Pas de filtre--')
+	submit_homework = SubmitField('Filtrer')
+
+	# Specific constructor in order to initialize properly the user_filter label
+	def __init__(self,label_name=None,*args,**kwargs):
+		
+		# Call the parent constructor
+		super(HomeworkForm, self).__init__(*args,**kwargs)
+
+		self.user_filter.label.text=label_name
