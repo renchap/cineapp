@@ -60,7 +60,7 @@
 							return '<button disabled="true" class=\"btn btn-warning btn-xs\">Devoir</button>'
 						}
 					} else {
-							return '<span title="Commentaire du film" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="' + row.other_comments[{{cur_user.id}}] + '">' + row.other_marks[{{cur_user.id}}] + "</span>"
+							return '<span title="' + row.name + '" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="' + row.other_comments[{{cur_user.id}}] + '">' + row.other_marks[{{cur_user.id}}] + "</span>"
 					}
 				   }
 				 },
