@@ -17,6 +17,7 @@ class User(db.Model):
 	email = db.Column(db.String(120), index=True, unique=True)
 	avatar = db.Column(db.String(255), unique=True)
 	notif_enabled = db.Column(db.Boolean)
+	graph_color = db.Column(db.String(6))
 	added_movies = db.relationship('Movie', backref='added_by', lazy='dynamic')
 
 	@property
