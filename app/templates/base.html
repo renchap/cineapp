@@ -21,6 +21,9 @@
 	<!-- Style sheet for custom styles -->
 	<link href="/static/styles.css" rel="stylesheet">
 
+	<!-- ChartJS -->
+	<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.0/Chart.min.js"></script>
+
     <title>CineApp</title>
   </head>
   <body>
@@ -50,6 +53,16 @@
 					  <ul class="dropdown-menu">
 					    <li><a href="{{ url_for('list_movies') }}">Liste des films</a></li>
 					    <li><a href="{{ url_for('add_movie') }}">Ajouter un film</a></li>
+					  </ul>
+					  </li>
+					<li class="dropdown">
+					  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Stats/Graphiques<span class="caret"></span></a>
+					  <ul class="dropdown-menu">
+					    <li><a href="{{ url_for('graph_by_mark') }}">Répartition par note</a></li>
+					    <li><a href="{{ url_for('graph_by_type') }}">Répartition par type</a></li>
+					    <li><a href="{{ url_for('graph_by_origin') }}">Répartition par origine</a></li>
+					    <li><a href="{{ url_for('graph_by_year') }}">Répartition par année</a></li>
+					    <li><a href="{{ url_for('graph_by_year') }}">Films vus au ciné</a></li>
 					  </ul>
 					  </li>
 					{% endif %}

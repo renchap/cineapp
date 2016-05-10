@@ -15,11 +15,13 @@ import config
 import json
 from .tvmdb import search_movies,get_movie,download_poster
 from .emails import add_movie_notification, mark_movie_notification, add_homework_notification
+from .utils import frange
 from sqlalchemy import desc, or_, and_, Table
 from sqlalchemy.sql.expression import select, case
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 import urllib, hashlib
 import re
+import os
 
 @app.route('/')
 @app.route('/index')
@@ -654,3 +656,111 @@ def list_homeworks():
 		given_homeworks = Mark.query.join(Mark.movie).filter(Mark.homework_who == g.user.id).order_by(desc(case([(Mark.mark == None, 0)],1)),Movie.name)
 
 	return render_template('list_homeworks.html',my_homeworks=my_homeworks,given_homeworks=given_homeworks,my_homework_filter_form=my_homework_filter_form,given_homework_filter_form=given_homework_filter_form)
+
+@app.route('/graph/mark', endpoint="graph_by_mark")
+@app.route('/graph/type', endpoint="graph_by_type")
+@app.route('/graph/origin', endpoint="graph_by_origin")
+@app.route('/graph/year', endpoint="graph_by_year")
+@app.route('/graph/year_theater', endpoint="graph_by_year_theater")
+@login_required
+def show_graphs():
+
+	# Generate the correct data considering the route
+	graph_to_generate=os.path.basename(request.url_rule.rule)
+
+	# Variable initialization
+	labels=[]
+	data={}
+
+	# Fetch all users
+	users = User.query.all();
+
+	if graph_to_generate == "mark":
+		
+		# Distributed marks graph
+		graph_title="Repartition par annee"
+		graph_type="line"
+
+		# Fill the labels_array with all marks possible
+		for cur_mark in frange(0,20,0.5):
+			labels.append(cur_mark)
+
+		# Fill the dictionnary with distributed_marks by user
+		for cur_user in users:
+			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : [] }
+			for cur_mark in frange(0,20,0.5):
+				data[cur_user.nickname]["data"].append(Mark.query.filter(Mark.mark==cur_mark,Mark.user_id==cur_user.id).count())
+
+	elif graph_to_generate == "type":
+
+		# Distributed types graph
+		graph_title="Repartition par type"
+		graph_type="radar"
+
+		# Fill the types_array with all the types stored into the database
+		types = Type.query.all();
+		for cur_type in types:
+			labels.append(cur_type.type)
+
+		# Fill the dictionnary with distributed_types by user
+		for cur_user in users:
+			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : [] }
+			for cur_type in types:
+				data[cur_user.nickname]["data"].append(Mark.query.join(Mark.movie).filter(Mark.mark!=None,Mark.user_id==cur_user.id,Movie.type==cur_type.id).count())
+	
+	elif graph_to_generate == "origin":
+
+		# Distributed marks graph
+		graph_title="Repartition par origine"
+		graph_type="radar"
+
+		# Fill the origin_array with all the types stored into the database
+		origins = Origin.query.all();
+		for cur_origin in origins:
+			labels.append(cur_origin.origin)
+
+		# Fill the dictionnary with distributed_origins by user
+		for cur_user in users:
+			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : [] }
+			for cur_origin in origins:
+				data[cur_user.nickname]["data"].append(Mark.query.join(Mark.movie).filter(Mark.mark!=None,Mark.user_id==cur_user.id,Movie.origin==cur_origin.id).count())
+
+	elif graph_to_generate == "year":
+
+		# Distributed movies graph by year
+		graph_title="Repartition par annee"
+		graph_type="line"
+
+		# Search the min and max year in order to generate a optimized graph
+		min_year=int(db.session.query(db.func.min(Mark.seen_when).label("min_year")).one().min_year.strftime("%Y"))
+		max_year=int(db.session.query(db.func.max(Mark.seen_when).label("max_year")).one().max_year.strftime("%Y"))
+
+		for cur_year in range(min_year,max_year+1,1):
+			labels.append(cur_year)
+
+		# Fill the dictionnary with distributed_years by user
+		for cur_user in users:
+			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : []}
+			for cur_year in range(min_year,max_year+1,1):
+				data[cur_user.nickname]["data"].append(Mark.query.filter(Mark.mark!=None,Mark.user_id==cur_user.id,db.func.year(Mark.seen_when)==cur_year).count())
+
+	elif graph_to_generate == "year_theater":
+
+		# Distributed movies graph by year
+		graph_title="Films vus au cine"
+		graph_type="line"
+
+		# Search the min and max year in order to generate a optimized graph
+		min_year=int(db.session.query(db.func.min(Mark.seen_when).label("min_year")).one().min_year.strftime("%Y"))
+		max_year=int(db.session.query(db.func.max(Mark.seen_when).label("max_year")).one().max_year.strftime("%Y"))
+
+		for cur_year in range(min_year,max_year+1,1):
+			labels.append(cur_year)
+
+		# Fill the dictionnary with distributed_years by user
+		for cur_user in users:
+			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : []}
+			for cur_year in range(min_year,max_year+1,1):
+				data[cur_user.nickname]["data"].append(Mark.query.filter(Mark.mark!=None,Mark.user_id==cur_user.id,Mark.seen_where=="C",db.func.year(Mark.seen_when)==cur_year).count())
+
+	return render_template('show_graphs.html',graph_title=graph_title,graph_type=graph_type,labels=labels,data=data)

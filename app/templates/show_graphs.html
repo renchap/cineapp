@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="panel panel-default">
+			  <div class="panel-heading">{{ graph_title }}</div>
+			  <div class="panel-body">
+				<canvas id="canvas" width="200" height="100"></canvas>
+			  </div>
+		</div>
+	</div>
+</div>
+<script>
+// Context initialization
+var ctx = document.getElementById("canvas").getContext("2d");
+
+// Data structure
+var data= { 
+	labels : [ {% for cur_label in labels %} "{{ cur_label }}", {% endfor %} ],
+	datasets : [ {% for cur_user in data %}
+		{
+			fill: false,
+			label: "{{ cur_user }}",
+			borderColor : "#{{data[cur_user]['color']}}",
+			backgroundColor : "#{{data[cur_user]['color']}}",
+			data: [ {% for data in data[cur_user]['data'] %} {{ data }}, {% endfor %}]
+		},
+		{% endfor %}
+
+		]
+	}
+
+// Draw graph
+var graph=new Chart(ctx, {
+	type: "{{ graph_type }}",
+	data: data
+	}
+);
+
+</script>
+{% endblock %}
