@@ -52,7 +52,7 @@
 								<td>Le film <a href="{{ url_for('show_movie', movie_id=cur_object.id) }}"> {{ cur_object.name }}</a> vient d'être ajouté par {{ cur_object.added_by.nickname }}</td>
 								{% else %}
 								<td><a class="disabled btn btn-primary btn-xs">Note</a></td>
-								<td>{{ cur_object.user.nickname }} a noté le film <a href="{{ url_for('show_movie', movie_id=cur_object.movie_id) }}"> {{ cur_object.movie.name }}</a> avec la note <strong>{{ cur_object.mark }}</strong></td>
+								<td>{{ cur_object.user.nickname }} a noté le film <a href="{{ url_for('show_movie', movie_id=cur_object.movie_id) }}"> {{ cur_object.movie.name }}</a> avec la note <span title="Commentaire" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="{{ cur_object.comment}}"><strong>{{ cur_object.mark }}</strong></span></td>
 								{% endif %}
 							</tr>
 							{% endfor %}
@@ -62,6 +62,11 @@
 		</div>
 	</div>
 	<div>
+<script>
+	$(document).ready(function(){
+	    $('[data-toggle="popover"]').popover();
+	});
+</script>
 <script>
 // Context initialization
 var ctx = document.getElementById("canvas").getContext("2d");
