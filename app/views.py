@@ -17,7 +17,7 @@ from .tvmdb import search_movies,get_movie,download_poster
 from .emails import add_movie_notification, mark_movie_notification, add_homework_notification
 from .utils import frange
 from sqlalchemy import desc, or_, and_, Table
-from sqlalchemy.sql.expression import select, case
+from sqlalchemy.sql.expression import select, case, literal
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 import urllib, hashlib
 import re
@@ -43,7 +43,7 @@ def login():
 
 	# Let's check if we are authenticated => If yes redirect to the index page
 	if g.user is not None and g.user.is_authenticated:
-        	return redirect(url_for('list_my_movies'))
+        	return redirect(url_for('show_dashboard'))
 
 	# If we are here, we are not login. Build the form and try the login.
 	form = LoginForm()
@@ -368,11 +368,13 @@ def mark_movie(movie_id_form):
 				seen_when=datetime.utcnow(),
 				seen_where=form.seen_where.data,
 				mark=form.mark.data,
-				comment=form.comment.data
+				comment=form.comment.data,
+				updated_when=datetime.now()
 			)	
 		else:
 			marked_movie.mark=form.mark.data
 			marked_movie.comment=form.comment.data
+			updated_when=datetime.now()
 			
 		try:
 			db.session.add(marked_movie)
@@ -451,6 +453,7 @@ def add_movie():
 		movie_to_create.added_by_user=g.user.id
 		movie_to_create.type=confirm_form.type.data.id
 		movie_to_create.origin=confirm_form.origin.data.id
+		movie_to_create.added_when=datetime.now()
 
 		# Add the movie in the database
 		try:
@@ -764,3 +767,27 @@ def show_graphs():
 				data[cur_user.nickname]["data"].append(Mark.query.filter(Mark.mark!=None,Mark.user_id==cur_user.id,Mark.seen_where=="C",db.func.year(Mark.seen_when)==cur_year).count())
 
 	return render_template('show_graphs.html',graph_title=graph_title,graph_type=graph_type,labels=labels,data=data)
+
+@app.route('/dashboard')
+@login_required
+def show_dashboard():
+
+	# Object_items
+	object_list=[]
+	
+	# Movie Query
+	movies_query=db.session.query(Movie.id,literal("user_id").label("user_id"),Movie.added_when.label("entry_date"),literal("movies").label("entry_type"))
+
+	# Marks Query
+	marks_query=db.session.query(Mark.movie_id,Mark.user_id.label("user_id"),Mark.updated_when.label("entry_date"),literal("marks").label("entry_type"))
+
+	# Build the union request
+	activity_list = movies_query.union(marks_query).order_by(desc("entry_date")).slice(0,20)
+
+	for cur_item in activity_list:
+		if cur_item.entry_type == "movies":
+			object_list.append(Movie.query.get(cur_item.id))
+		elif cur_item.entry_type == "marks":
+			object_list.append(Mark.query.get((cur_item.user_id,cur_item.id)))
+			
+	return render_template('show_dashboard.html', object_list=object_list)

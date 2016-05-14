@@ -75,6 +75,7 @@ class Movie(db.Model):
 	origin = db.Column(db.String(5), db.ForeignKey('origins.id'), index=True)
 	director = db.Column(db.String(50), index=True)
 	poster_path = db.Column(db.String(255))
+	added_when = db.Column(db.DateTime())
 	added_by_user = db.Column(db.Integer, db.ForeignKey('users.id'))
 
 	def __repr__(self):
@@ -101,6 +102,7 @@ class Mark(db.Model):
 	seen_when = db.Column(db.Date)
 	seen_where = db.Column(db.String(4))
 	mark = db.Column(db.Float)
+	updated_when = db.Column(db.DateTime())
 	comment = db.Column(db.String(1000))
 	homework_when = db.Column(db.Date)
 	# Server_default allow to put the column with DEFAULT VALUE to NULL which is mandatory if we want the foreign key to be added

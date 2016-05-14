@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+	<div class="container">
+		<h1 class="text-center">Flux d'activité</h1>
+		<table class="table table-striped" id="myhomeworks">
+			<tr>
+				<th class="text-center" style="width:20%;">Type</th>
+				<th class="text-center">Action</th>
+			</tr>
+			{% for cur_object in object_list %}
+			<tr class="text-center">
+				{% if cur_object.added_when %}
+				<td><a class="disabled btn btn-danger">Entrée</a></td>
+				<td>Le film <a href="{{ url_for('show_movie', movie_id=cur_object.id) }}"> {{ cur_object.name }}</a> vient d'être ajouté par {{ cur_object.added_by.nickname }}</td>
+				{% else %}
+				<td><a class="disabled btn btn-primary">Nouvelle note</a></td>
+				<td>{{ cur_object.user.nickname }} a noté le film <a href="{{ url_for('show_movie', movie_id=cur_object.movie_id) }}"> {{ cur_object.movie.name }}</a> avec la note <strong>{{ cur_object.mark }}</strong></td>
+				{% endif %}
+			</tr>
+			{% endfor %}
+		</table>
+	</div>
+{% endblock %}
