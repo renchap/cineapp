@@ -22,6 +22,7 @@ from wtforms.ext.sqlalchemy.fields import QuerySelectField
 import urllib, hashlib
 import re
 import os
+import locale
 
 @app.route('/')
 @app.route('/index')
@@ -774,6 +775,9 @@ def show_dashboard():
 
 	# Object_items
 	object_list=[]
+	general_stats={}
+	labels=[]
+	data={"theaters": [], "others": []}
 	
 	# Movie Query
 	movies_query=db.session.query(Movie.id,literal("user_id").label("user_id"),Movie.added_when.label("entry_date"),literal("movies").label("entry_type"))
@@ -789,5 +793,34 @@ def show_dashboard():
 			object_list.append(Movie.query.get(cur_item.id))
 		elif cur_item.entry_type == "marks":
 			object_list.append(Mark.query.get((cur_item.user_id,cur_item.id)))
-			
-	return render_template('show_dashboard.html', object_list=object_list)
+
+	# Fetch general statistics
+	query_avg_count = db.session.query(db.func.avg(Mark.mark).label("average"),db.func.count(Mark.mark).label("count")).filter(Mark.mark!=None,Mark.user_id==g.user.id).one()
+
+	try:
+		general_stats["avg"] = round(float(query_avg_count.average),2)
+	except TypeError:
+		# If we are here, that means we can't calculate the average
+		# Maybe because there is no average
+		# Set the average with N/A value	
+		general_stats["avg"] = "N/A"
+
+	general_stats["seenmovies"] = query_avg_count.count
+	general_stats["theaters_seenmovies"] = Mark.query.filter(Mark.mark!=None,Mark.user_id==g.user.id,Mark.seen_where=="C").count()
+	general_stats["home_seenmovies"] = Mark.query.filter(Mark.mark!=None,Mark.user_id==g.user.id,Mark.seen_where=="M").count()
+	general_stats["movies"] = Movie.query.count()
+
+	# Generate datas for the bar graph
+	cur_year=datetime.now().strftime("%Y")
+	
+	# Set month in French
+	locale.setlocale(locale.LC_ALL, "fr_FR.UTF-8")
+	for cur_month in range(1,13,1):
+		labels.append(datetime.strptime(str(cur_month), "%m").strftime("%B").decode('utf-8'))
+		data["theaters"].append(Mark.query.filter(Mark.mark!=None,Mark.user_id==g.user.id,Mark.user_id==g.user.id,Mark.seen_where=="C",db.func.month(Mark.seen_when)==cur_month,db.func.year(Mark.seen_when)==cur_year).count())
+		data["others"].append(Mark.query.filter(Mark.mark!=None,Mark.user_id==g.user.id,Mark.user_id==g.user.id,Mark.seen_where=="M",db.func.month(Mark.seen_when)==cur_month,db.func.year(Mark.seen_when)==cur_year).count())
+
+	# Go back to default locale
+	locale.setlocale(locale.LC_ALL,locale.getdefaultlocale())
+	
+	return render_template('show_dashboard.html', object_list=object_list, general_stats=general_stats,labels=labels,data=data,cur_year=cur_year)

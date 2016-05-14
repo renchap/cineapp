@@ -1,23 +1,108 @@
 {% extends "base.html" %}
 {% block content %}
-	<div class="container">
-		<h1 class="text-center">Flux d'activité</h1>
-		<table class="table table-striped" id="myhomeworks">
-			<tr>
-				<th class="text-center" style="width:20%;">Type</th>
-				<th class="text-center">Action</th>
-			</tr>
-			{% for cur_object in object_list %}
-			<tr class="text-center">
-				{% if cur_object.added_when %}
-				<td><a class="disabled btn btn-danger">Entrée</a></td>
-				<td>Le film <a href="{{ url_for('show_movie', movie_id=cur_object.id) }}"> {{ cur_object.name }}</a> vient d'être ajouté par {{ cur_object.added_by.nickname }}</td>
-				{% else %}
-				<td><a class="disabled btn btn-primary">Nouvelle note</a></td>
-				<td>{{ cur_object.user.nickname }} a noté le film <a href="{{ url_for('show_movie', movie_id=cur_object.movie_id) }}"> {{ cur_object.movie.name }}</a> avec la note <strong>{{ cur_object.mark }}</strong></td>
-				{% endif %}
-			</tr>
-			{% endfor %}
-		</table>
+	<div class="container" id="dashboard">
+		<div class="row">
+			<h1 class="text-center">Tableau de bord</h1>
+			<div class="col-md-4">
+				<div class="panel panel-default">
+					  <div class="panel-heading text-center">Moyenne</div>
+					  <div class="panel-body text-center" id="average">{{ general_stats["avg"] }}</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="panel panel-default">
+					  <div class="panel-heading text-center">Nombre de films vus</div>
+					  <div class="panel-body text-center">
+							<div>
+					  			<div id="seenmovies"> {{ general_stats["seenmovies"] }}</div>
+								<div><span id="theaters">Ciné : {{ general_stats["theaters_seenmovies"] }}</span> / <span id="home">Maison : {{ general_stats["home_seenmovies"] }}</span></div>
+							</div>
+
+					  </div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="panel panel-default">
+					  <div class="panel-heading text-center">Nombre de films total</div>
+					  <div class="panel-body text-center" id="movies">
+							<div class="split">{{ general_stats["movies"] }}</div>
+					  </div>
+				</div>
+			</div>
+		</div>
 	</div>
+	<div class="container-fluid">
+		<div class="row">	
+			<div class="col-md-6">
+				<div class="panel panel-default">
+					  <div class="panel-heading text-center">Films vus en {{cur_year}}</div>
+					  <div class="panel-body">
+						<canvas id="canvas" width="200" height="100"></canvas>
+					  </div>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="panel panel-default">
+					  <div class="panel-heading text-center">Flux d'activité</div>
+						<table class="table table-responsive" id="myhomeworks">
+							{% for cur_object in object_list %}
+							<tr class="text-center">
+								{% if cur_object.added_when %}
+								<td><a class="disabled btn btn-danger btn-xs">Entrée</a></td>
+								<td>Le film <a href="{{ url_for('show_movie', movie_id=cur_object.id) }}"> {{ cur_object.name }}</a> vient d'être ajouté par {{ cur_object.added_by.nickname }}</td>
+								{% else %}
+								<td><a class="disabled btn btn-primary btn-xs">Note</a></td>
+								<td>{{ cur_object.user.nickname }} a noté le film <a href="{{ url_for('show_movie', movie_id=cur_object.movie_id) }}"> {{ cur_object.movie.name }}</a> avec la note <strong>{{ cur_object.mark }}</strong></td>
+								{% endif %}
+							</tr>
+							{% endfor %}
+						</table>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div>
+<script>
+// Context initialization
+var ctx = document.getElementById("canvas").getContext("2d");
+
+// Data structure
+var data= { 
+	labels : [ {% for cur_label in labels %} "{{ cur_label }}", {% endfor %} ],
+	datasets : [
+		{
+			fill: true,
+			borderColor : "#C3D9FF",
+			backgroundColor : "#C3D9FF",
+			label: "Ciné",
+			data: [ {% for data in data["theaters"] %} {{ data }}, {% endfor %}]
+		},
+		{
+			fill: true,
+			borderColor : "#FF0084",
+			backgroundColor : "#FF0084",
+			label: "Maison",
+			data: [ {% for data in data["others"] %} {{ data }}, {% endfor %}]
+		},
+		]
+	}
+
+// Draw graph
+var graph=new Chart(ctx, {
+	type: "bar",
+	data: data,
+    options: {
+        scales: {
+                xAxes: [{
+                        stacked: true
+                }],
+                yAxes: [{
+                        stacked: true
+                }]
+            }
+        }
+    }
+);
+
+</script>
 {% endblock %}

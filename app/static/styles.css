@@ -12,3 +12,33 @@ th.dt-center, td.dt-center { text-align: center; }
     font-size: 20px;
     text-align:center;
 }
+
+#average {
+	font-size: xx-large;
+	color: #FF1A00;
+        font-weight: bold;
+}
+
+#seenmovies {
+	font-size: xx-large;
+	color: #D966FF;
+        font-weight: bold;
+}
+
+#theaters {
+	font-size: large;
+	color: #C3D9FF;
+        font-weight: bold;
+}
+
+#home {
+	font-size: large;
+	color: #FF0084;
+        font-weight: bold;
+}
+
+#movies {
+	font-size: xx-large;
+	color: #4096EE;
+        font-weight: bold;
+}
