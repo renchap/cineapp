@@ -4,6 +4,8 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, session
 from flask.ext.session import Session
 from flask.ext.mail import Mail
+import logging
+from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
 
@@ -24,5 +26,16 @@ sess.init_app(app)
 
 # Mail engine init
 mail = Mail(app)
+
+##################
+# Logging system #
+##################
+
+# Open a file rotated every 100MB
+file_handler = RotatingFileHandler('tmp/cineapp.log', 'a', 100 * 1024 * 1024, 10)
+file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+app.logger.setLevel(logging.INFO)
+app.logger.addHandler(file_handler)
+app.logger.info('Cineapp startup')
 
 from app import views, models
