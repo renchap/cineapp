@@ -1,0 +1,13 @@
+language: python
+python:
+- '2.7'
+services:
+- mysql
+install: pip install -r requirements.txt
+before_script:
+- mkdir /home/travis/build/ptitoliv/cineapp/tmp/
+- mkdir /home/travis/build/ptitoliv/cineapp/migrations/versions
+- mysql -e 'create database cineapp_ci;'
+script:
+- python manage.py db migrate
+- python manage.py db upgrade

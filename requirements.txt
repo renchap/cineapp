@@ -18,7 +18,6 @@ Flask-SQLAlchemy==2.1
 Flask-WhooshAlchemy-Redux==0.7.1
 Flask-WTF==0.12
 flipflop==1.0
-gdbm==0.0.0
 guess-language==0.2
 itsdangerous==0.24
 Jinja2==2.8

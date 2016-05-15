@@ -10,7 +10,10 @@ from logging.handlers import RotatingFileHandler
 app = Flask(__name__)
 
 # Configuration file reading
-app.config.from_pyfile('configs/settings.cfg')
+if os.environ.get('TEST') == "yes":
+	app.config.from_pyfile('configs/settings_test.cfg')
+else:
+	app.config.from_pyfile('configs/settings.cfg')
 
 # Check if API_KEY is defined
 if not app.config.has_key('API_KEY'):
