@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 
-import urllib, hashlib, re, os, locale, config, json
+import urllib, hashlib, re, os, locale, json
 from datetime import datetime
 from flask import render_template, flash, redirect, url_for, g, request, session
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from flask.ext.wtf import Form
 from wtforms.ext.sqlalchemy.orm import model_form
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
-from app import app, db, lm
-from .forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm, UserForm, PasswordForm, HomeworkForm
-from .models import User, Movie, Mark, Origin, Type
-from .tvmdb import search_movies,get_movie,download_poster
-from .emails import add_movie_notification, mark_movie_notification, add_homework_notification
-from .utils import frange
+from cineapp import app, db, lm
+from cineapp.forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm, UserForm, PasswordForm, HomeworkForm
+from cineapp.models import User, Movie, Mark, Origin, Type
+from cineapp.tvmdb import search_movies,get_movie,download_poster
+from cineapp.emails import add_movie_notification, mark_movie_notification, add_homework_notification
+from cineapp.utils import frange
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy.orm.exc import FlushError
 from sqlalchemy import desc, or_, and_, Table

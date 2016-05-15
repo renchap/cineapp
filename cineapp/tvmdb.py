@@ -1,7 +1,6 @@
-import config
 import json, urllib2,sys, time, urllib, os, time
-from app import app,db
-from app.models import Movie
+from cineapp import app,db
+from cineapp.models import Movie
 
 def download_poster(movie):
 
@@ -9,7 +8,7 @@ def download_poster(movie):
 	"""
 	try:
 		img = urllib2.urlopen(movie.poster_path)
-		localFile = open(os.path.join(config.POSTERS_PATH, os.path.basename(movie.poster_path)), 'wb')
+		localFile = open(os.path.join(app.config['POSTERS_PATH'], os.path.basename(movie.poster_path)), 'wb')
 		localFile.write(img.read())
 		localFile.close()
 
@@ -37,7 +36,7 @@ def search_movies(query):
 
 	# Query the API using the query in parameter
 	for cur_language in languages_list:
-		data = urllib2.urlopen(os.path.join(config.API_URL,("search/movie?api_key=" + config.API_KEY + "&language=" + cur_language + "&query=" + urllib.quote(query.encode('utf-8')))))
+		data = urllib2.urlopen(os.path.join(app.config['API_URL'],("search/movie?api_key=" + app.config['API_KEY'] + "&language=" + cur_language + "&query=" + urllib.quote(query.encode('utf-8')))))
 
 		# Put the results into a dictionnary
 		movies_list=json.load(data)
@@ -52,11 +51,11 @@ def get_movie(id):
 		Function that fill a movie object using TVMDB database
 	"""
 	# Fetch global configuration parameters
-	config_api=json.load(urllib2.urlopen(os.path.join(config.API_URL, "configuration?api_key=" + config.API_KEY +"&language=fr")))
+	config_api=json.load(urllib2.urlopen(os.path.join(app.config['API_URL'], "configuration?api_key=" + app.config['API_KEY'] +"&language=fr")))
 	base_url=config_api['images']['base_url']
 	
 	# Fetch the movie data
-	movie=json.load(urllib2.urlopen(os.path.join(config.API_URL,("movie/" + str(id) + "?api_key=" + config.API_KEY + "&append_to_response=credits,details&language=fr"))))
+	movie=json.load(urllib2.urlopen(os.path.join(app.config['API_URL'],("movie/" + str(id) + "?api_key=" + app.config['API_KEY'] + "&append_to_response=credits,details&language=fr"))))
 
 	# Fetch the director form the casting
 	director=None
@@ -66,7 +65,7 @@ def get_movie(id):
 			break
 
 	# Try to get the poster in French	
-	movie_poster=json.load(urllib2.urlopen(os.path.join(config.API_URL,("movie/" + str(id) + "/images?api_key=" + config.API_KEY + "&language=fr&include_image_language=fr,null"))))
+	movie_poster=json.load(urllib2.urlopen(os.path.join(app.config['API_URL'],("movie/" + str(id) + "/images?api_key=" + app.config['API_KEY'] + "&language=fr&include_image_language=fr,null"))))
 
 	# Fetch poster url !
 	url = None
@@ -75,7 +74,7 @@ def get_movie(id):
 	except IndexError:
 
 		# No poster with the french or null language= => Fallback in english
-		movie_poster=json.load(urllib2.urlopen(os.path.join(config.API_URL,("movie/" + str(id) + "/images?api_key=" + config.API_KEY + "&language=en"))))
+		movie_poster=json.load(urllib2.urlopen(os.path.join(app.config['API_URL'],("movie/" + str(id) + "/images?api_key=" + app.config['API_KEY'] + "&language=en"))))
 
 		try:
 			url = base_url + 'w185' + movie_poster['posters'][0]['file_path']

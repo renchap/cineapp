@@ -2,11 +2,10 @@
 
 from flask import render_template,g
 from flask.ext.mail import Message
-from app import mail, db
-from .models import User
-from config import MAIL_SENDER
+from cineapp import mail, db
+from cineapp.models import User
 from threading import Thread
-from app import app
+from cineapp import app
 
 # Send mail into a dedicated thread in order to avoir the web app to wait
 def send_async_email(app, msg):
@@ -30,7 +29,7 @@ def add_movie_notification(movie):
 		if cur_user.id==g.user.id:
 			you_user=True
 	
-		send_email('[Cineapp] - Ajout d\'un film' , MAIL_SENDER,[ cur_user.email ] ,
+		send_email('[Cineapp] - Ajout d\'un film' , app.config['MAIL_SENDER'],[ cur_user.email ] ,
 		render_template('add_movie_notification.txt', dest_user=cur_user, add_user=g.user,movie=movie,you_user=you_user))
 
 # Function which sends notifications to users when a movie is added
@@ -44,7 +43,7 @@ def mark_movie_notification(mark):
 		else:
 			you_user=False
 	
-		send_email('[Cineapp] - Note d\'un film' , MAIL_SENDER,[ cur_user.email ] ,
+		send_email('[Cineapp] - Note d\'un film' , app.config['MAIL_SENDER'],[ cur_user.email ] ,
 		render_template('mark_movie_notification.txt', dest_user=cur_user, add_user=g.user,mark=mark,you_user=you_user))
 
 # Function which sends notification to user who received an homework
@@ -54,7 +53,7 @@ def add_homework_notification(mark):
 	# Check if notifications are enabled for the destination user
 	if mark.user.notif_enabled == True:
 		try:
-			send_email('[Cineapp] - Attribution d\'un devoir', MAIL_SENDER,[ mark.user.email ],
+			send_email('[Cineapp] - Attribution d\'un devoir', app.config['MAIL_SENDER'],[ mark.user.email ],
 			render_template('add_homework_notification.txt', dest_user=mark.user, homework_who=mark.homework_who_user, movie=mark.movie))
 			return 0
 		except:

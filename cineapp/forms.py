@@ -5,7 +5,7 @@ from flask.ext.wtf.html5 import SearchField
 from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField, TextAreaField, BooleanField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError
-from app.models import Origin, Type,User
+from cineapp.models import Origin, Type,User
 
 def get_origins():
 	return Origin.query.all()

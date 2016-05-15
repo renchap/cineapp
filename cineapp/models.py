@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from app import app,db
+from cineapp import app,db
 from sqlalchemy import desc,text, DefaultClause
 import flask.ext.whooshalchemy as whooshalchemy
 from whoosh.analysis import CharsetFilter, StemmingAnalyzer

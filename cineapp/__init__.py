@@ -4,13 +4,21 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, session
 from flask.ext.session import Session
 from flask.ext.mail import Mail
-import logging
+import logging, sys, os
 from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
 
 # Configuration file reading
-app.config.from_object('config')
+app.config.from_pyfile('configs/settings.cfg')
+
+# Check if API_KEY is defined
+if not app.config.has_key('API_KEY'):
+	# Let's import it from environnment
+	if os.environ.get('API_KEY') != None:
+		app.config['API_KEY'] = os.environ.get('API_KEY')
+	else:
+		sys.exit(1)
 
 # Database Initialization
 db = SQLAlchemy(app)
@@ -38,4 +46,4 @@ app.logger.setLevel(logging.INFO)
 app.logger.addHandler(file_handler)
 app.logger.info('Cineapp startup')
 
-from app import views, models
+from cineapp import views, models
