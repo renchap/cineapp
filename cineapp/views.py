@@ -302,13 +302,16 @@ def update_datatable():
 			dict_comments[cur_user.id]=None
 			dict_where[cur_user.id]="-"
 			dict_when[cur_user.id]="-"
-			dict_homework[cur_user.id]={ "when" : None, "link" : url_for("add_homework",movie_id=cur_movie.id,user_id=cur_user.id)}
+			dict_homework[cur_user.id]={ "when" : None, "who:" : None, "link" : url_for("add_homework",movie_id=cur_movie.id,user_id=cur_user.id)}
 			for cur_mark in cur_movie.marked_by_users:
 				if cur_mark.user.id == cur_user.id:
 					dict_mark[cur_user.id]=cur_mark.mark		
 					dict_where[cur_user.id]=cur_mark.seen_where
 					dict_comments[cur_user.id]=cur_mark.comment
 					dict_homework[cur_user.id]["when"]=str(cur_mark.homework_when)
+
+					if cur_mark.homework_who_user != None:
+						dict_homework[cur_user.id]["who"]=cur_mark.homework_who_user.nickname
 
 					# Convert the date object only if seen_when field is not null (Homework UC)
 					if cur_mark.seen_when != None:
@@ -337,13 +340,34 @@ def show_movie(movie_id):
 	# Select movie
 	movie = Movie.query.get_or_404(movie_id)
 
-	# Let's check if the movie has already been marked
+	# Initialize the dict which will contain the data to be displayed
+	mark_users=[]
+
+	# Get user list
+	users=User.query.all()
+
+	# Browse all users
+	for cur_user in users:
+		print "On traite" + cur_user.nickname
+
+		# Let's check if the movie has already been marked by the user
+		marked_movie=Mark.query.get((cur_user.id,movie_id))
+
+		if marked_movie != None:
+			if marked_movie.homework_who != None:
+				mark_users.append({ "user": cur_user, "mark": "homework_in_progress", "comment": "N/A" })
+			else:
+				mark_users.append({ "user": cur_user, "mark": marked_movie.mark, "comment": marked_movie.comment })
+		else:
+			mark_users.append({ "user" : cur_user, "mark": None, "comment": "N/A" })
+
+	# Let's check if the movie has already been marked by the user
 	marked_movie=Mark.query.get((g.user.id,movie_id))
 
 	if marked_movie is None or marked_movie.mark == None:
-		return render_template('movie_show.html', movie=movie, movie_next=movie.next(),movie_prev=movie.prev(),marked_flag=False)
+		return render_template('movie_show.html', movie=movie, mark_users=mark_users, movie_next=movie.next(),movie_prev=movie.prev(),marked_flag=False)
 	else:
-		return render_template('movie_show.html', movie=movie, movie_next=movie.next(),movie_prev=movie.prev(),marked_flag=True)
+		return render_template('movie_show.html', movie=movie, mark_users=mark_users, movie_next=movie.next(),movie_prev=movie.prev(),marked_flag=True)
 
 @app.route('/movies/mark/<int:movie_id_form>', methods=['GET','POST'])
 @login_required
@@ -581,17 +605,7 @@ def add_homework(movie_id,user_id):
 	elif mail_status == 2:
 		flash('Aucune notification à envoyer','warning')
 
-	search_type = session.get('search_type')
-
-	if search_type == "filter":
-		# We are in filter mode => Display the custom search list
-		return redirect(url_for('filter_form'))
-	elif search_type == "filter_origin_type":
-		# The filter form is used => Display the filtered list
-		return redirect(url_for('filter_form'))
-	else: 
-		# Display the normal list
-		return redirect(url_for('list_movies'))
+	return redirect(url_for('show_movie',movie_id=movie_id))
 
 @app.route('/homework/list',methods=['GET','POST'])
 @login_required

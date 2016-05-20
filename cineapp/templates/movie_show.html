@@ -87,44 +87,34 @@ aria-hidden="true">&rarr;</span></a>
 			</form>
 		{% endif %}
 	{% else %}
-		{% if movie.marked_by_users|length == 0 %}
-			<div class="alert alert-info text-center">
-			<div>
-				Pas de note pour ce film
-			</div>
-		{% else %}
-			<div class="centered text-center">
-				<h2>Notes</h2>
-			</div>
-			<table class="table table-striped">
-			{% for user_mark in movie.marked_by_users %}
-				<tr>
-					<td class="col-md-2 text-right">
-						{{ user_mark.user.nickname }}
-					</td>
-					<td class="col-md-2 text-center">
-						{% if user_mark.mark != None %}
-						<strong>{{ user_mark.mark }}</strong>
+		<div class="centered text-center">
+			<h2>Notes</h2>
+		</div>
+		<table class="table table-striped">
+		{% for cur_mark in mark_users %}
+			<tr>
+				<td class="col-md-2 text-right">
+					{{ (cur_mark["user"]).nickname }}
+				</td>
+				<td class="col-md-2 text-center">
+					{% if cur_mark["mark"] == "homework_in_progress" %}
+					<button class="btn btn-warning btn-xs" disabled="true">Devoir</button>
+					{% elif cur_mark["mark"] == None %}
+						{% if g.user.id != (cur_mark["user"]).id %}
+							<a href={{ url_for("add_homework",movie_id=movie.id,user_id=cur_mark["user"].id) }} class="btn btn-success btn-xs">Donner un devoir</button>
 						{% else %}
-						<button disabled="true" class="btn btn-warning btn-xs">Devoir</button>
+						<a href="{{ url_for('mark_movie',movie_id_form=movie.id) }}" class="btn btn-primary btn-xs">Noter ce film</a>
 						{% endif %}
-					</td>
-					<td class="col-md-8 text-justify">
-						{% if user_mark.comment != None %}
-						{{ user_mark.comment }}
-						{% else %}
-						<em>N/A</em>
-						{% endif %}
-					</td>
-				</tr>
-			{% endfor %}
-			</table>
-		{% endif %}
-		{% if not marked_flag %}
-			<div class="text-center">
-			<a href="{{ url_for('mark_movie',movie_id_form=movie.id) }}" class="btn btn-primary">Noter ce film</a>
-			</div>
-		{% endif %}
+					{% else %}	
+					<strong>{{ cur_mark["mark"] }}</strong>
+					{% endif %}
+				</td>
+				<td class="col-md-8 text-justify">
+					{{ cur_mark["comment"] }}
+				</td>
+			</tr>
+		{% endfor %}
+		</table>
 	{% endif %}
 	</div>
 {% endblock %}
