@@ -725,7 +725,7 @@ def show_graphs():
 
 		# Distributed marks graph
 		graph_title="Repartition par origine"
-		graph_type="radar"
+		graph_type="bar"
 
 		# Fill the origin_array with all the types stored into the database
 		origins = Origin.query.all();
