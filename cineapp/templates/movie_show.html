@@ -1,5 +1,23 @@
 {% extends "base.html" %} 
 {% block content %}
+	<div class="container">	
+	<nav>
+		<ul class="pager">
+        {% if movie_prev %}
+			<li class="previous">
+			<a href="{{ url_for('show_movie', movie_id=movie_prev.id) }}"><span
+aria-hidden="true">&larr;</span> {{ movie_prev.name }}</a>
+			</li>
+	{% endif %}
+        {% if movie_next %}
+			<li class="next">
+			<a href="{{ url_for('show_movie', movie_id=movie_next.id) }}"> {{ movie_next.name }} <span
+aria-hidden="true">&rarr;</span></a>
+			</li>
+	 {% endif %}
+		</ul>
+	</nav>
+	</div>
 	<div class="container">
 	<div class="centered text-center">
 		<h1>{{ movie.name }}</h1>
@@ -40,24 +58,6 @@
 			</table>
 		</div>
 	</div>
-	</div>
-	<div class="container">	
-	<nav>
-		<ul class="pager">
-        {% if movie_prev %}
-			<li class="previous">
-			<a href="{{ url_for('show_movie', movie_id=movie_prev.id) }}"><span
-aria-hidden="true">&larr;</span> {{ movie_prev.name }}</a>
-			</li>
-	{% endif %}
-        {% if movie_next %}
-			<li class="next">
-			<a href="{{ url_for('show_movie', movie_id=movie_next.id) }}"> {{ movie_next.name }} <span
-aria-hidden="true">&rarr;</span></a>
-			</li>
-	 {% endif %}
-		</ul>
-	</nav>
 	</div>
 	<hr/>
 	<div class="container">
