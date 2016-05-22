@@ -280,6 +280,17 @@ def update_datatable():
 		my_when="-"
 		my_where=""
 		my_comment=""
+
+		# Calculate the average mark for each movie
+		average_mark_query=db.session.query(db.func.avg(Mark.mark).label("average")).filter(Mark.movie_id==cur_movie.id).one()
+		
+		try:
+			# Round the average mark for a better display
+			average_mark=round(float(average_mark_query.average),2)
+		except:
+			# There is no average because no mark recorded
+			average_mark="-"
+
 		for cur_mark in cur_movie.marked_by_users:
 			if cur_mark.user_id == g.user.id:
 				my_mark=cur_mark.mark
@@ -321,6 +332,7 @@ def update_datatable():
 		dict_movie["data"].append({"DT_RowData": { "link": url_for("show_movie",movie_id=cur_movie.id), "mark_link": url_for("mark_movie",movie_id_form=cur_movie.id),"homework_link": dict_homework},
 		"id": cur_movie.id,"name": cur_movie.name, 
 		"director": cur_movie.director,
+		"average" : average_mark,
 		"my_mark": my_mark, 
 		"my_when": my_when,
 		"my_where": my_where, 

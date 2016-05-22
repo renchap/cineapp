@@ -78,6 +78,7 @@
 				   "orderable":false },
 				{%endif%}
 			{% endfor %}
+			  { "data": "average" }
 			  ],
 			  "columnDefs": [
 				{"className": "dt-center", "targets": "_all"}
@@ -148,16 +149,17 @@
 			{% endfor %}	
 		</tr>
 		<tr>
-			<th class="text-center" style="border:0;width:25%;">Titre</th>
+			<th class="text-center" style="border:0;width:35%;">Titre</th>
 			<th class="text-center" style="border:0;width:25%;">Realisateur</th>
 			<th class="text-center" style="border:0;">Note</th>
 			<th class="text-center" style="border:0;">Date</th>
 			{% for cur_user in users %}
 				{% if g.user.id != cur_user.id %}
-				<th class="text-center"><strong>Note</strong></th>
-				<th class="text-center"><strong>Date</strong></th>
+				<th class="text-center" style="border:0;"><strong>Note</strong></th>
+				<th class="text-center" style="border:0;"><strong>Date</strong></th>
 				{% endif %}
 			{% endfor %}	
+			<th class="text-center" style="border:0;">Moyenne</th>
 		</tr>
 		</thead>
 		</table>
