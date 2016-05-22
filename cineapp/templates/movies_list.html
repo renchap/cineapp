@@ -14,6 +14,7 @@
 			  "processing": true,
 			  "serverSide": true,
 			  "displayLength": 100,
+			  fixedHeader: { "header": true, "footer": true },
 			  "ajax": {
 				"url": "{{ url_for('update_datatable') }}",
 				"type" : "POST",
@@ -23,13 +24,12 @@
 			  },
 			  "columns" : [
 				{ "data": "name",
-				  "className": "dt-body-left",
+				  className: "dt-right",
 				  "render": function(data,type,row) {
 					return $("<div>").append($("<a/>").attr("href", row.DT_RowData.link).text(data)).html();
 					}
 			        },
-				{ "data": "director",
-				  "className": "dt-body-left" },
+				{ "data": "director", className: "dt-right" },
 				{ "data": "my_mark",
 				  "render": function(data,type,row) {
 						if (row.my_mark == null)  {
