@@ -797,6 +797,7 @@ def show_dashboard():
 	# Object_items
 	object_list=[]
 	general_stats={}
+	stats_dict={}
 	labels=[]
 	data={"theaters": [], "others": []}
 	
@@ -815,20 +816,27 @@ def show_dashboard():
 		elif cur_item.entry_type == "marks":
 			object_list.append(Mark.query.get((cur_item.user_id,cur_item.id)))
 
-	# Fetch general statistics
-	query_avg_count = db.session.query(db.func.avg(Mark.mark).label("average"),db.func.count(Mark.mark).label("count")).filter(Mark.mark!=None,Mark.user_id==g.user.id).one()
+	# Build a dictionnary with the average and movies count (global / only in theaters and only at home) for all users
+	# We do a dictionnary instead of a global GROUP BY in order to have all users including the one without any mark
+	# and also allow an easy access to a specific user which is nice for the dashboard display
+	users=User.query.all()
 
-	try:
-		general_stats["avg"] = round(float(query_avg_count.average),2)
-	except TypeError:
-		# If we are here, that means we can't calculate the average
-		# Maybe because there is no average
-		# Set the average with N/A value	
-		general_stats["avg"] = "N/A"
+	for cur_user in users:
+		try:
+			# Fetch the user object and the current average
+			avg_query=db.session.query(db.func.avg(Mark.mark).label("average")).filter(Mark.mark!=None,Mark.user_id==cur_user.id).one()
+			stats_dict[cur_user.id]={ "user": cur_user, "avg": round(float(avg_query.average),2), "movies_total" : 0, "movies_theaters" : 0, "movies_home": 0 }
 
-	general_stats["seenmovies"] = query_avg_count.count
-	general_stats["theaters_seenmovies"] = Mark.query.filter(Mark.mark!=None,Mark.user_id==g.user.id,Mark.seen_where=="C").count()
-	general_stats["home_seenmovies"] = Mark.query.filter(Mark.mark!=None,Mark.user_id==g.user.id,Mark.seen_where=="M").count()
+		except TypeError:
+			# If we are here, that means the user doesn't have an average (Maybe because no mark recorded)
+			stats_dict[cur_user.id]={ "user": cur_user, "avg": "N/A",  "movies_total" : 0, "movies_theaters" : 0, "movies_home": 0 }
+
+		# Let's count the movies for each user
+		stats_dict[cur_user.id]["movies_total"] = Mark.query.filter(Mark.mark!=None,Mark.user_id==cur_user.id).count()
+		stats_dict[cur_user.id]["movies_theaters"] = Mark.query.filter(Mark.mark!=None,Mark.user_id==cur_user.id,Mark.seen_where=="C").count() 
+		stats_dict[cur_user.id]["movies_home"] = Mark.query.filter(Mark.mark!=None,Mark.user_id==cur_user.id,Mark.seen_where=="M").count() 
+
+	# Fetch general databases statistics
 	general_stats["movies"] = Movie.query.count()
 
 	# Generate datas for the bar graph
@@ -844,4 +852,8 @@ def show_dashboard():
 	# Go back to default locale
 	locale.setlocale(locale.LC_ALL,locale.getdefaultlocale())
 	
-	return render_template('show_dashboard.html', object_list=object_list, general_stats=general_stats,labels=labels,data=data,cur_year=cur_year)
+	return render_template('show_dashboard.html', object_list=object_list, general_stats=general_stats,labels=labels,data=data,cur_year=cur_year,stats_dict=stats_dict)
+
+@app.route('/dt')
+def dt_test():
+	return render_template('dt_test.html')

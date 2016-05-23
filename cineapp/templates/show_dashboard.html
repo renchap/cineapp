@@ -6,18 +6,21 @@
 			<div class="col-md-4">
 				<div class="panel panel-default">
 					  <div class="panel-heading text-center">Moyenne</div>
-					  <div class="panel-body text-center" id="average">{{ general_stats["avg"] }}</div>
-				</div>
-			</div>
-			<div class="col-md-4">
-				<div class="panel panel-default">
-					  <div class="panel-heading text-center">Nombre de films vus</div>
 					  <div class="panel-body text-center">
-							<div>
-					  			<div id="seenmovies"> {{ general_stats["seenmovies"] }}</div>
-								<div><span id="theaters">Ciné : {{ general_stats["theaters_seenmovies"] }}</span> / <span id="home">Maison : {{ general_stats["home_seenmovies"] }}</span></div>
-							</div>
-
+						<div id="average">{{ stats_dict[g.user.id]["avg"] }}</div>
+					  </div>
+					  <div>
+						<table class="table">
+							{% for cur_avg in stats_dict %}
+							{% if g.user.id != cur_avg %}
+							<tr>
+								<td class="text-right"><img src="http://www.gravatar.com/avatar/{{ stats_dict[cur_avg]["user"].avatar }}?d=identicon&s=15" class="avatar img-circle" alt="avatar"></td>
+								<td class="text-left">{{ stats_dict[cur_avg]["user"].nickname }}</td>
+								<td class="text-left"> {{ stats_dict[cur_avg]["avg"] }}</td>
+							</tr>
+							{% endif %}
+							{% endfor %}
+						</table>
 					  </div>
 				</div>
 			</div>
@@ -26,6 +29,32 @@
 					  <div class="panel-heading text-center">Nombre de films total</div>
 					  <div class="panel-body text-center" id="movies">
 							<div class="split">{{ general_stats["movies"] }}</div>
+					  </div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="panel panel-default">
+					  <div class="panel-heading text-center">Nombre de films vus</div>
+					  <div class="panel-body text-center">
+							<div>
+					  			<div id="seenmovies"> {{ stats_dict[g.user.id]["movies_total"] }}</div>
+								<div><span id="theaters">Ciné :{{ stats_dict[g.user.id]["movies_theaters"] }} </span> / <span id="home">Maison : {{ stats_dict[g.user.id]["movies_home"] }}</span></div>
+							</div>
+							<br/>
+							<div>
+								<table class="table">
+									{% for cur_avg in stats_dict %}
+									{% if g.user.id != cur_avg %}
+									<tr>
+										<td class="text-right"><img src="http://www.gravatar.com/avatar/{{ stats_dict[cur_avg]["user"].avatar }}?d=identicon&s=15" class="avatar img-circle" alt="avatar"></td>
+										<td class="text-left">{{ stats_dict[cur_avg]["user"].nickname }}</td>
+										<td class="text-right"><span id="seenmovies_small">{{ stats_dict[cur_avg]["movies_total"] }}</span> ( <span id="theaters_small">{{ stats_dict[cur_avg]["movies_theaters"] }}</span> / <span id="home_small">{{ stats_dict[cur_avg]["movies_home"] }}</span> ) </td>
+									</tr>
+									{% endif %}
+									{% endfor %}
+								</table>
+					 		</div>
+
 					  </div>
 				</div>
 			</div>

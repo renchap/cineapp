@@ -37,6 +37,21 @@ th.dt-center, td.dt-center { text-align: center; }
         font-weight: bold;
 }
 
+#seenmovies_small {
+	color: #D966FF;
+        font-weight: bold;
+}
+
+#theaters_small {
+	color: #C3D9FF;
+        font-weight: bold;
+}
+
+#home_small {
+	color: #FF0084;
+        font-weight: bold;
+}
+
 #movies {
 	font-size: xx-large;
 	color: #4096EE;
