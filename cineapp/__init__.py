@@ -4,6 +4,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, session
 from flask.ext.session import Session
 from flask.ext.mail import Mail
+from flask.ext.babel import Babel
 import logging, sys, os
 from logging.handlers import RotatingFileHandler
 
@@ -37,6 +38,9 @@ sess.init_app(app)
 
 # Mail engine init
 mail = Mail(app)
+
+# Translation engine init
+babel = Babel(app)
 
 ##################
 # Logging system #
