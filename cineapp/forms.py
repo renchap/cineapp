@@ -2,10 +2,11 @@
 
 from flask.ext.wtf import Form
 from flask.ext.wtf.html5 import SearchField
-from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField, TextAreaField, BooleanField
+from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField, TextAreaField, BooleanField, DateField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
-from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError
+from wtforms.validators import Required,DataRequired, EqualTo, Email, URL, ValidationError
 from cineapp.models import Origin, Type,User
+from datetime import datetime
 
 def get_origins():
 	return Origin.query.all()
@@ -35,10 +36,16 @@ class AddMovieForm(Form):
 	type = QuerySelectField(query_factory=get_types,get_label='type')
 
 class MarkMovieForm(Form):
+	class Meta:
+		locales = ('de_DE', 'de')
+
 	mark = StringField('Note du Film', [DataRequired()])
 	comment = TextAreaField('Commentaire du Film', [DataRequired()])
-	seen_where = RadioField('Ou j\'ai vu le film', choices=[('C', u'Cinema'), ('M', 'Maison')], default='M')
+	seen_where = RadioField('Ou j\'ai vu le film', [Required(message="Date invalide")],choices=[('C', u'Cinema'), ('M', 'Maison')], default='M')
+	seen_when = DateField('Vu le :', default=datetime.now(),format="%d/%m/%Y")
 
+	# The method name is important
+	# A validate_XXX method will validate a field named XXX
 	def validate_mark(form,field):
 		try:
 			float(field.data)
@@ -46,6 +53,8 @@ class MarkMovieForm(Form):
 			raise ValidationError('Pas un chiffre')
 		if float(field.data) < 0 or float(field.data) > 20:
 			raise ValidationError('Note Incorrecte')
+
+
 
 class SearchMovieForm(Form):
 	search = StringField('Nom du film', [DataRequired()])
@@ -57,7 +66,7 @@ class SelectMovieForm(Form):
 
 	# Specific constructer in order to pass a movie list
 	def __init__(self,movies_list=[]):
-		
+	
 		# Call the parent constructor
 		super(SelectMovieForm, self).__init__()
 		

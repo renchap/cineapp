@@ -385,7 +385,7 @@ def show_movie(movie_id):
 @login_required
 def mark_movie(movie_id_form):
 	# Select movie
-	form=MarkMovieForm()
+	form=MarkMovieForm(request.form, meta={'locales': ['fr_FR', 'fr']})
 	movie = Movie.query.get_or_404(movie_id_form)
 
 	# Let's check if the movie has already been marked
@@ -397,7 +397,7 @@ def mark_movie(movie_id_form):
 		if marked_movie == None:
 			marked_movie=Mark(user_id=g.user.id,
 				movie_id=movie.id,
-				seen_when=datetime.utcnow(),
+				seen_when=form.seen_when.data,
 				seen_where=form.seen_where.data,
 				mark=form.mark.data,
 				comment=form.comment.data,

@@ -75,6 +75,7 @@ aria-hidden="true">&rarr;</span></a>
 				{{ form.hidden_tag() }}
 				{{ render_field(form.mark,message=True) }}
 				{{ render_field(form.comment,message=True) }}
+				{{ render_field(form.seen_when,message=True) }}
 			        {{ form.seen_where.label }}	
 				{% for option in form.seen_where %}
 				<div class="radio">
