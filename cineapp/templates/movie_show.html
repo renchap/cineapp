@@ -62,31 +62,22 @@ aria-hidden="true">&rarr;</span></a>
 	<hr/>
 	<div class="container">
 	{% if mark %}
-		{% if marked_flag %}
-			<div class="alert alert-info text-center">
-			<div>
-				Film noté
+		{%from "_formhelpers.html" import render_field %}
+		<form method="post" action="" name="markmovie">
+			{{ form.hidden_tag() }}
+			{{ render_field(form.mark,message=True) }}
+			{{ render_field(form.comment,message=True) }}
+			{{ render_field(form.seen_when,message=True) }}
+			{{ form.seen_where.label }}	
+			{% for option in form.seen_where %}
+			<div class="radio">
+			<label>{{ option }}
+			{{ option.label }}
+			</label>
 			</div>
-				<a href="{{ url_for('show_movie',movie_id=movie.id) }}" class="btn btn-primary">Voir les notes</a>
-			</div>
-		{% else %}	
-			{%from "_formhelpers.html" import render_field %}
-			<form method="post" action="" name="markmovie">
-				{{ form.hidden_tag() }}
-				{{ render_field(form.mark,message=True) }}
-				{{ render_field(form.comment,message=True) }}
-				{{ render_field(form.seen_when,message=True) }}
-			        {{ form.seen_where.label }}	
-				{% for option in form.seen_where %}
-				<div class="radio">
-				<label>{{ option }}
-				{{ option.label }}
-				</label>
-				</div>
-				{% endfor %}
-				<input type="submit" class="btn btn-success center-block" value="Noter">
-			</form>
-		{% endif %}
+			{% endfor %}
+			<input type="submit" class="btn btn-success center-block" value="Noter">
+		</form>
 	{% else %}
 		<div class="centered text-center">
 			<h2>Notes</h2>
@@ -116,6 +107,11 @@ aria-hidden="true">&rarr;</span></a>
 			</tr>
 		{% endfor %}
 		</table>
+		{% if marked_flag %}
+		<div class="text-center">
+			<a href="{{ url_for("mark_movie",movie_id_form=movie.id) }}" class="btn btn-primary">Mettre à jour la note</a>
+		</div>
+		{% endif %}
 	{% endif %}
 	</div>
 {% endblock %}

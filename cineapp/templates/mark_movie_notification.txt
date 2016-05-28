@@ -2,7 +2,7 @@ Yo {{ dest_user.nickname }},
 {% if you_user == True %}
 Tu viens de noter le film {{ mark.movie.name }} avec la note {{ mark.mark }}.
 {% else %}
-{{ add_user.nickname }} vient de noter le film {{ mark.movie.name }} avec la note {{ mark.mark }}
+{% if notif_type == "add" %}{{ add_user.nickname }} vient de noter le film {{ mark.movie.name }} avec la note {{ mark.mark }} {% elif notif_type == "update" %}{{ add_user.nickname }} vient de mettre à jour sa note sur le film {{ mark.movie.name }} avec la note {{ mark.mark }} {% endif %}
 {% endif %}
 Le commentaire est : {{ mark.comment }}
 

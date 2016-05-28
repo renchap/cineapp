@@ -34,7 +34,7 @@ def add_movie_notification(movie):
 		render_template('add_movie_notification.txt', dest_user=cur_user, add_user=g.user,movie=movie,you_user=you_user))
 
 # Function which sends notifications to users when a movie is added
-def mark_movie_notification(mark):
+def mark_movie_notification(mark,notif_type):
 	users = User.query.filter_by(notif_enabled=1).all()
 	for cur_user in users:
 		# Check if the cur_user is the logged user who added the movie
@@ -43,9 +43,13 @@ def mark_movie_notification(mark):
 			you_user=True
 		else:
 			you_user=False
-	
-		send_email('[Cineapp] - Note d\'un film' , app.config['MAIL_SENDER'],[ cur_user.email ] ,
-		render_template('mark_movie_notification.txt', dest_user=cur_user, add_user=g.user,mark=mark,you_user=you_user))
+
+		if notif_type == "add":	
+			send_email('[Cineapp] - Note d\'un film' , app.config['MAIL_SENDER'],[ cur_user.email ] ,
+			render_template('mark_movie_notification.txt', dest_user=cur_user, add_user=g.user,mark=mark,you_user=you_user,notif_type=notif_type))
+		elif notif_type == "update":
+			send_email('[Cineapp] - Note mise à jour' , app.config['MAIL_SENDER'],[ cur_user.email ] ,
+			render_template('mark_movie_notification.txt', dest_user=cur_user, add_user=g.user,mark=mark,you_user=you_user,notif_type=notif_type))
 
 # Function which sends notification to user who received an homework
 def add_homework_notification(mark):

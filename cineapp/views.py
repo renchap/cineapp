@@ -385,7 +385,7 @@ def show_movie(movie_id):
 @login_required
 def mark_movie(movie_id_form):
 	# Select movie
-	form=MarkMovieForm(request.form, meta={'locales': ['fr_FR', 'fr']})
+	form=MarkMovieForm()
 	movie = Movie.query.get_or_404(movie_id_form)
 
 	# Let's check if the movie has already been marked
@@ -403,34 +403,45 @@ def mark_movie(movie_id_form):
 				comment=form.comment.data,
 				updated_when=datetime.now()
 			)	
+	
+			flash_message_success="Note ajoutée"
+			notif_type="add"
 		else:
+			# Update Movie
 			marked_movie.mark=form.mark.data
 			marked_movie.comment=form.comment.data
-			updated_when=datetime.now()
-			
+			marked_movie.seen_when=form.seen_when.data
+			marked_movie.seen_where=form.seen_where.data
+			marked_movie.updated_when=datetime.now()
+
+			flash_message_success="Note mise à jour"
+			notif_type="update"
+
 		try:
 			db.session.add(marked_movie)
 			db.session.commit()
-			flash('Note ajoutée','success')
+			flash(flash_message_success,'success')
 
 			# Send notification
-			mark_movie_notification(marked_movie)
+			mark_movie_notification(marked_movie,notif_type)
 			return redirect(url_for('show_movie',movie_id=movie_id_form))
 			
 		except IntegrityError:
 			db.session.rollback()
-			flash('Impossible d\'ajouter la note','danger')
+			flash('Impossible de noter le film','danger')
 			return render_template('movie_show.html', movie=movie, mark=True, marked_flag=False, form=form)
 
 		except FlushError:
 			db.session.rollback()
-			flash('Impossible d\'ajouter la note','danger')
+			flash('Impossible de noter le film','danger')
 			return render_template('movie_show.html', movie=movie, mark=True, marked_flag=False, form=form)
 
 	if marked_movie is None or marked_movie.mark == None:
 		return render_template('movie_show.html', movie=movie, mark=True, marked_flag=False, form=form)
 	else:
-		return render_template('movie_show.html', movie=movie, mark=True, marked_flag=True)
+		# Movie has already been marked => Fill the form with data
+		form=MarkMovieForm(mark=marked_movie.mark,comment=marked_movie.comment,seen_when=marked_movie.seen_when,seen_where=marked_movie.seen_where)
+		return render_template('movie_show.html', movie=movie, mark=True, marked_flag=True,form=form)
 
 @app.route('/movies/add', methods=['GET','POST'])
 @login_required
