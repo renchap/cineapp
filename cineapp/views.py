@@ -407,7 +407,7 @@ def mark_movie(movie_id_form):
 				updated_when=datetime.now()
 			)	
 	
-			flash_message_success="Note ajoutÃ©e"
+			flash_message_success="Note ajoutée"
 			notif_type="add"
 		else:
 			# Update Movie
@@ -417,7 +417,7 @@ def mark_movie(movie_id_form):
 			marked_movie.seen_where=form.seen_where.data
 			marked_movie.updated_when=datetime.now()
 
-			flash_message_success="Note mise Ã  jour"
+			flash_message_success="Note mise à jour"
 			notif_type="update"
 
 		try:
@@ -507,13 +507,13 @@ def add_movie():
 			db.session.flush()
 			new_movie_id=movie_to_create.id
 			db.session.commit()
-			flash('Film ajoutÃ©','success')
+			flash('Film ajouté','success')
 
 			# Donwload the poster and update the database
 			if download_poster(movie_to_create):
-				flash('Affiche tÃ©lÃ©chargÃ©e','success')
+				flash('Affiche téléchargée','success')
 			else:
-				flash('Impossible de tÃ©lÃ©charger le poster','warning')
+				flash('Impossible de télécharger le poster','warning')
 
 			# Movie has been added => Send notifications
 			add_movie_notification(movie_to_create)
@@ -522,7 +522,7 @@ def add_movie():
 			return redirect(url_for('mark_movie',movie_id_form=new_movie_id))
 
 		except IntegrityError as e:
-			flash('Film dÃ©jÃ  existant','danger')
+			flash('Film déjà existant','danger')
 			db.session.rollback()
 			return redirect(url_for('add_movie'))
 
@@ -675,9 +675,9 @@ def add_user():
 		try:
 			db.session.add(user)
 			db.session.commit()
-			flash('Utilisateur ajoutÃ©')
+			flash('Utilisateur ajouté')
 		except IntegrityError:
-			flash('Utilisateur dÃ©jÃ Â existant')
+			flash('Utilisateur déjà existant')
 	return render_template('add_user_form.html', form=form)
 
 @app.route('/my/profile', methods=['GET', 'POST'])
@@ -695,9 +695,9 @@ def edit_user_profile():
 		try:
 			db.session.add(g.user)
 			db.session.commit()
-			flash('Informations mises Ã  jour','success')
+			flash('Informations mises à jour','success')
 		except:
-			flash('Impossible de mettre Ã  jour l\'utilisateur', 'danger')
+			flash('Impossible de mettre à jour l\'utilisateur', 'danger')
 
 	# Fetch the object for the current logged_in user
 	return render_template('edit_profile.html',form=form,state="user")
@@ -716,9 +716,9 @@ def change_user_password():
 		try:
 			db.session.add(g.user)
 			db.session.commit()
-			flash('Mot de passe mis Ã  jour','success')
+			flash('Mot de passe mis à jour','success')
 		except:
-			flash('Impossible de mettre Ã  jour le mot de passe', 'danger')
+			flash('Impossible de mettre à our le mot de passe', 'danger')
 	
 	# Fetch the object for the current logged_in user
 	return render_template('edit_profile.html',form=form,state="password")
@@ -746,11 +746,11 @@ def add_homework(movie_id,user_id):
 	# Send email notification
 	mail_status = add_homework_notification(mark)
 	if mail_status == 0:
-		flash('Notification envoyÃ©e','success')
+		flash('Notification envoyée','success')
 	elif mail_status == 1:
-		flash('Erreur lors de l\'envoi de la notifiction','danger')
+		flash('Erreur lors de l\'envoi de la notification','danger')
 	elif mail_status == 2:
-		flash('Aucune notification Ã  envoyer','warning')
+		flash('Aucune notification à envoyer','warning')
 
 	return redirect(url_for('show_movie',movie_id=movie_id))
 
@@ -766,12 +766,12 @@ def list_homeworks():
 
 	# Create the two forms for user filtering
 	if session.get('my_homework_filter', None) != None:
-		my_homework_filter_form=HomeworkForm(label_name=u'DonnÃ© Ã :',prefix=u"my",user_filter=User.query.get(session.get('my_homework_filter',None)))
+		my_homework_filter_form=HomeworkForm(label_name=u'Donné à :',prefix=u"my",user_filter=User.query.get(session.get('my_homework_filter',None)))
 	else:
-		my_homework_filter_form=HomeworkForm(label_name=u'DonnÃ© Ã :',prefix=u"my")
+		my_homework_filter_form=HomeworkForm(label_name=u'Donné à :',prefix=u"my")
 
 	if session.get('given_homework_filter', None) != None:
-		given_homework_filter_form=HomeworkForm(label_name=u"DonnÃ© par:",prefix=u"given",user_filter=User.query.get(session.get('given_homework_filter')))
+		given_homework_filter_form=HomeworkForm(label_name=u"Donné par:",prefix=u"given",user_filter=User.query.get(session.get('given_homework_filter')))
 	else:
 		given_homework_filter_form=HomeworkForm(label_name=u"DonnÃ© par:",prefix=u"given")
 
