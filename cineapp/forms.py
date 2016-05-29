@@ -54,8 +54,6 @@ class MarkMovieForm(Form):
 		if float(field.data) < 0 or float(field.data) > 20:
 			raise ValidationError('Note Incorrecte')
 
-
-
 class SearchMovieForm(Form):
 	search = StringField('Nom du film', [DataRequired()])
 	submit_search = SubmitField('Chercher')
@@ -77,9 +75,13 @@ class SelectMovieForm(Form):
 
 		self.movie.choices = choice_list
 
+class UpdateMovieForm(Form):
+	movie_id = HiddenField()
+	submit_update_movie = SubmitField(u'Mettre à jour le film')
+
 class ConfirmMovieForm(Form):
-	origin = QuerySelectField(query_factory=get_origins, get_label='origin')
-	type = QuerySelectField(query_factory=get_types,get_label='type')
+	origin = QuerySelectField('Origine',query_factory=get_origins, get_label='origin')
+	type = QuerySelectField('Type',query_factory=get_types,get_label='type')
 	movie_id = HiddenField()
 	submit_confirm = SubmitField("Ajouter le film")
 

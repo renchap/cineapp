@@ -6,7 +6,7 @@
 		</div>
 		<div class="row">	
 			<div class="col-md-6 col-md-offset-3">
-				<form action="" method="post" name="selectmovie">
+				<form action="{{ url_wizard_next }}" method="post" name="selectmovie">
 					{{ select_form.hidden_tag() }}
 					{% for option in select_form.movie %}
 						<div class="radio">

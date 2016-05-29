@@ -57,7 +57,15 @@ aria-hidden="true">&rarr;</span></a>
 				</tr>
 			</table>
 		</div>
-	</div>
+		{% if not mark %}
+		<div class="text-center">
+			<form method="post" action="{{url_for("update_movie") }}" name="updatemovie">
+				{{ update_movie_form.hidden_tag() }}
+				{{ update_movie_form.movie_id}}
+				{{ update_movie_form.submit_update_movie(class="btn btn-primary center-block") }}
+			</form>
+		</div>
+		{% endif %}
 	</div>
 	<hr/>
 	<div class="container">
