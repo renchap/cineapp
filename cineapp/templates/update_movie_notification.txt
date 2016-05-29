@@ -1,0 +1,24 @@
+Yo {{ dest_user.nickname }},
+{% if you_user == True %}
+Tu viens de modifier la fiche du film : {{ notif["old"]["name"]  }}
+{% else %}
+{{ add_user.nickname }} vient de modifier la fiche du film {{ notif["old"]["name"] }}.
+{% endif %}
+Anciennes informations
+----------------------
+Nom du film: {{ notif["old"]["name"] }}
+Réalisateur: {{ notif["old"]["director"] }}
+Date de sortie: {{ notif["old"]["release_date"] }}
+Genre: {{ notif["old"]["type"] }}
+Origine: {{ notif["old"]["origin"] }}
+
+Nouvelles Informations
+----------------------
+Nom du film: {{ notif["new"]["name"] }}
+Réalisateur: {{ notif["new"]["director"] }}
+Date de sortie: {{ notif["new"]["release_date"] }}
+Genre: {{ notif["new"]["type"] }}
+Origine: {{ notif["new"]["origin"] }}
+
+--
+CineApp

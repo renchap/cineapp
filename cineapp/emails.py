@@ -65,3 +65,17 @@ def add_homework_notification(mark):
 			return 1
 	else:
 		return 2
+
+# Function which sends notification to user when a movie has been updated into the database
+def update_movie_notification(notif):
+	users = User.query.filter_by(notif_enabled=1).all()
+	for cur_user in users:
+		# Check if the cur_user is the logged user who added the movie
+		# in order to change the mail text
+		if cur_user.id==g.user.id:
+			you_user=True
+		else:
+			you_user=False
+	
+		send_email('[Cineapp] - Modification d\'un film' , app.config['MAIL_SENDER'],[ cur_user.email ] ,
+		render_template('update_movie_notification.txt', dest_user=cur_user, add_user=g.user,notif=notif,you_user=you_user))

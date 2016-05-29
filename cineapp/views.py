@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import urllib, hashlib, re, os, locale, json
+import urllib, hashlib, re, os, locale, json, copy
 from datetime import datetime
 from flask import render_template, flash, redirect, url_for, g, request, session
 from flask.ext.login import login_user, logout_user, current_user, login_required
@@ -11,7 +11,7 @@ from cineapp import app, db, lm
 from cineapp.forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm, UserForm, PasswordForm, HomeworkForm, UpdateMovieForm
 from cineapp.models import User, Movie, Mark, Origin, Type
 from cineapp.tvmdb import search_movies,get_movie,download_poster
-from cineapp.emails import add_movie_notification, mark_movie_notification, add_homework_notification
+from cineapp.emails import add_movie_notification, mark_movie_notification, add_homework_notification, update_movie_notification
 from cineapp.utils import frange
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy.orm.exc import FlushError
@@ -549,21 +549,31 @@ def update_movie():
 		# Put into a session variable the movie id we want to update in order to do the final update on the last wizard step
 		session['movie_id'] = movie.id
 
+		# Put the object into the session array => We'll need it later
+		session['movie']=movie
+
 		return render_template('add_movie_wizard.html', search_form=search_form,header_text=u"Mise à jour de la fiche du film " + movie.name)
 
 	# Search form is validated => Let's fetch the movirs from tvdb.org
-	if search_form.submit_search.data  and search_form.validate_on_submit():
-		select_form=SelectMovieForm(search_movies(search_form.search.data))
+	if search_form.submit_search.data:
+
+		# Get the movie object in order to get the movie name
+		movie=session.get('movie',None)
 
 		# Put it in a session in order to do the validation
 		session['query_movie'] = search_form.search.data
-		
-		# Display the selection form
-		if len(select_form.movie.choices) == 0:
-			flash("Aucun film correspondant","danger")
-			return render_template('add_movie_wizard.html', search_form=search_form)
+
+		if search_form.validate_on_submit():
+			select_form=SelectMovieForm(search_movies(search_form.search.data))
+
+			# Display the selection form
+			if len(select_form.movie.choices) == 0:
+				flash("Aucun film correspondant","danger")
+				return render_template('add_movie_wizard.html', search_form=search_form)
+			else:
+				return render_template('select_movie_wizard.html', select_form=select_form,url_wizard_next=url_for("update_movie"))
 		else:
-			return render_template('select_movie_wizard.html', select_form=select_form,url_wizard_next=url_for("update_movie"))
+			return render_template('add_movie_wizard.html', search_form=search_form,header_text=u"Mise à jour de la fiche du film " + movie.name)
 
 	# Validate selection form
 	if select_form.submit_select.data:
@@ -575,11 +585,6 @@ def update_movie():
 			# Update the origin using data stored in database and fetch from TMVDB
 			movie=Movie.query.get(session.get('movie_id',None))
 	
-			# Check if we have got an object
-			if movie == None:
-				flash("Erreur Générale - Veuillez Rééssayer","danger")
-				return render_template('add_movie_wizard.html', search_form=search_form)
-
 			# Populate a temp movie object which will be used for display the movie data got from tmvdb
 			tmvdb_movie=get_movie(select_form.movie.data)
 			
@@ -592,9 +597,10 @@ def update_movie():
 
 			# Go to the final confirmation form
 			return render_template('confirm_movie_wizard.html', movie=tmvdb_movie,form=confirm_form,url_wizard_next=url_for("update_movie"))
+
 		else:
 			# Select Form Error => Display it again in order the user to correct the error
-			flash("Erreur Générale - Veuillez Rééssayer","danger")
+			flash("Veuillez sélectionenr un film","danger")
 			return render_template('select_movie_wizard.html', select_form=select_form,url_wizard_next=url_for("update_movie"))
 
 	# Confirmation form => Update the movie into the database
@@ -618,6 +624,17 @@ def update_movie():
 
 		# All checks are okay => Update the movie !
 		temp_movie=get_movie(confirm_form.movie_id.data)
+
+		# Put the notifications into a dictionnary since I can't get 
+		notification_data={}
+		notification_data["old"]={ "name": movie.name,
+				"release_date" : movie.release_date,
+				"director" : movie.director,
+				"type" : movie.type_object.type,
+				"origin" : movie.origin_object.origin
+				}
+
+		# Update the object that will be stored in the database
 		movie.name=temp_movie.name
 		movie.release_date=temp_movie.release_date
 		movie.url=temp_movie.url
@@ -638,17 +655,31 @@ def update_movie():
 				flash('Affiche téléchargée','success')
 			else:
 				flash('Impossible de télécharger le poster','warning')
+			
+			# Update the dictionnary with the update movie data
+			notification_data["new"]={ "name": movie.name,
+				"release_date" : movie.release_date,
+				"director" : movie.director,
+				"type" : movie.type_object.type,
+				"origin" : movie.origin_object.origin
+				}
 
 			# Movie has been updated => Send notifications
-			add_movie_notification(movie)
+			update_movie_notification(notification_data)
+
+			# Clear the session variables
+			session.pop('movie')
+			session.pop('movie_id')
+			session.pop('query_movie')
 			
 			# Movie updated ==> Go to the movie page !
 			return redirect(url_for('show_movie',movie_id=movie.id))
 
 		except IntegrityError as e:
-			flash('Film déjà  existant','danger')
+			flash('Film déjà existant','danger')
+			print str(e)
 			db.session.rollback()
-			return redirect(url_for('add_movie'))
+			return redirect(url_for('update_movie'))
 
 @app.route('/my/marks')
 @app.route('/my/marks/<int:page>')
