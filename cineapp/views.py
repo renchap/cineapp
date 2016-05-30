@@ -853,6 +853,8 @@ def list_homeworks():
 @app.route('/graph/origin', endpoint="graph_by_origin")
 @app.route('/graph/year', endpoint="graph_by_year")
 @app.route('/graph/year_theater', endpoint="graph_by_year_theater")
+@app.route('/graph/average_type', endpoint="average_by_type")
+@app.route('/graph/average_origin', endpoint="average_by_origin")
 @login_required
 def show_graphs():
 
@@ -886,7 +888,7 @@ def show_graphs():
 
 		# Distributed types graph
 		graph_title="Repartition par type"
-		graph_type="radar"
+		graph_type="bar"
 
 		# Fill the types_array with all the types stored into the database
 		types = Type.query.all();
@@ -915,6 +917,53 @@ def show_graphs():
 			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : [] }
 			for cur_origin in origins:
 				data[cur_user.nickname]["data"].append(Mark.query.join(Mark.movie).filter(Mark.mark!=None,Mark.user_id==cur_user.id,Movie.origin==cur_origin.id).count())
+
+
+	elif graph_to_generate == "average_type":
+
+		# Average by type
+		graph_title="Moyenne des films par type"
+		graph_type="radar"
+
+		# Fill the types array with all the types stored into the database
+		types = Type.query.all();
+		for cur_type in types:
+			labels.append(cur_type.type)
+
+		# Fill the dictionnary with average mark by user and by type
+		for cur_user in users:
+			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : [] }
+			for cur_type in types:
+				avg_query=db.session.query(db.func.avg(Mark.mark).label("average")).join(Mark.movie).filter(Mark.mark!=None,Mark.user_id==cur_user.id,Movie.type==cur_type.id).one()
+				
+				# If no mark => Put null
+				if avg_query.average == None:
+					data[cur_user.nickname]["data"].append("null")
+				else:
+					data[cur_user.nickname]["data"].append(round(float(avg_query.average),2))
+
+	elif graph_to_generate == "average_origin":
+
+		# Average by type
+		graph_title="Moyenne des films par origine"
+		graph_type="radar"
+
+		# Fill the origins array with all the origins stored into the database
+		origins = Origin.query.all();
+		for cur_origin in origins:
+			labels.append(cur_origin.origin)
+
+		# Fill the dictionnary with average mark by user and by type
+		for cur_user in users:
+			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : [] }
+			for cur_origin in origins:
+				avg_query=db.session.query(db.func.avg(Mark.mark).label("average")).join(Mark.movie).filter(Mark.mark!=None,Mark.user_id==cur_user.id,Movie.origin==cur_origin.id).one()
+				
+				# If no mark => Put null
+				if avg_query.average == None:
+					data[cur_user.nickname]["data"].append("null")
+				else:
+					data[cur_user.nickname]["data"].append(round(float(avg_query.average),2))
 
 	elif graph_to_generate == "year":
 
@@ -953,6 +1002,7 @@ def show_graphs():
 			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : []}
 			for cur_year in range(min_year,max_year+1,1):
 				data[cur_user.nickname]["data"].append(Mark.query.filter(Mark.mark!=None,Mark.user_id==cur_user.id,Mark.seen_where=="C",db.func.year(Mark.seen_when)==cur_year).count())
+
 
 	return render_template('show_graphs.html',graph_title=graph_title,graph_type=graph_type,labels=labels,data=data)
 
