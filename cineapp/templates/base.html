@@ -43,20 +43,9 @@
 		<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 				<ul class="nav navbar-nav">
 					{% if g.user.is_authenticated %}
-					<li class="dropdown">
-					  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Notes<span class="caret"></span></a>
-					  <ul class="dropdown-menu">
-				       	    <li><a href="{{ url_for('list_my_movies') }}">Mes notes</a></li>
-				       	    <li><a href="{{ url_for('list_homeworks') }}">Devoirs</a></li>
-					  </ul>
-					</li>
-					<li class="dropdown">
-					  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Films<span class="caret"></span></a>
-					  <ul class="dropdown-menu">
-					    <li><a href="{{ url_for('list_movies') }}">Liste des films</a></li>
-					    <li><a href="{{ url_for('add_movie') }}">Ajouter un film</a></li>
-					  </ul>
-					  </li>
+				       	<li><a href="{{ url_for('list_homeworks') }}">Devoirs</a></li>
+					<li><a href="{{ url_for('add_movie') }}">Ajouter un film</a></li>
+   				        <li><a href="{{ url_for('list_movies') }}">Liste des films</a></li>
 					<li class="dropdown">
 					  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Stats/Graphiques<span class="caret"></span></a>
 					  <ul class="dropdown-menu">
