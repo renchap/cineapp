@@ -93,8 +93,32 @@ class FilterForm(Form):
 
 class UserForm(Form):
 	email = StringField('Adresse Email', [DataRequired('Champ Requis'), Email(message="Adresse E-Mail Incorrecte")])
-	notif_enabled = BooleanField()
+	notif_own_activity = BooleanField()
+	notif_movie_add = BooleanField()
+	notif_mark_add = BooleanField()
+	notif_homework_add = BooleanField()
 	submit_user = SubmitField("Sauver")
+
+	# Specific constructor in order to set notifications correctly
+	def __init__(self,user=None,*args,**kwargs):
+		
+		# Call the parent constructor
+		super(UserForm, self).__init__(obj=user,*args,**kwargs)
+
+		# Fill the notifications field from using the dictionnary dict
+		if user != None and user.notifications != None:
+			
+			if user.notifications["notif_own_activity"] != None:
+				self.notif_own_activity.data=user.notifications["notif_own_activity"]
+
+			if user.notifications["notif_movie_add"] != None:
+				self.notif_movie_add.data=user.notifications["notif_movie_add"]
+
+			if user.notifications["notif_mark_add"] != None:
+				self.notif_mark_add.data=user.notifications["notif_mark_add"]
+
+			if user.notifications["notif_homework_add"] != None:
+				self.notif_homework_add.data=user.notifications["notif_homework_add"]
 
 class PasswordForm(Form):
 	password = PasswordField('Mot de passe',[DataRequired('Champ Requis'), EqualTo('confirm',message='Les mots de passe ne correspondent pas')])

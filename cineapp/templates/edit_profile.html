@@ -29,12 +29,31 @@
 			{{ render_field(form.email,label_visible=false) }}
 		    </div>
 		  </div>
+		  <h3>Notifications</h3>
 		  <div class="form-group">
 		    <div class="col-lg-3">
-			    <label class="pull-right">Notifications:</label>
+			    <label class="pull-right">Mes propres activites:</label>
 		    </div>
 		    <div class="col-lg-8">
-			{{ render_field(form.notif_enabled,label_visible=false,parse_class=false) }}
+			{{ render_field(form.notif_own_activity,label_visible=false,parse_class=false) }}
+		    </div>
+		    <div class="col-lg-3">
+			    <label class="pull-right">Ajout/Mise à jour d'un film:</label>
+		    </div>
+		    <div class="col-lg-8">
+			{{ render_field(form.notif_movie_add,label_visible=false,parse_class=false) }}
+		    </div>
+		    <div class="col-lg-3">
+			    <label class="pull-right">Note d'un film:</label>
+		    </div>
+		    <div class="col-lg-8">
+			{{ render_field(form.notif_mark_add,label_visible=false,parse_class=false) }}
+		    </div>
+		    <div class="col-lg-3">
+			    <label class="pull-right">Ajout d'un devoir:</label>
+		    </div>
+		    <div class="col-lg-8">
+			{{ render_field(form.notif_homework_add,label_visible=false,parse_class=false) }}
 		    </div>
 		  </div>
 		  {% elif state=="password" %}

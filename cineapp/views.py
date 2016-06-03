@@ -716,12 +716,21 @@ def add_user():
 def edit_user_profile():
 
 	# Init the form
-	form=UserForm(obj=g.user)
-	
+	form=UserForm()
+
 	if form.validate_on_submit():
 		# Update the User object
 		g.user.email = form.email.data
-		g.user.notif_enabled = form.notif_enabled.data
+
+		# Init the dictionnary if we don't have anyone (Null attribute in the database)
+		if g.user.notifications == None:
+			g.user.notifications = {}
+		
+		# Update the notification dictionnary
+		g.user.notifications["notif_own_activity"] = form.notif_own_activity.data
+		g.user.notifications["notif_movie_add"] = form.notif_movie_add.data
+		g.user.notifications["notif_homework_add"] = form.notif_homework_add.data
+		g.user.notifications["notif_mark_add"] = form.notif_mark_add.data
 
 		try:
 			db.session.add(g.user)
@@ -729,6 +738,11 @@ def edit_user_profile():
 			flash('Informations mises à jour','success')
 		except:
 			flash('Impossible de mettre à jour l\'utilisateur', 'danger')
+
+	else:
+		# Init the form with the specific constructor in order to have the notifictions fields filled
+		# Do it only when we don't validate the form
+		form=UserForm(g.user)
 
 	# Fetch the object for the current logged_in user
 	return render_template('edit_profile.html',form=form,state="user")
@@ -768,7 +782,7 @@ def add_homework(movie_id,user_id):
 	try:
 		db.session.add(mark)
 		db.session.commit()
-		flash('Devoir ajoutÃ©','success')
+		flash('Devoir ajouté','success')
 	
 	except Exception,e: 
 		flash('Impossible de creer le devoir','danger')
