@@ -76,12 +76,15 @@
 						<table class="table table-responsive" id="myhomeworks">
 							{% for cur_object in object_list %}
 							<tr class="text-center">
-								{% if cur_object.added_when %}
+								{% if cur_object["entry_type"] == "movies" %}
 								<td><a class="disabled btn btn-danger btn-xs">Entrée</a></td>
-								<td>Le film <a href="{{ url_for('show_movie', movie_id=cur_object.id) }}"> {{ cur_object.name }}</a> vient d'être ajouté par {{ cur_object.added_by.nickname }}</td>
-								{% else %}
+								<td>Le film <a href="{{ url_for('show_movie', movie_id=cur_object["object"].id) }}"> {{ cur_object["object"].name }}</a> vient d'être ajouté par {{ cur_object["object"].added_by.nickname }}</td>
+								{% elif cur_object["entry_type"] == "marks" %}
 								<td><a class="disabled btn btn-primary btn-xs">Note</a></td>
-								<td>{{ cur_object.user.nickname }} a noté le film <a href="{{ url_for('show_movie', movie_id=cur_object.movie_id) }}"> {{ cur_object.movie.name }}</a> avec la note <span title="Commentaire" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="{{ cur_object.comment}}"><strong>{{ cur_object.mark }}</strong></span></td>
+								<td>{{ cur_object["object"].user.nickname }} a noté le film <a href="{{ url_for('show_movie', movie_id=cur_object["object"].movie_id) }}"> {{ cur_object["object"].movie.name }}</a> avec la note <span title="Commentaire" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="{{ cur_object["object"].comment}}"><strong>{{ cur_object["object"].mark }}</strong></span></td>
+								{% elif cur_object["entry_type"] == "homeworks" %}
+								<td><a class="disabled btn btn-warning btn-xs">Devoir</a></td>
+								<td>{{ cur_object["object"].homework_who_user.nickname }} vient de donner  <a href="{{ url_for('show_movie', movie_id=cur_object["object"].movie_id) }}"> {{ cur_object["object"].movie.name }}</a> en devoir à {{ cur_object["object"].user.nickname }}</td>
 								{% endif %}
 							</tr>
 							{% endfor %}

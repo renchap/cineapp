@@ -1037,14 +1037,19 @@ def show_dashboard():
 	# Marks Query
 	marks_query=db.session.query(Mark.movie_id,Mark.user_id.label("user_id"),Mark.updated_when.label("entry_date"),literal("marks").label("entry_type"))
 
+	# Homework Query
+	homework_query=db.session.query(Mark.movie_id,Mark.user_id.label("user_id"),Mark.homework_when.label("entry_date"),literal("homeworks").label("entry_type"))
+
 	# Build the union request
-	activity_list = movies_query.union(marks_query).order_by(desc("entry_date")).slice(0,20)
+	activity_list = movies_query.union(marks_query,homework_query).order_by(desc("entry_date")).slice(0,20)
 
 	for cur_item in activity_list:
 		if cur_item.entry_type == "movies":
-			object_list.append(Movie.query.get(cur_item.id))
+			object_list.append({"entry_type": "movies", "object" : Movie.query.get(cur_item.id)})
 		elif cur_item.entry_type == "marks":
-			object_list.append(Mark.query.get((cur_item.user_id,cur_item.id)))
+			object_list.append({"entry_type": "marks", "object" : Mark.query.get((cur_item.user_id,cur_item.id))})
+		elif cur_item.entry_type == "homeworks":
+			object_list.append({"entry_type" : "homeworks", "object" : Mark.query.get((cur_item.user_id,cur_item.id))}) 
 
 	# Build a dictionnary with the average and movies count (global / only in theaters and only at home) for all users
 	# We do a dictionnary instead of a global GROUP BY in order to have all users including the one without any mark
