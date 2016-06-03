@@ -6,6 +6,7 @@ from whoosh.analysis import CharsetFilter, StemmingAnalyzer
 from whoosh import fields
 from whoosh.support.charset import accent_map
 from whoosh.support.charset import default_charset, charset_table_to_dict
+from cineapp.types import JSONEncodedDict
 
 class User(db.Model):
 
@@ -16,7 +17,7 @@ class User(db.Model):
 	password = db.Column(db.String(255))
 	email = db.Column(db.String(120), index=True, unique=True)
 	avatar = db.Column(db.String(255), unique=True)
-	notif_enabled = db.Column(db.Boolean)
+	notifications = db.Column(JSONEncodedDict(255), nullable=False)
 	graph_color = db.Column(db.String(6))
 	added_movies = db.relationship('Movie', backref='added_by', lazy='dynamic')
 
@@ -40,7 +41,13 @@ class User(db.Model):
 
 	def __repr__(self):
 		return '<User %r>' % (self.nickname)
-	
+
+    	def __init__(self):
+		self.notifications={ "notif_own_activity" : None,
+			"notif_movie_add" : None,
+			"notif_mark_add": None,
+			"notif_homework_add": None,
+		}
 
 class Type(db.Model):
 	
