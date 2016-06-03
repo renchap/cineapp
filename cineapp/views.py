@@ -32,7 +32,7 @@ def before_request():
 	g.user = current_user
 
 	# Make the search form available in all templates (Including base.html)
-	g.search_form = SearchMovieForm()
+	g.search_form = SearchMovieForm(prefix="search")
 
 @app.route('/login', methods=['GET','POST'])
 def login():
