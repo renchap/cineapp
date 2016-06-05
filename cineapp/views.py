@@ -438,7 +438,6 @@ def mark_movie(movie_id_form):
 			marked_movie.comment=form.comment.data
 			marked_movie.seen_when=form.seen_when.data
 			marked_movie.seen_where=form.seen_where.data
-			marked_movie.updated_when=datetime.now()
 
 			flash_message_success="Note mise à jour"
 			notif_type="update"
