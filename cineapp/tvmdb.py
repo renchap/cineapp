@@ -85,6 +85,7 @@ def get_movie(id):
 	movie_obj=Movie(name=movie['title'],
 		release_date=movie['release_date'],
 		url="http://www.themoviedb.org/movie/" + str(id),
+		tmvdb_id=id,
 		poster_path=url,
 		director=director
 	)

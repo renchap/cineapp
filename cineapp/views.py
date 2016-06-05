@@ -660,6 +660,7 @@ def update_movie():
 		movie.name=temp_movie.name
 		movie.release_date=temp_movie.release_date
 		movie.url=temp_movie.url
+		movie.tmvdb_id=temp_movie.tmvdb_id
 		movie.director=temp_movie.director
 		movie.poster_path=temp_movie.poster_path
 		movie.type=confirm_form.type.data.id
