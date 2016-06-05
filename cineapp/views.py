@@ -239,17 +239,26 @@ def update_datatable():
 				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).filter(Mark.mark != None).order_by(Mark.mark).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).count()
 	else:
+		# db.session.query(Mark,db.func.avg(Mark.mark)).join(Movie).group_by(Mark.movie_id).having(db.func.avg(Mark.mark!=None)).order_by(db.func.avg(Mark.mark)).slice(0,20)
 
-		# If we are are => No sort. Just filter or list display.
+		# If we are are => No sort by user but only global sort or no sort
 		if session.get('search_type') == 'list': 
-			movies = Movie.query.order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
-			count_movies=Movie.query.count()
+			if order_column == "average":
+				if order_dir == "desc":
+					movies=db.session.query(Movie).join(Mark).group_by(Mark.movie_id).having(db.func.avg(Mark.mark!=None)).order_by(desc(db.func.avg(Mark.mark))).slice(int(start),int(start) + int(length))
+				else:
+					movies=db.session.query(Movie).join(Mark).group_by(Mark.movie_id).having(db.func.avg(Mark.mark!=None)).order_by(db.func.avg(Mark.mark)).slice(int(start),int(start) + int(length))
+				
+				count_movies=db.session.query(Movie).join(Mark).group_by(Mark.movie_id).having(db.func.avg(Mark.mark!=None)).order_by(db.func.avg(Mark.mark)).count()
+			else:
+				movies = Movie.query.order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
+				count_movies=Movie.query.count()
 
 		# Let's use the filter form
 		elif session.get('search_type') == 'filter_origin_type':
 			# Let's build the filtered requested following what has been posted in the filter form
 			filter_fields=session.get('query')
-			movies_query = Movie.query
+			movies_query = Movie.query.join(Mark)
 
 			if filter_fields['origin'] != None:
 				movies_query = movies_query.filter(Movie.origin==filter_fields['origin'])
@@ -258,16 +267,30 @@ def update_datatable():
 				movies_query = movies_query.filter(Movie.type==filter_fields['type'])
 
 			if filter_fields['seen_where'] !=None:
-				movies_query = movies_query.join(Mark).filter_by(user_id=filter_fields['seen_where']).filter(Mark.seen_where=='C')
+				movies_query = movies_query.filter_by(user_id=filter_fields['seen_where']).filter(Mark.seen_where=='C')
 
 			# Build the request
-			movies = movies_query.order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
+			if order_column == "average":
+				if order_dir == "desc":
+					movies=movies_query.group_by(Mark.movie_id).having(db.func.avg(Mark.mark!=None)).order_by(desc(db.func.avg(Mark.mark))).slice(int(start),int(start) + int(length)).all()
+				else:
+					movies=movies_query.group_by(Mark.movie_id).having(db.func.avg(Mark.mark!=None)).order_by(db.func.avg(Mark.mark)).slice(int(start),int(start) + int(length)).all()
+			else:
+				movies = movies_query.order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
+
 			count_movies=movies_query.count()
 
 		# Here, this is for the string search (Movie or director)
 		elif session.get('search_type') == 'filter':
-			movies = Movie.query.whoosh_search(session.get('query')).order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
-			count_movies=Movie.query.whoosh_search(session.get('query')).count()
+			if order_column == "average":
+				if order_dir == "desc":
+					movies=Movie.query.whoosh_search(session.get('query')).join(Mark).group_by(Mark.movie_id).having(db.func.avg(Mark.mark!=None)).order_by(desc(db.func.avg(Mark.mark))).slice(int(start),int(start) + int(length)).all()
+				else:
+					movies=Movie.query.whoosh_search(session.get('query')).join(Mark).group_by(Mark.movie_id).having(db.func.avg(Mark.mark!=None)).order_by(db.func.avg(Mark.mark)).slice(int(start),int(start) + int(length)).all()
+				count_movies=Movie.query.whoosh_search(session.get('query')).join(Mark).group_by(Mark.movie_id).having(db.func.avg(Mark.mark!=None)).order_by(db.func.avg(Mark.mark)).count()
+			else:
+				movies = Movie.query.whoosh_search(session.get('query')).order_by(order_column + " " + order_dir).slice(int(start),int(start) + int(length))
+				count_movies=Movie.query.whoosh_search(session.get('query')).count()
 
 	# Let's fetch all the users, I will need them
 	users = User.query.all()
@@ -885,7 +908,7 @@ def show_graphs():
 	if graph_to_generate == "mark":
 		
 		# Distributed marks graph
-		graph_title="Repartition par annee"
+		graph_title="Repartition par note"
 		graph_type="line"
 
 		# Fill the labels_array with all marks possible

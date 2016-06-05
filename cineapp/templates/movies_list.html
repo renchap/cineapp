@@ -30,6 +30,7 @@
 					}
 			        },
 				{ "data": "director", className: "dt-right" },
+			  	{ "data": "average", "orderable" : true },
 				{ "data": "my_mark",
 				  "render": function(data,type,row) {
 						if (row.my_mark == null)  {
@@ -78,7 +79,6 @@
 				   "orderable":false },
 				{%endif%}
 			{% endfor %}
-			  { "data": "average", "orderable" : false }
 			  ],
 			  "columnDefs": [
 				{"className": "dt-center", "targets": "_all"}
@@ -131,7 +131,7 @@
 		<!-- Display the users name -->
 		<thead>
 		<tr>
-		<td colspan="2"></td>
+		<td colspan="3"></td>
 		<th colspan="2" class="text-center">
 	  		<div>
 				<img src="http://www.gravatar.com/avatar/{{ g.user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
@@ -151,6 +151,7 @@
 		<tr>
 			<th class="text-center" style="border:0;width:35%;">Titre</th>
 			<th class="text-center" style="border:0;width:25%;">Realisateur</th>
+			<th class="text-center" style="border:0;">Moyenne</th>
 			<th class="text-center" style="border:0;">Note</th>
 			<th class="text-center" style="border:0;">Date</th>
 			{% for cur_user in users %}
@@ -159,7 +160,6 @@
 				<th class="text-center" style="border:0;"><strong>Date</strong></th>
 				{% endif %}
 			{% endfor %}	
-			<th class="text-center" style="border:0;">Moyenne</th>
 		</tr>
 		</thead>
 		</table>
