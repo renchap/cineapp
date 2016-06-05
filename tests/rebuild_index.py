@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import datetime
-from app import app, models
+from cineapp import app, models
 import whoosh
 import flask.ext.whooshalchemy as whooshalchemy
 
