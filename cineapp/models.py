@@ -2,7 +2,7 @@
 from cineapp import app,db
 from sqlalchemy import desc,text, DefaultClause
 import flask.ext.whooshalchemy as whooshalchemy
-from whoosh.analysis import CharsetFilter, StemmingAnalyzer
+from whoosh.analysis import CharsetFilter, NgramAnalyzer
 from whoosh import fields
 from whoosh.support.charset import accent_map
 from whoosh.support.charset import default_charset, charset_table_to_dict
@@ -72,7 +72,7 @@ class Movie(db.Model):
 	# Settings for FTS (WooshAlchemy)
 	__searchable__ = [ 'name', 'director' ]
 	charmap = charset_table_to_dict(default_charset)
-	__analyzer__ =  StemmingAnalyzer() | CharsetFilter(charmap)
+	__analyzer__ =  NgramAnalyzer(4) | CharsetFilter(charmap)
 
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(100), unique=True, index=True)
