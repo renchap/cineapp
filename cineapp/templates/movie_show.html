@@ -98,12 +98,12 @@ aria-hidden="true">&rarr;</span></a>
 				</td>
 				<td class="col-md-2 text-center">
 					{% if cur_mark["mark"] == "homework_in_progress" %}
-					<button class="btn btn-warning btn-xs" disabled="true">Devoir</button>
+					<a class="disabled btn btn-warning btn-xs">Devoir</button>
 					{% elif cur_mark["mark"] == None %}
 						{% if g.user.id != (cur_mark["user"]).id %}
 							<a href={{ url_for("add_homework",movie_id=movie.id,user_id=cur_mark["user"].id) }} class="btn btn-success btn-xs">Donner un devoir</button>
 						{% else %}
-						<a href="{{ url_for('mark_movie',movie_id_form=movie.id) }}" class="btn btn-primary btn-xs">Noter ce film</a>
+							<a class="disabled btn btn-danger btn-xs">Pas de note</a>
 						{% endif %}
 					{% else %}	
 					<strong>{{ cur_mark["mark"] }}</strong>
@@ -115,11 +115,13 @@ aria-hidden="true">&rarr;</span></a>
 			</tr>
 		{% endfor %}
 		</table>
-		{% if marked_flag %}
 		<div class="text-center">
+			{% if marked_flag %}
 			<a href="{{ url_for("mark_movie",movie_id_form=movie.id) }}" class="btn btn-primary">Mettre à jour la note</a>
+			{% else %}
+			<a href="{{ url_for('mark_movie',movie_id_form=movie.id) }}" class="btn btn-primary">Noter ce film</a>
+			{% endif %}
 		</div>
-		{% endif %}
 	{% endif %}
 	</div>
 {% endblock %}
