@@ -52,7 +52,7 @@ def get_movie(id):
 	"""
 	# Fetch global configuration parameters
 	config_api=json.load(urllib2.urlopen(os.path.join(app.config['API_URL'], "configuration?api_key=" + app.config['API_KEY'] +"&language=fr")))
-	base_url=config_api['images']['base_url']
+	base_url=config_api['images']['secure_base_url']
 	
 	# Fetch the movie data
 	movie=json.load(urllib2.urlopen(os.path.join(app.config['API_URL'],("movie/" + str(id) + "?api_key=" + app.config['API_KEY'] + "&append_to_response=credits,details&language=fr"))))
