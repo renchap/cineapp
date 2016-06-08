@@ -47,7 +47,7 @@ babel = Babel(app)
 ##################
 
 # Open a file rotated every 100MB
-file_handler = RotatingFileHandler('tmp/cineapp.log', 'a', 100 * 1024 * 1024, 10)
+file_handler = RotatingFileHandler(os.path.join(app.config['LOGDIR'],'cineapp.log'), 'a', 100 * 1024 * 1024, 10)
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
 app.logger.setLevel(logging.INFO)
 app.logger.addHandler(file_handler)
