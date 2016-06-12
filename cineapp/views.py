@@ -700,9 +700,8 @@ def update_movie():
 
 		except IntegrityError as e:
 			flash('Film déjà existant','danger')
-			print str(e)
 			db.session.rollback()
-			return redirect(url_for('update_movie'))
+			return redirect(url_for('show_movie',movie_id=movie.id))
 
 @app.route('/my/marks')
 @app.route('/my/marks/<int:page>')
