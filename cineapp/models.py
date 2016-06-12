@@ -112,7 +112,7 @@ class Mark(db.Model):
 	mark = db.Column(db.Float)
 	updated_when = db.Column(db.DateTime())
 	comment = db.Column(db.String(1000))
-	homework_when = db.Column(db.Date)
+	homework_when = db.Column(db.DateTime)
 	# Server_default allow to put the column with DEFAULT VALUE to NULL which is mandatory if we want the foreign key to be added
 	# If the value is not NULL, the default value is O so the foreign constraint is violated
 	homework_who = db.Column(db.Integer,db.ForeignKey('users.id'),nullable=True,server_default=text('NULL'))
