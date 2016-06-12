@@ -834,14 +834,14 @@ def list_homeworks():
 
 	# Create the two forms for user filtering
 	if session.get('my_homework_filter', None) != None:
-		my_homework_filter_form=HomeworkForm(label_name=u'Donné à :',prefix=u"my",user_filter=User.query.get(session.get('my_homework_filter',None)))
+		my_homework_filter_form=HomeworkForm(label_name=u'Donné par :',prefix=u"my",user_filter=User.query.get(session.get('my_homework_filter',None)))
 	else:
-		my_homework_filter_form=HomeworkForm(label_name=u'Donné à :',prefix=u"my")
+		my_homework_filter_form=HomeworkForm(label_name=u'Donné par :',prefix=u"my")
 
 	if session.get('given_homework_filter', None) != None:
-		given_homework_filter_form=HomeworkForm(label_name=u"Donné par:",prefix=u"given",user_filter=User.query.get(session.get('given_homework_filter')))
+		given_homework_filter_form=HomeworkForm(label_name=u"Donné à:",prefix=u"given",user_filter=User.query.get(session.get('given_homework_filter')))
 	else:
-		given_homework_filter_form=HomeworkForm(label_name=u"DonnÃ© par:",prefix=u"given")
+		given_homework_filter_form=HomeworkForm(label_name=u"Donné à:",prefix=u"given")
 
 	# Query generation considering from where we do come from
 	# We sort the results first by null results in order to show
