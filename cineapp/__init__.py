@@ -46,6 +46,14 @@ babel = Babel(app)
 # Logging system #
 ##################
 
+# Create the log directory if it doesn't exists
+try:
+	if not os.path.isdir(app.config['LOGDIR']):
+		os.makedirs(app.config['LOGDIR'],0755)
+except:
+	print "Log directory is not defined"
+	sys.exit(2)
+
 # Open a file rotated every 100MB
 file_handler = RotatingFileHandler(os.path.join(app.config['LOGDIR'],'cineapp.log'), 'a', 100 * 1024 * 1024, 10)
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
