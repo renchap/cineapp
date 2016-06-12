@@ -1,0 +1,12 @@
+Version 1.0.1 (2016-06-11)
+-------------
+
+* [FEAT]: Full database activity page (#6)
+* [FIX]: Fix select field label name on the homework list page (#14)
+* [FIX]: Two movies can now have the same title on the database (#17)
+* [FIX]: Create the log directory on startup if it doesn't exist
+
+Version 1.0.0 (2016-06-08)
+-------------
+
+* Initial Version
