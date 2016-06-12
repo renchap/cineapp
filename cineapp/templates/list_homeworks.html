@@ -21,13 +21,13 @@
 			</tr>
 			{% for cur_homework in my_homeworks %}
 			<tr>
-				<td class="text-center">{{ cur_homework.movie.name }}</td>
+				<td class="text-center"><a href="{{ url_for('show_movie',movie_id=cur_homework.movie_id) }}">{{ cur_homework.movie.name }}</a></td>
 				<td class="text-center">{{ cur_homework.movie.director }}</td>
 				<td class="text-center">{{ cur_homework.homework_who_user.nickname }} </td>
 				{% if cur_homework.mark == None %}
   			        <td class="text-center"><a class="btn btn-primary btn-xs" href="{{ url_for('mark_movie',movie_id_form=cur_homework.movie.id) }}">Noter</a>
 				{% else %}
-  			       	<td class="text-center"><a class="disabled btn btn-success btn-xs">Noté</a>
+				<td><strong>{{ cur_homework.mark }}</strong></td>
 				{% endif %}
 			</tr>
 			{% endfor %}
@@ -54,16 +54,14 @@
 			</tr>
 			{% for cur_homework in given_homeworks %}
 			<tr>
-				<td class="text-center">{{ cur_homework.movie.name }}</td>
+				<td class="text-center"><a href="{{ url_for('show_movie',movie_id=cur_homework.movie_id) }}">{{ cur_homework.movie.name }}</a></td>
 				<td class="text-center">{{ cur_homework.movie.director }}</td>
 				<td class="text-center">{{ cur_homework.user.nickname }} </td>
 				{% if cur_homework.mark == None %}
   			       	<td class="text-center"><a class="disabled btn btn-warning btn-xs">En cours</a>
 				{% else %}
-  			       	<td class="text-center"><a class="disabled btn btn-success btn-xs">Terminé</a>
+				<td><strong>{{ cur_homework.mark }}</strong></td>
 				{% endif %}
-				
-	
 			</tr>
 			{% endfor %}
 			</table>
