@@ -391,7 +391,10 @@ def show_movie(movie_id):
 		marked_movie=Mark.query.get((cur_user.id,movie_id))
 
 		if marked_movie != None:
-			if marked_movie.homework_who != None:
+
+			# We are in homework mode if a user gave an homework AND the mark is still none
+			# If not we are in mark mode
+			if marked_movie.homework_who != None and marked_movie.mark == None:
 				mark_users.append({ "user": cur_user, "mark": "homework_in_progress", "comment": "N/A" })
 			else:
 				mark_users.append({ "user": cur_user, "mark": marked_movie.mark, "comment": marked_movie.comment })
