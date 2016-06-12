@@ -57,3 +57,11 @@ th.dt-center, td.dt-center { text-align: center; }
 	color: #4096EE;
         font-weight: bold;
 }
+
+/* Datatable style sheet in order to 
+have some spaces between the page status display
+and the record display filter */
+div.dataTables_length,
+div.dataTables_filter {
+    padding-top: 1.55em;
+}
