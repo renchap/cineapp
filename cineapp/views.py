@@ -12,7 +12,7 @@ from cineapp.forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, S
 from cineapp.models import User, Movie, Mark, Origin, Type
 from cineapp.tvmdb import search_movies,get_movie,download_poster
 from cineapp.emails import add_movie_notification, mark_movie_notification, add_homework_notification, update_movie_notification
-from cineapp.utils import frange
+from cineapp.utils import frange, get_activity_list
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy.orm.exc import FlushError
 from sqlalchemy import desc, or_, and_, Table
@@ -1047,32 +1047,15 @@ def show_graphs():
 @login_required
 def show_dashboard():
 
-	# Object_items
-	object_list=[]
+	# Variables declaration which will contains all the stats needed for the dashboard
 	general_stats={}
+	activity_list=[]
 	stats_dict={}
 	labels=[]
 	data={"theaters": [], "others": []}
 	
-	# Movie Query
-	movies_query=db.session.query(Movie.id,literal("user_id").label("user_id"),Movie.added_when.label("entry_date"),literal("movies").label("entry_type"))
-
-	# Marks Query
-	marks_query=db.session.query(Mark.movie_id,Mark.user_id.label("user_id"),Mark.updated_when.label("entry_date"),literal("marks").label("entry_type"))
-
-	# Homework Query
-	homework_query=db.session.query(Mark.movie_id,Mark.user_id.label("user_id"),Mark.homework_when.label("entry_date"),literal("homeworks").label("entry_type"))
-
-	# Build the union request
-	activity_list = movies_query.union(marks_query,homework_query).order_by(desc("entry_date")).slice(0,20)
-
-	for cur_item in activity_list:
-		if cur_item.entry_type == "movies":
-			object_list.append({"entry_type": "movies", "object" : Movie.query.get(cur_item.id)})
-		elif cur_item.entry_type == "marks":
-			object_list.append({"entry_type": "marks", "object" : Mark.query.get((cur_item.user_id,cur_item.id))})
-		elif cur_item.entry_type == "homeworks":
-			object_list.append({"entry_type" : "homeworks", "object" : Mark.query.get((cur_item.user_id,cur_item.id))}) 
+	# Fetch the last 20 last activity records
+	activity_dict=get_activity_list(0,20)
 
 	# Build a dictionnary with the average and movies count (global / only in theaters and only at home) for all users
 	# We do a dictionnary instead of a global GROUP BY in order to have all users including the one without any mark
@@ -1110,8 +1093,70 @@ def show_dashboard():
 	# Go back to default locale
 	locale.setlocale(locale.LC_ALL,locale.getdefaultlocale())
 	
-	return render_template('show_dashboard.html', object_list=object_list, general_stats=general_stats,labels=labels,data=data,cur_year=cur_year,stats_dict=stats_dict)
+	return render_template('show_dashboard.html', activity_list=activity_dict["list"], general_stats=general_stats,labels=labels,data=data,cur_year=cur_year,stats_dict=stats_dict)
 
+@app.route('/activity/show')
+@login_required
+def show_activity_flow():
+	return render_template('show_activity_flow.html')
+
+@app.route('/activity/update', methods=['POST'])
+@login_required
+def update_activity_flow():
+	
+	# Local variables for handling the datatable
+	args = json.loads(request.values.get("args"))
+	columns = args.get("columns")
+	start = args.get('start')
+	length = args.get('length')
+	draw = args.get('draw')
+
+	# Fetch the activity items
+	temp_activity_dict=get_activity_list(start,length)
+
+	# Initialize dict which will contains that presented to the datatable
+	activity_dict = { "draw": draw , "recordsTotal": temp_activity_dict["count"], "recordsFiltered" : temp_activity_dict["count"], "data": []}
+
+	# Let's fill the activity_dict with data good format for the datatable
+	for cur_activity in temp_activity_dict["list"]:
+		if cur_activity["entry_type"] == "movies":
+			entry_type="<a class=\"disabled btn btn-danger btn-xs\">Entrée</a>"
+
+			# Sometimes, the user can be Null (Especially after an import
+			# So, we need to put a default user in order to avoid a NoneType Exception
+			if cur_activity["object"].added_by == None:
+				user="CineBot"
+			else:
+				user=cur_activity["object"].added_by.nickname
+
+			# Define the text that will be shown on the datatable
+		        entry_text="Le film <a href=\"" +  url_for('show_movie', movie_id=cur_activity["object"].id) + "\">" + cur_activity["object"].name + u"</a> vient d'être ajouté par " + user
+
+		elif cur_activity["entry_type"] == "marks":
+			entry_type="<a class=\"disabled btn btn-primary btn-xs\">Note</a>"	
+
+			# Sometimes, the comment can be Null (Especially after an import
+			# So, we need to put a default user in order to avoid a NoneType Exception
+			if cur_activity["object"].comment == None:
+				comment=""
+			else:
+				comment=cur_activity["object"].comment
+
+			# Define the text that will be shown on the datatable
+			entry_text=cur_activity["object"].user.nickname + u" a noté le film <a href=\"" + url_for('show_movie', movie_id=cur_activity["object"].movie_id) +"\">" +  cur_activity["object"].movie.name + "</a> avec la note <span title=\"Commentaire\" data-toggle=\"popover\" data-placement=\"top\" data-trigger=\"hover\" data-content=\"" + comment + "\"><strong>" + str(cur_activity["object"].mark) +"</strong></span>"
+
+		elif cur_activity["entry_type"] == "homeworks":
+			entry_type="<a class=\"disabled btn btn-warning btn-xs\">Devoir</a>"
+
+			# Define the text that will be shown on the datatable
+			entry_text=cur_activity["object"].homework_who_user.nickname + " vient de donner <a href=\"" + url_for('show_movie', movie_id=cur_activity["object"].movie_id) + "\">" +  cur_activity["object"].movie.name + "</a> en devoir a " + cur_activity["object"].user.nickname
+
+		# Append the processed entry to the dictionnary that will be used by the datatable
+		activity_dict["data"].append({"entry_type" : entry_type, "entry_text" : entry_text })
+
+	# Return the dictionnary as a JSON object
+	return json.dumps(activity_dict)
+	
 @app.route('/dt')
 def dt_test():
 	return render_template('dt_test.html')

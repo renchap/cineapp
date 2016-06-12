@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<script>
+	$(document).ready(function() {
+		var table=$('#activitylist').DataTable(
+			{ "searching":false,
+			  "stateSave": true,
+			  "ordering": false,
+			  "processing": true,
+			  "serverSide": true,
+			  "displayLength": 100,
+		          "dom": '<"top"iflp<"clear">>',
+			  "ajax": {
+				"url": "{{ url_for('update_activity_flow') }}",
+				"type" : "POST",
+				"data": function(args) {
+				      return { "args": JSON.stringify( args ) };
+				},
+			  },
+			  "columns" : [
+				{ "data" : "entry_type",
+				  "className": "text-right" },
+				{ "data" : null,
+				  "defaultContent": "" },
+				{ "data" : "entry_text" }
+				],
+			  "language": {
+					"info": "Page _PAGE_ sur _PAGES_",
+					"lengthMenu": "Afficher _MENU_ films",
+					"paginate" : {
+						"first": "Première page",
+						"last": "Dernière  page",
+						"next": "Suivant",
+						"previous": "Précédent"
+					 }
+				}
+			}
+		)
+	
+		// Enable popover on table redraw	
+		table.on( 'draw', function () {
+	                    $('[data-toggle="popover"]').popover();
+		} );
+	}
+)
+</script>
+<div class="container">
+	<h1 class="text-center">Flux d'activité global</h1>
+	<table id="activitylist" class="table table-striped">
+		<thead>
+			<tr>
+				<th style="width:15%;">Type</th>
+				<th style="width:10%;"></th>
+				<th>Activité</th>
+			</tr>
+		</thead>
+	</table>
+</div>
+{% endblock %}
