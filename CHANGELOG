@@ -2,9 +2,12 @@ Version 1.0.1 (2016-06-11)
 -------------
 
 * [FEAT]: Full database activity page (#6)
+* [FEAT]: Homework list improvement. Movie title are now linked to movie page (#15)
+* [FEAT]: Homework list improvement. Display the mark for completed homeworks (#15)
 * [FIX]: Fix select field label name on the homework list page (#14)
 * [FIX]: Two movies can now have the same title on the database (#17)
 * [FIX]: Create the log directory on startup if it doesn't exist
+* [FIX]: Marks and comments are displayed when homework are completed (#16)
 
 Version 1.0.0 (2016-06-08)
 -------------
