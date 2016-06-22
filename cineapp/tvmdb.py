@@ -38,11 +38,19 @@ def search_movies(query):
 	for cur_language in languages_list:
 		data = urllib2.urlopen(os.path.join(app.config['API_URL'],("search/movie?api_key=" + app.config['API_KEY'] + "&language=" + cur_language + "&query=" + urllib.quote(query.encode('utf-8')))))
 
-		# Put the results into a dictionnary
-		movies_list=json.load(data)
+		# Put the result into a dictionnary
+		result=json.load(data)
 
-		for cur_movie in movies_list['results']:
-			complete_list.append(cur_movie)
+		# We can have more than one page containing result 
+		# Fetch the total_pages number and browse each page
+		for cur_page in range(1,int(result["total_pages"])+1,1):
+			data = urllib2.urlopen(os.path.join(app.config['API_URL'],("search/movie?api_key=" + app.config['API_KEY'] + "&language=" + cur_language + "&query=" + urllib.quote(query.encode('utf-8')))) + "&page=" + str(cur_page))
+
+			# Put the results of the current page into a dictionnary
+			movies_list=json.load(data)
+
+			for cur_movie in movies_list['results']:
+				complete_list.append(cur_movie)
 
 	return complete_list
 
