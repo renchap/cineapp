@@ -82,7 +82,7 @@ def get_movie(id):
 	except IndexError:
 
 		# No poster with the french or null language= => Fallback in english
-		movie_poster=json.load(urllib2.urlopen(os.path.join(app.config['API_URL'],("movie/" + str(id) + "/images?api_key=" + app.config['API_KEY'] + "&language=en"))))
+		movie_poster=json.load(urllib2.urlopen(os.path.join(app.config['API_URL'],("movie/" + str(id) + "/images?api_key=" + app.config['API_KEY']))))
 
 		try:
 			url = base_url + 'w185' + movie_poster['posters'][0]['file_path']
