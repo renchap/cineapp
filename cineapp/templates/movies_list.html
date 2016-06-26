@@ -134,7 +134,7 @@
 		<td colspan="3"></td>
 		<th colspan="2" class="text-center">
 	  		<div>
-				<img src="https://www.gravatar.com/avatar/{{ g.user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
+				<img src="{{ config.GRAVATAR_URL }}{{ g.user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
 			</div>
 			<strong>Mes Notes</strong>
 		</th>
@@ -142,7 +142,7 @@
 				{% if g.user.id != cur_user.id %}
 				<th colspan="2" class="text-center">
 		  		<div>
-					<img src="https://www.gravatar.com/avatar/{{ cur_user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
+					<img src="{{ config.GRAVATAR_URL }}{{ cur_user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
 				</div>
 				<strong>{{ cur_user.nickname }}</strong></th>
 				{% endif %}

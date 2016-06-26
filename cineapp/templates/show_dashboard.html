@@ -14,7 +14,7 @@
 							{% for cur_avg in stats_dict %}
 							{% if g.user.id != cur_avg %}
 							<tr>
-								<td class="text-right"><img src="https://www.gravatar.com/avatar/{{ stats_dict[cur_avg]["user"].avatar }}?d=identicon&s=15" class="avatar img-circle" alt="avatar"></td>
+								<td class="text-right"><img src="{{ config.GRAVATAR_URL}}{{ stats_dict[cur_avg]["user"].avatar }}?d=identicon&s=15" class="avatar img-circle" alt="avatar"></td>
 								<td class="text-left">{{ stats_dict[cur_avg]["user"].nickname }}</td>
 								<td class="text-left"> {{ stats_dict[cur_avg]["avg"] }}</td>
 							</tr>
@@ -46,7 +46,7 @@
 									{% for cur_avg in stats_dict %}
 									{% if g.user.id != cur_avg %}
 									<tr>
-										<td class="text-right"><img src="https://www.gravatar.com/avatar/{{ stats_dict[cur_avg]["user"].avatar }}?d=identicon&s=15" class="avatar img-circle" alt="avatar"></td>
+										<td class="text-right"><img src="{{ config.GRAVATAR_URL}}{{ stats_dict[cur_avg]["user"].avatar }}?d=identicon&s=15" class="avatar img-circle" alt="avatar"></td>
 										<td class="text-left">{{ stats_dict[cur_avg]["user"].nickname }}</td>
 										<td class="text-right"><span id="seenmovies_small">{{ stats_dict[cur_avg]["movies_total"] }}</span> ( <span id="theaters_small">{{ stats_dict[cur_avg]["movies_theaters"] }}</span> / <span id="home_small">{{ stats_dict[cur_avg]["movies_home"] }}</span> ) </td>
 									</tr>

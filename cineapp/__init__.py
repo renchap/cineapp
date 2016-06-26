@@ -10,6 +10,10 @@ from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
 
+# Define Version
+app.config['VERSION'] = "1.0.3-dev"
+app.config['GRAVATAR_URL'] = "https://www.gravatar.com/avatar/"
+
 # Configuration file reading
 if os.environ.get('TEST') == "yes":
 	app.config.from_pyfile('configs/settings_test.cfg')
@@ -49,9 +53,8 @@ babel = Babel(app)
 # Create the log directory if it doesn't exists
 try:
 	if not os.path.isdir(app.config['LOGDIR']):
-		os.makedirs(app.config['LOGDIR'],0755)
+		os.makedirs(app.config['LOGDIR'],0o755)
 except:
-	print "Log directory is not defined"
 	sys.exit(2)
 
 # Open a file rotated every 100MB
