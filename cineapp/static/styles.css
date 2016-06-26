@@ -65,3 +65,32 @@ div.dataTables_length,
 div.dataTables_filter {
     padding-top: 1.55em;
 }
+
+/* BEGIN - Styles for the login page */
+#loginbox {
+    margin-top: 30px;
+}
+
+#loginbox > div:first-child {        
+    padding-bottom: 10px;    
+}
+
+#login > div {
+    margin-bottom: 25px;
+}
+
+#login > div:last-child {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+/* END - Styles for the login page */
+
+footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 20px;
+    background-color: #f5f5f5;
+}    
