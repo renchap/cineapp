@@ -104,6 +104,14 @@
 	{% endif %}
 	{% endwith %}
 	{% block content %} {% endblock %}
+
+    <!-- Footer navbar for credits -->
+    <footer class="footer">
+      <div class="container">
+        <p class="text-muted text-center">CineApp - {{ config.VERSION }} - Utilise l'API TMDB mais n'est pas approuvé ni certifié par TMDB</p>
+      </div>
+    </footer>
+
   <script>
 $(".alert").alert();
 window.setTimeout(function() {
