@@ -687,7 +687,8 @@ def update_movie():
 				"release_date" : movie.release_date,
 				"director" : movie.director,
 				"type" : movie.type_object.type,
-				"origin" : movie.origin_object.origin
+				"origin" : movie.origin_object.origin,
+				"id" : movie.id
 				}
 
 			# Movie has been updated => Send notifications

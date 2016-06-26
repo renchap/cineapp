@@ -20,5 +20,7 @@ Date de sortie: {{ notif["new"]["release_date"] }}
 Genre: {{ notif["new"]["type"] }}
 Origine: {{ notif["new"]["origin"] }}
 
+Fiche du film : {{ url_for('show_movie', movie_id=notif["new"]["id"], _external=True) }}
+
 --
 CineApp
