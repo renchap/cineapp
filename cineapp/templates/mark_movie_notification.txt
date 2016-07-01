@@ -1,10 +1,12 @@
 Yo {{ dest_user.nickname }},
-{% if you_user == True %}
-Tu viens de noter le film {{ mark.movie.name }} avec la note {{ mark.mark }}.
-{% else %}
-{% if notif_type == "add" %}{{ add_user.nickname }} vient de noter le film {{ mark.movie.name }} avec la note {{ mark.mark }} {% elif notif_type == "update" %}{{ add_user.nickname }} vient de mettre à jour sa note sur le film {{ mark.movie.name }} avec la note {{ mark.mark }} {% endif %}
-{% endif %}
-Le commentaire est : {{ mark.comment }}
+
+{% if notif_type == "add" %}Le film {{ mark.movie.name }} vient d'être noté.{% elif notif_type == "update" %}La note du film {{ mark.movie.name }} vient d'être mise à jour.{% endif %}
+
+Par qui : {% if you_user == True %}Toi{% else %}{{ add_user.nickname }}{% endif %}
+
+Note : {{ mark.mark }}
+
+Commentaire : {{ mark.comment }}
 
 Pour voir la fiche du film : {{ url_for('show_movie', movie_id=mark.movie.id, _external=True) }}
 
