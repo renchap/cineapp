@@ -11,6 +11,7 @@ from cineapp.types import JSONEncodedDict
 class User(db.Model):
 
 	__tablename__ = "users"
+	__table_args__ = {'mysql_charset': 'utf8', 'mysql_collate': 'utf8_general_ci'}
 
 	id = db.Column(db.Integer, primary_key=True)
 	nickname = db.Column(db.String(64), index=True, unique=True)
@@ -52,6 +53,7 @@ class User(db.Model):
 class Type(db.Model):
 	
 	__tablename__ = "types"
+	__table_args__ = {'mysql_charset': 'utf8', 'mysql_collate': 'utf8_general_ci'}
 	
 	id = db.Column(db.String(5),primary_key=True)
 	type = db.Column(db.String(20), unique=True)
@@ -60,6 +62,7 @@ class Type(db.Model):
 class Origin(db.Model):
 	
 	__tablename__ = "origins"
+	__table_args__ = {'mysql_charset': 'utf8', 'mysql_collate': 'utf8_general_ci'}
 	
 	id = db.Column(db.String(5),primary_key=True)
 	origin = db.Column(db.String(50), unique=True)
@@ -68,6 +71,7 @@ class Origin(db.Model):
 class Movie(db.Model):
 
 	__tablename__ = "movies"
+	__table_args__ = {'mysql_charset': 'utf8', 'mysql_collate': 'utf8_general_ci'}
 
 	# Settings for FTS (WooshAlchemy)
 	__searchable__ = [ 'name', 'director' ]
@@ -104,6 +108,7 @@ class Movie(db.Model):
 class Mark(db.Model):
 	
 	__tablename__ = "marks"
+	__table_args__ = {'mysql_charset': 'utf8', 'mysql_collate': 'utf8_general_ci'}
 
 	user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
 	movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), primary_key=True)
