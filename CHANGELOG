@@ -1,3 +1,13 @@
+Version 1.0.2 (2016-07-01)
+-------------
+* [FIX]: Fetch original language poster when default language is not English (#16)
+* [FIX]: Movies can have now the same title in the database (#17)
+* [FEAT]: Improve Gravatar implementation (#13)
+* [FEAT]: Add movie link on the update movie notification template (#21)
+* [FEAT]: Movie notification template redesign (#22)
+* [FEAT]: Add TMDB credits in order to respect API terms of use (#23)
+* [FEAT]: Homework can be deleted by their owner (#24)
+
 Version 1.0.1 (2016-06-11)
 -------------
 
