@@ -825,6 +825,48 @@ def add_homework(movie_id,user_id):
 
 	return redirect(url_for('show_movie',movie_id=movie_id))
 
+@app.route('/homework/delete/<int:movie_id>/<int:user_id>')
+@login_required
+def delete_homework(movie_id,user_id):
+
+	# Check if the homework exists and if the user has the right to delete it
+	# We can't delete the homework we didn't propose
+	homework=Mark.query.get((user_id,movie_id))
+	
+	# Homework doesn't exists => Stop processing
+	if homework == None:
+		flash("Ce devoir n'existe pas", "danger")
+		return redirect(url_for('list_homeworks'))
+
+	# Is the user allowed to delete the homework
+	if homework.homework_who != g.user.id:
+		flash("Vous n'avez pas le droit de supprimer ce devoir", "danger")
+		return redirect(url_for('list_homeworks'))
+
+	# We are here => We have the right to delete the homework
+	if homework.mark == None:
+		# The user didn't mark the movie so we can delete the record
+		try:
+			db.session.delete(homework)
+			db.session.commit()
+			flash("Devoir annulé","success")
+		except:
+			flash("Impossible de supprimer la note","danger")
+	else:
+		# The user marked the movie so we can't delete the record => Set the homework fields to none
+		homework.homework_when = None
+		homework.homework_who = None
+		
+		try:
+			db.session.add(homework)
+			db.session.commit()
+			flash("Devoir annulé","success")
+		except:
+			flash("Impossible d'annuler le devoir","danger")
+
+	# When finished => Go back to the homework page
+	return redirect(url_for('list_homeworks'))
+		
 @app.route('/homework/list',methods=['GET','POST'])
 @login_required
 def list_homeworks():

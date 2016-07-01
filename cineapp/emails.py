@@ -86,6 +86,24 @@ def add_homework_notification(mark):
 		# Display a message that the user don't want to be notified
 		return 2
 
+# Function which sends notification when an homework has been cancelled
+# Send a notification to the user who cancelled the homework and another to
+# the destination user the homework was for
+def delete_homework_notification(mark):
+
+	# Check if notifications are enabled for the user
+	if mark.user.notifications != None and mark.user.notifications["notif_homework_add"] == True:
+		try:
+			send_email('[Cineapp] - Annulation d\'un devoir', app.config['MAIL_SENDER'],[ mark.user.email ],
+			render_template('_homework_notification.txt', dest_user=mark.user, homework_who=mark.homework_who_user, movie=mark.movie))
+			return 0
+		except:
+			# We couldn't send the mail
+			return 1
+	else:
+		# Display a message that the user don't want to be notified
+		return 2
+
 # Function which sends notification to user when a movie has been updated into the database
 def update_movie_notification(notif):
 	users = User.query.filter_by().all()

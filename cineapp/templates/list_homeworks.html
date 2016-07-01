@@ -51,6 +51,7 @@
 				<th class="text-center">Réalisateur</th>
 				<th class="text-center" style="width:20%;">Donné à:</th>
 				<th class="text-center"></th>
+				<th class="text-center"></th>
 			</tr>
 			{% for cur_homework in given_homeworks %}
 			<tr>
@@ -62,6 +63,7 @@
 				{% else %}
 				<td><strong>{{ cur_homework.mark }}</strong></td>
 				{% endif %}
+				<td class="text-center"><a href="{{ url_for("delete_homework", user_id=cur_homework.user.id,movie_id=cur_homework.movie.id) }}"<i class="fa fa-times fa-1x" id="redcross"/></a></td>
 			</tr>
 			{% endfor %}
 			</table>

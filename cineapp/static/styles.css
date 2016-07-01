@@ -93,4 +93,9 @@ footer {
     bottom: 0;
     height: 20px;
     background-color: #f5f5f5;
-}    
+}
+
+#redcross {
+	color: red;
+	font-size:21px;
+}
