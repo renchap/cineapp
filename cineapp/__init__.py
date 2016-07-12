@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 app = Flask(__name__)
 
 # Global Variables
-app.config['VERSION'] = "1.0.2"
+app.config['VERSION'] = "1.0.3"
 app.config['GRAVATAR_URL'] = "https://www.gravatar.com/avatar/"
 
 # Configuration file reading

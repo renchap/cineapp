@@ -1,3 +1,10 @@
+Version 1.0.3 (2016-07-12)
+-------------
+* [FIX]: Date and location movie viewing have been added on the movie page (#27)
+* [FIX]: Default date on the mark movie form is now correct (#30)
+* [FIX]: Mark date is now correctly added for an homework (#30)
+* [FIX]: Activity flow and mail notifications send specific messages when an homework is complete (#30)
+
 Version 1.0.2 (2016-07-01)
 -------------
 * [FIX]: Fetch original language poster when default language is not English (#16)
