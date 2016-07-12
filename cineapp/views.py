@@ -392,14 +392,20 @@ def show_movie(movie_id):
 
 		if marked_movie != None:
 
+			# Replace the seen_where letter by a nicer text
+			if marked_movie.seen_where=="C":
+				seen_where_text="Cinema"
+			elif marked_movie.seen_where=="M":
+				seen_where_text="Maison"
+
 			# We are in homework mode if a user gave an homework AND the mark is still none
 			# If not we are in mark mode
 			if marked_movie.homework_who != None and marked_movie.mark == None:
-				mark_users.append({ "user": cur_user, "mark": "homework_in_progress", "comment": "N/A" })
+				mark_users.append({ "user": cur_user, "mark": "homework_in_progress", "seen_where": None, "seen_when": None, "comment": None })
 			else:
-				mark_users.append({ "user": cur_user, "mark": marked_movie.mark, "comment": marked_movie.comment })
+				mark_users.append({ "user": cur_user, "mark": marked_movie.mark, "seen_where": seen_where_text, "seen_when": marked_movie.updated_when.strftime("%d/%m/%Y") ,"comment": marked_movie.comment })
 		else:
-			mark_users.append({ "user" : cur_user, "mark": None, "comment": "N/A" })
+			mark_users.append({ "user" : cur_user, "mark": None, "seen_where": None, "seen_when": None, "comment": None })
 
 	# Let's check if the movie has already been marked by the user
 	marked_movie=Mark.query.get((g.user.id,movie_id))

@@ -93,10 +93,10 @@ aria-hidden="true">&rarr;</span></a>
 		<table class="table table-striped">
 		{% for cur_mark in mark_users %}
 			<tr>
-				<td class="col-md-2 text-right">
+				<td class="col-md-2 text-center">
 					{{ (cur_mark["user"]).nickname }}
 				</td>
-				<td class="col-md-2 text-center">
+				<td class="col-md-1 text-center">
 					{% if cur_mark["mark"] == "homework_in_progress" %}
 					<a class="disabled btn btn-warning btn-xs">Devoir</button>
 					{% elif cur_mark["mark"] == None %}
@@ -109,8 +109,19 @@ aria-hidden="true">&rarr;</span></a>
 					<strong>{{ cur_mark["mark"] }}</strong>
 					{% endif %}
 				</td>
-				<td class="col-md-8 text-justify">
+				<td class="col-md-2 text-center">
+					{% if cur_mark["seen_where"] != None %}
+					{{ cur_mark["seen_when"] }}<br/><span id="seen_where">({{ cur_mark["seen_where"] }})</span>
+					{% else %}
+					N/A
+					{% endif %}
+				</td>
+				<td class="col-md-7 text-justify">
+					{% if cur_mark["comment"] != None %}
 					{{ cur_mark["comment"] }}
+					{% else %}
+					N/A
+					{% endif %}
 				</td>
 			</tr>
 		{% endfor %}
