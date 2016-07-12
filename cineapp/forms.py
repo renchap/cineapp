@@ -42,7 +42,7 @@ class MarkMovieForm(Form):
 	mark = StringField('Note du Film', [DataRequired()])
 	comment = TextAreaField('Commentaire du Film', [DataRequired()])
 	seen_where = RadioField('Ou j\'ai vu le film', [Required(message="Date invalide")],choices=[('C', u'Cinema'), ('M', 'Maison')], default='M')
-	seen_when = DateField('Vu le :', default=datetime.now(),format="%d/%m/%Y")
+	seen_when = DateField('Vu le :', default=datetime.now,format="%d/%m/%Y")
 
 	# The method name is important
 	# A validate_XXX method will validate a field named XXX
