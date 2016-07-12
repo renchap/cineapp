@@ -442,9 +442,15 @@ def mark_movie(movie_id_form):
 			marked_movie.seen_when=form.seen_when.data
 			marked_movie.seen_where=form.seen_where.data
 
-			flash_message_success="Note mise à jour"
-			notif_type="update"
-
+			# If we mark an homework, let's set the date in order to be on the activity flow
+			# Rating an homework mean there is an homework date but not a mark date
+			if marked_movie.updated_when == None and marked_movie.homework_when != None:
+				marked_movie.updated_when=datetime.now()
+				flash_message_success="Devoir rempli"
+				notif_type="homework"
+			else:
+				flash_message_success="Note mise à jour"
+				notif_type="update"
 		try:
 			db.session.add(marked_movie)
 			db.session.commit()
@@ -1187,8 +1193,17 @@ def update_activity_flow():
 			else:
 				comment=cur_activity["object"].comment
 
-			# Define the text that will be shown on the datatable
-			entry_text=cur_activity["object"].user.nickname + u" a noté le film <a href=\"" + url_for('show_movie', movie_id=cur_activity["object"].movie_id) +"\">" +  cur_activity["object"].movie.name + "</a> avec la note <span title=\"Commentaire\" data-toggle=\"popover\" data-placement=\"top\" data-trigger=\"hover\" data-content=\"" + comment + "\"><strong>" + str(cur_activity["object"].mark) +"</strong></span>"
+			# Precise if this is a mark for an homework or a simple mark
+			if cur_activity["object"].updated_when != None and cur_activity["object"].homework_when != None:
+
+				entry_type+=" <a class=\"disabled btn btn-warning btn-xs\">Devoir</a>"	
+
+				# Define the text that will be shown on the datatable
+				entry_text=cur_activity["object"].user.nickname + u" vient de remplir son devoir sur le film <a href=\"" + url_for('show_movie', movie_id=cur_activity["object"].movie_id) +"\">" +  cur_activity["object"].movie.name + "</a> .La note est de <span title=\"Commentaire\" data-toggle=\"popover\" data-placement=\"top\" data-trigger=\"hover\" data-content=\"" + comment + "\"><strong>" + str(cur_activity["object"].mark) +"</strong></span>"
+
+			else:
+				# Define the text that will be shown on the datatable
+				entry_text=cur_activity["object"].user.nickname + u" a noté le film <a href=\"" + url_for('show_movie', movie_id=cur_activity["object"].movie_id) +"\">" +  cur_activity["object"].movie.name + "</a> avec la note <span title=\"Commentaire\" data-toggle=\"popover\" data-placement=\"top\" data-trigger=\"hover\" data-content=\"" + comment + "\"><strong>" + str(cur_activity["object"].mark) +"</strong></span>"
 
 		elif cur_activity["entry_type"] == "homeworks":
 			entry_type="<a class=\"disabled btn btn-warning btn-xs\">Devoir</a>"

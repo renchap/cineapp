@@ -68,6 +68,9 @@ def mark_movie_notification(mark,notif_type):
 			elif notif_type == "update":
 				send_email('[Cineapp] - Note mise à jour' , app.config['MAIL_SENDER'],[ cur_user.email ] ,
 				render_template('mark_movie_notification.txt', dest_user=cur_user, add_user=g.user,mark=mark,you_user=you_user,notif_type=notif_type))
+			elif notif_type == "homework":
+				send_email('[Cineapp] - Devoir rempli' , app.config['MAIL_SENDER'],[ cur_user.email ] ,
+				render_template('mark_movie_notification.txt', dest_user=cur_user, add_user=g.user,mark=mark,you_user=you_user,notif_type=notif_type))
 
 # Function which sends notification to user who received an homework
 # For the homework, just send a mail to the user who has to handle the homework.
