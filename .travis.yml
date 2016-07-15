@@ -3,11 +3,19 @@ python:
 - '2.7'
 services:
 - mysql
-install: pip install -r requirements.txt
+install: 
+- pip install -r requirements.txt
+- pip install coveralls
 before_script:
+before_install:
+- sudo apt-get update && sudo apt-get --reinstall install -qq language-pack-en language-pack-fr
 - mkdir /home/travis/build/ptitoliv/cineapp/tmp/
 - mkdir /home/travis/build/ptitoliv/cineapp/migrations/versions
 - mysql -e 'create database cineapp_ci;'
 script:
 - python manage.py db migrate
 - python manage.py db upgrade
+- python tests/unit_tests.py
+- coverage run --omit=/home/travis/virtualenv/* tests/unit_tests.py
+after_success:
+- coveralls
