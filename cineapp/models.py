@@ -96,14 +96,16 @@ class Movie(db.Model):
 	def next(self):
 		"""
 			Return the next item into the database
+			Let's consider alphabetical order
 		"""
-		return db.session.query(Movie).filter(Movie.id > self.id).order_by(Movie.id).first()
+		return db.session.query(Movie).filter(Movie.name > self.name).order_by(Movie.name).first()
 
 	def prev(self):
 		"""
 			Return the previous item into the database
+			Let's consider alphabetical order
 		"""
-		return db.session.query(Movie).filter(Movie.id < self.id).order_by(desc(Movie.id)).first()
+		return db.session.query(Movie).filter(Movie.name < self.name).order_by(desc(Movie.name)).first()
 
 class Mark(db.Model):
 	
