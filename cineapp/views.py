@@ -933,7 +933,7 @@ def list_homeworks():
 
 			given_homeworks = Mark.query.join(Mark.movie).filter(and_(Mark.homework_who == g.user.id, Mark.homework_who != None, Mark.user_id == given_homework_filter_form.user_filter.data.id)).order_by(desc(case([(Mark.mark == None, 0)],1)),Movie.name)
 		else:
-			given_homeworks = Mark.query.join(Mark.movie).filter(and_(Mark.homework_who != None)).order_by(desc(case([(Mark.mark == None, 0)],1)),Movie.name)
+			given_homeworks = Mark.query.join(Mark.movie).filter(and_(Mark.homework_who == g.user.id)).order_by(desc(case([(Mark.mark == None, 0)],1)),Movie.name)
 
 	elif session.get('given_homework_filter', None) != None:
 		given_homeworks = Mark.query.join(Mark.movie).filter(and_(Mark.homework_who == g.user.id, Mark.user_id == session.get('given_homework_filter'))).order_by(desc(case([(Mark.mark == None, 0)],1)),Movie.name)
