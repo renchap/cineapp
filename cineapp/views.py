@@ -403,7 +403,7 @@ def show_movie(movie_id):
 			if marked_movie.homework_who != None and marked_movie.mark == None:
 				mark_users.append({ "user": cur_user, "mark": "homework_in_progress", "seen_where": None, "seen_when": None, "comment": None })
 			else:
-				mark_users.append({ "user": cur_user, "mark": marked_movie.mark, "seen_where": seen_where_text, "seen_when": marked_movie.updated_when.strftime("%d/%m/%Y") ,"comment": marked_movie.comment })
+				mark_users.append({ "user": cur_user, "mark": marked_movie.mark, "seen_where": seen_where_text, "seen_when": marked_movie.seen_when.strftime("%d/%m/%Y") ,"comment": marked_movie.comment })
 		else:
 			mark_users.append({ "user" : cur_user, "mark": None, "seen_where": None, "seen_when": None, "comment": None })
 
