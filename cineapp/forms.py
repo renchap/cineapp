@@ -71,7 +71,19 @@ class SelectMovieForm(Form):
 		# Local variable
 		choice_list=[]
 		for cur_movie in movies_list:
-			choice_list.append((cur_movie['id'], cur_movie['title']))
+
+			# Extract the year if we can
+			if cur_movie.release_date != None and cur_movie.release_date != "":
+				try:
+					movie_year = datetime.strptime(cur_movie.release_date,"%Y-%m-%d").strftime("%Y")
+				except ValueError:
+					# If we are here that means the datetime module can't handle the date
+					# Do it manually
+					movie_year = cur_movie.release_date.split("-")[0] 
+			else:
+				movie_year = "Inconnu"
+
+			choice_list.append((cur_movie.tmvdb_id, cur_movie.name + " ( " + movie_year + " - " + cur_movie.director + " )"))
 
 		self.movie.choices = choice_list
 

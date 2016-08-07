@@ -1,21 +1,53 @@
 {% extends "base.html" %} 
 {% block content %}
 	<div class="container">
-		<div class="text-center">
-			<h1>Selection du film</h1>
+		<div class="row text-center col-md-offset-1 col-md-10">	
+			<h1>Selection du film (Page {{ cur_page }} / {{ total_pages }})</h1>
+			<ul class="pager">
+				{% if has_prev %}
+				<li class="previous">
+					<a id="prev" href="{{ url_for('select_' + endpoint + '_movie', page=cur_page - 1) }}"><span aria-hidden="true">&larr;</span> Page {{ cur_page - 1 }}</a>
+				</li>
+				{% endif %}
+				{% if has_next %}
+				<li class="next">
+					<a id="next" href="{{ url_for('select_' + endpoint + '_movie', page=cur_page + 1) }}"> Page {{ cur_page + 1 }} <span aria-hidden="true">&rarr;</span></a>
+				</li>
+				{% endif %}
+			</ul>
 		</div>
-		<div class="row">	
-			<div class="col-md-6 col-md-offset-3">
-				<form action="{{ url_wizard_next }}" method="post" name="selectmovie">
-					{{ select_form.hidden_tag() }}
+		<form action="{{ url_for('confirm_' + endpoint + '_movie') }}" method="post" name="selectmovie">
+		{{ select_form.hidden_tag() }}
+		<div class="row col-md-offset-1 col-md-10">
+			<table class="table table-hover">
+					<tr>
+						<th class="text-center">Sélection</th>
+						<th>Film</th>
+					</tr>
 					{% for option in select_form.movie %}
-						<div class="radio">
-						{{ option }}
-						{{ option.label }}
-						</div>
+					<tr>
+						<td class="text-center">{{ option }}</td>
+						<td>{{ option.label(class_="radio_label") }}</td>
+					</tr>
 					{% endfor %}
-					{{ select_form.submit_select(class="btn btn-success center-block") }}	
-				</form>
-			</div>
+			</table>
 		</div>
+		<div class="row text-center col-md-offset-1 col-md-10">	
+			{{ select_form.submit_select(class="btn btn-success center-block") }}	
+		</div>
+		</form>
+		<div id="container_overlay">
+			<div id="spinner" class="spinner"/>
+		</div>
+	</div>
+	<script type="text/javascript">
+		$(document).ready(function(){
+		    $("#prev").click(function() {
+		        $('#container_overlay').show();	
+		    });
+		    $("#next").click(function() {
+		        $('#container_overlay').show();	
+		    });
+		});
+	</script>
 {% endblock %}
