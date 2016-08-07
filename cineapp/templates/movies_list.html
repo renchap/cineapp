@@ -48,9 +48,7 @@
 						} else {
 							return '<span title="Vu au cinema" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Non">' + row.my_when + "</span>"
 						}
-					},
-			
-				   "orderable": false
+					}
 				 },
 			{% for cur_user in users %}
 				{% if g.user.id != cur_user.id %}
@@ -76,7 +74,7 @@
 							return '<span title="Vu au cinema" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Non">' + row.other_when[{{cur_user.id}}] + "</span>"
 						}
 					},
-				   "orderable":false },
+				  },
 				{%endif%}
 			{% endfor %}
 			  ],
