@@ -113,15 +113,15 @@ class FlaskrTestCase(unittest.TestCase):
 	assert "Ajout d&#39;un film" in rv.data
 
 	# Fill the movie title
-	rv=self.app.post('/movies/add',data=dict(search="tuche",submit_search=True))
+	rv=self.app.post('/movies/add/select',data=dict(search="tuche",submit_search=True))
 	assert "Les Tuche" in rv.data
 
 	# Select the movie
-	rv=self.app.post('/movies/add',data=dict(movie="66129",submit_select=True))
+	rv=self.app.post('/movies/add/confirm',data=dict(movie="66129",submit_select=True))
 	assert "Ajouter le film" in rv.data
 
 	# Store the movie into database
-	rv=self.app.post('/movies/add',data=dict(movie_id="66129",origin="F",type="C",submit_confirm=True),follow_redirects=True)
+	rv=self.app.post('/movies/add/confirm',data=dict(movie_id="66129",origin="F",type="C",submit_confirm=True),follow_redirects=True)
 	assert "Film ajout" in rv.data
 	assert "Affiche" in rv.data
 		
