@@ -20,7 +20,7 @@ def tmvdb_connect(url):
 					delay=math.ceil(timestamp_reset-timestamp_now)
 					time.sleep(delay)
 
-		except urllib2.HTTPError: 
+		except urllib2.HTTPError:
 			continue
 		break
 
@@ -50,7 +50,8 @@ def download_poster(movie):
 	# If we are here, everything is okay
 	return True
 
-def search_movies(query):
+def search_movies(query,page=1):
+
 	"""
 		Function that query tvmdb.org and return a list of movies
 	"""
@@ -60,58 +61,58 @@ def search_movies(query):
 
 	# Query the API using the query in parameter
 	for cur_language in languages_list:
-		data = urllib2.urlopen(os.path.join(app.config['API_URL'],("search/movie?api_key=" + app.config['API_KEY'] + "&language=" + cur_language + "&query=" + urllib.quote(query.encode('utf-8')))))
+		movies_list=tmvdb_connect(os.path.join(app.config['API_URL'],("search/movie?api_key=" + app.config['API_KEY'] + "&language=" + cur_language + "&query=" + urllib.quote(query.encode('utf-8')))) + "&page=" + str(page))
 
-		# Put the result into a dictionnary
-		result=json.load(data)
-
-		# We can have more than one page containing result 
-		# Fetch the total_pages number and browse each page
-		for cur_page in range(1,int(result["total_pages"])+1,1):
-			data = urllib2.urlopen(os.path.join(app.config['API_URL'],("search/movie?api_key=" + app.config['API_KEY'] + "&language=" + cur_language + "&query=" + urllib.quote(query.encode('utf-8')))) + "&page=" + str(cur_page))
-
-			# Put the results of the current page into a dictionnary
-			movies_list=json.load(data)
-
-			for cur_movie in movies_list['results']:
-				complete_list.append(cur_movie)
+		for cur_movie in movies_list['results']:
+			complete_list.append(get_movie(cur_movie['id'],False))
 
 	return complete_list
 
-def get_movie(id):
+def get_movie(id,fetch_poster=True):
 	"""
 		Function that fill a movie object using TVMDB database
 	"""
-	# Fetch global configuration parameters
-	config_api=json.load(urllib2.urlopen(os.path.join(app.config['API_URL'], "configuration?api_key=" + app.config['API_KEY'] +"&language=fr")))
-	base_url=config_api['images']['secure_base_url']
-	
+
 	# Fetch the movie data
-	movie=json.load(urllib2.urlopen(os.path.join(app.config['API_URL'],("movie/" + str(id) + "?api_key=" + app.config['API_KEY'] + "&append_to_response=credits,details&language=fr"))))
+	movie=tmvdb_connect(os.path.join(app.config['API_URL'],("movie/" + str(id) + "?api_key=" + app.config['API_KEY'] + "&append_to_response=credits,details&language=fr")))
 
 	# Fetch the director form the casting
-	director=None
+	director=""
 	for cur_guy in movie['credits']['crew']:
 		if cur_guy['job'] == "Director":
-			director=cur_guy["name"]
-			break
+			director+=cur_guy["name"] + " / "
 
-	# Try to get the poster in French	
-	movie_poster=json.load(urllib2.urlopen(os.path.join(app.config['API_URL'],("movie/" + str(id) + "/images?api_key=" + app.config['API_KEY'] + "&language=fr&include_image_language=fr,null"))))
+	# Remove the last slash if it exists
+	director=director.rstrip(' / ')
 
-	# Fetch poster url !
+	if director == "":
+		director="Inconnu"
+
+	# Initialize url variable
 	url = None
-	try:
-		url = base_url + 'w185' + movie_poster['posters'][0]['file_path']
-	except IndexError:
 
-		# No poster with the french or null language= => Fallback in english
-		movie_poster=json.load(urllib2.urlopen(os.path.join(app.config['API_URL'],("movie/" + str(id) + "/images?api_key=" + app.config['API_KEY']))))
+	# Fetch the poster if we have to
+	if fetch_poster == True:
 
+		# Fetch global configuration parameters
+		config_api=tmvdb_connect(os.path.join(app.config['API_URL'], "configuration?api_key=" + app.config['API_KEY'] +"&language=fr"))
+		base_url=config_api['images']['secure_base_url']
+
+		# Try to get the poster in French
+		movie_poster=tmvdb_connect(os.path.join(app.config['API_URL'],("movie/" + str(id) + "/images?api_key=" + app.config['API_KEY'] + "&language=fr&include_image_language=fr,null")))
+
+		# Fetch poster url !
 		try:
 			url = base_url + 'w185' + movie_poster['posters'][0]['file_path']
 		except IndexError:
-			pass
+
+			# No poster with the french or null language= => Fallback in english
+			movie_poster=tmvdb_connect(os.path.join(app.config['API_URL'],("movie/" + str(id) + "/images?api_key=" + app.config['API_KEY'])))
+
+			try:
+				url = base_url + 'w185' + movie_poster['posters'][0]['file_path']
+			except IndexError:
+				pass
 
 	# Create the movie object
 	movie_obj=Movie(name=movie['title'],
@@ -124,6 +125,24 @@ def get_movie(id):
 
 	return movie_obj
 
+def search_page_number(query):
+	"""
+		Function that returns how many result page we're going to handle for a specific query
+	"""
+
+	# Local variables
+	languages_list=["fr"]
+
+	# Query the API using the query in parameter
+	for cur_language in languages_list:
+		result=tmvdb_connect(os.path.join(app.config['API_URL'],("search/movie?api_key=" + app.config['API_KEY'] + "&language=" + cur_language + "&query=" + urllib.quote(query.encode('utf-8')))))
+
+	# Return the page number if we have someone to return
+	if result != None:
+		return result["total_pages"]
+	else:
+		return -1
+
 if __name__ == "__main__":
 	test=search_movies("tuche")
 	for cur_test in test:
@@ -134,4 +153,3 @@ if __name__ == "__main__":
 	print movie.director
 	print movie.release_date
 	print movie.poster_path
-	
