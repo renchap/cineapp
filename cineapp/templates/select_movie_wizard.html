@@ -20,10 +20,12 @@
 		{{ select_form.hidden_tag() }}
 		<div class="row col-md-offset-1 col-md-10">
 			<table class="table table-hover">
+				<thead>
 					<tr>
 						<th class="text-center">Sélection</th>
 						<th>Film</th>
 					</tr>
+				</thead>
 					{% for option in select_form.movie %}
 					<tr>
 						<td class="text-center">{{ option }}</td>
