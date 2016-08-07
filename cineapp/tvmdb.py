@@ -1,6 +1,30 @@
-import json, urllib2,sys, time, urllib, os, time
+import json, urllib2,sys, time, urllib, os, math
+from datetime import datetime
 from cineapp import app,db
 from cineapp.models import Movie
+
+def tmvdb_connect(url):
+	"""
+		Internal function which handles connection to the API
+		using the API rate limiting of the API
+	"""
+	while True:
+		try:
+			data=urllib2.urlopen(url)
+			remain=int(data.info().getheader('X-RateLimit-Remaining'))
+			if remain < 2:
+				timestamp_now=time.time()
+				timestamp_reset=int(data.info().getheader('X-RateLimit-Reset'))
+
+				if timestamp_now < timestamp_reset:
+					delay=math.ceil(timestamp_reset-timestamp_now)
+					time.sleep(delay)
+
+		except urllib2.HTTPError: 
+			continue
+		break
+
+	return json.load(data)
 
 def download_poster(movie):
 
