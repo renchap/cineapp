@@ -66,43 +66,41 @@ def logout():
 	return redirect(url_for('index'))
 
 @app.route('/movies/list')
+@app.route('/movies/reset', endpoint="reset_list")
 @app.route('/movies/filter', methods=[ 'GET', 'POST' ], endpoint="filter_form")
-@app.route('/movies/filter/<int:page>', endpoint="filter_mode")
-def list_movies(page=1):
+def list_movies():
 
 	# Display the search form
 	filter_form = FilterForm()
 
 	# Fetch the query string or dict => We'll need it later
-	session_query=session.get('query')
+	session_query=session.get('query',None)
 	
-	# If clear_table session variable is set to false, that means we come from add_homework
-	if session.pop('clear_table',None) == False:
-		clear_table=False
-	else:
-		clear_table=True
+	# By default, don't clean the datatable state
+	clear_table=False
 
-	# Let's check if we are in list mode or filter mode
-	url_rule=request.url_rule
-	if url_rule.rule == "/movies/filter" or url_rule.rule == "/movies/filter/<int:page>":
-		# Tell to the pagination system that we are in filter mode
-		route_rule="filter_mode"
-		session['search_type']="filter"
+	print "kikooooo " + request.endpoint
 
-		# We are in filter mode
-		if g.search_form.submit_search.data == True:
-			# We come from the form into the navbar
-			if g.search_form.validate_on_submit():
-				filter_string=g.search_form.search.data
-				session['query']=filter_string
+	# We are in filter mode
+	if g.search_form.submit_search.data == True:
+		# We come from the form into the navbar
+		if g.search_form.validate_on_submit():
+			filter_string=g.search_form.search.data
+			session['query']=filter_string
 
-		elif filter_form.submit_filter.data == True:
-			# We come from the filter form above the datatable
-			# Build the filter request
+			session['search_type']="filter"
+			
+			# Reset the datatable to a fresh state
+			clear_table=True
 
-			if filter_form.origin.data == None and filter_form.type.data == None and filter_form.seen_where.data == None:
-				# All filter are empty => Let's display the list
-				return redirect(url_for('list_movies'))
+	elif filter_form.submit_filter.data == True:
+		# We come from the filter form above the datatable
+		# Build the filter request
+
+		if filter_form.origin.data == None and filter_form.type.data == None and filter_form.where.data == None:
+			# All filter are empty => Let's display the list
+			session['search_type']="list"
+		else:
 
 			# Put the forms parameter into a session object in order to be handled by the datatable
 			session['search_type']="filter_origin_type"
@@ -114,48 +112,56 @@ def list_movies(page=1):
 			if filter_form.type.data != None:
 				filter_dict['type'] = filter_form.type.data.id
 
-			if filter_form.seen_where.data != None:
-				filter_dict['seen_where'] = filter_form.seen_where.data.id
+			if filter_form.where.data != None:
+				filter_dict['seenwhere'] = filter_form.where.data.id
 
 			session['query']=filter_dict
 
-		elif isinstance(session_query,dict):
-			# We come from an homework link and we want to fill the form
-			session['search_type']="filter_origin_type"
-			
-			# Rebuild the form setting default values stores into the session object
-			# We need to check if the variable is not or none in order to avoid an exception
-			if session_query['origin'] == None:
-				origin = None
-			else:
-				origin=Origin.query.get(session_query['origin'])
+		# Reset the datatable to a fresh state
+		clear_table=True
 
-			if session_query['type'] == None:
-				type = None
-			else:
-				type=Type.query.get(session_query['type'])
+	elif isinstance(session_query,dict):
 
-			if session_query['seen_where'] == None:
-				seen_where=None
-			else:
-				seen_where=User.query.get(session_query['seen_where'])
-
-			# Recreate the form with the set default values
-			filter_form=FilterForm(origin=origin,type=type,seen_where=seen_where)
+		# We come from an homework link and we want to fill the form
+		session['search_type']="filter_origin_type"
+		
+		# Rebuild the form setting default values stores into the session object
+		# We need to check if the variable is not or none in order to avoid an exception
+		if session_query['origin'] == None:
+			origin = None
 		else:
-			# We are in filter mode with a pagination request
-			filter_string=session.get('query',None)
+			origin=Origin.query.get(session_query['origin'])
+
+		if session_query['type'] == None:
+			type = None
+		else:
+			type=Type.query.get(session_query['type'])
+
+		if session_query['seen_where'] == None:
+			seen_where=None
+		else:
+			seen_where=User.query.get(session_query['seen_where'])
+
+		# Recreate the form with the set default values
+		filter_form=FilterForm(origin=origin,type=type,where=seen_where)
 
 	else:
+		# If we catch the reset_list endpoint, well reset the list in initial state
+		if request.endpoint == "reset_list":
 
-		# Tell to the pagination system that we are in list mode
-		route_rule="list_movies"
-		session['search_type']="list"
+			# Reset all the values in order to have the initial list
+			session['search_type']="list"
+			session.pop('query',None)
+
+			# Reset the datatable display
+			clear_table=True
+		
+			# And go back to the list
+			return redirect(url_for("list_movies"))
 
 	# Let's fetch all the users, I will need them
 	users = User.query.all()
-
-	return render_template('movies_list.html', users=users,route_rule=route_rule,filter_form=filter_form,clear_table=clear_table)
+	return render_template('movies_list.html', users=users,filter_form=filter_form,clear_table=clear_table)
 
 @app.route('/movies/json', methods=['GET','POST'])
 @login_required
@@ -248,7 +254,6 @@ def update_datatable():
 				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).filter(filter_field != None).order_by(filter_field).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).count()
 			elif session.get('search_type') == 'filter_origin_type':
-				print movies_query
 				movies = movies_query.filter(filter_field != None).order_by(filter_field).slice(int(start),int(start) + int(length))
 				count_movies=movies_query.filter(filter_field != None).count()
 			elif session.get('search_type') == 'filter':
