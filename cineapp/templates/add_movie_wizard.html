@@ -22,14 +22,14 @@
 	<script type="text/javascript">
 		$(document).ready(function(){
 		    $("form input[type=submit]").click(function() {
-   		    	$(":text").prop("readonly", true);
-   		    	$(":submit").prop("disabled", true);
+   		    	$("#search").prop("readonly", true);
+   		    	$("#submit_search").prop("disabled", true);
 		        $('#container_overlay').show();	
 			$(this).parents('form').submit()
 		    });
 		
 		// Force submit button enabling
- 	    	$(":submit").prop("disabled", false);
+ 	    	$("#submit_search").prop("disabled", false);
 
 		});
 	</script>
