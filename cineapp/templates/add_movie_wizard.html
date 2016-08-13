@@ -25,6 +25,7 @@
    		    	$(":text").prop("readonly", true);
    		    	$(":submit").prop("disabled", true);
 		        $('#container_overlay').show();	
+			$(this).parents('form').submit()
 		    });
 		});
 	</script>
