@@ -79,7 +79,18 @@ def list_movies():
 	# By default, don't clean the datatable state
 	clear_table=False
 
-	print "kikooooo " + request.endpoint
+	# If we catch the reset_list endpoint, well reset the list in initial state
+	if request.endpoint == "reset_list":
+
+		# Reset all the values in order to have the initial list
+		session['search_type']="list"
+		session.pop('query',None)
+
+		# Tell that we must reset the table on next load
+		session['clear_table_on_next_reload']=True
+
+		# And go back to the list
+		return redirect(url_for("list_movies"))
 
 	# We are in filter mode
 	if g.search_form.submit_search.data == True:
@@ -146,18 +157,8 @@ def list_movies():
 		filter_form=FilterForm(origin=origin,type=type,where=seen_where)
 
 	else:
-		# If we catch the reset_list endpoint, well reset the list in initial state
-		if request.endpoint == "reset_list":
-
-			# Reset all the values in order to have the initial list
-			session['search_type']="list"
-			session.pop('query',None)
-
-			# Reset the datatable display
-			clear_table=True
-		
-			# And go back to the list
-			return redirect(url_for("list_movies"))
+		# We are in list mode, check if we must clear the table after a reset
+		clear_table=session.pop('clear_table_on_next_reload',None)
 
 	# Let's fetch all the users, I will need them
 	users = User.query.all()
