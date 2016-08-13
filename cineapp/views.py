@@ -578,6 +578,12 @@ def select_movie(page=1):
 	select_form=SelectMovieForm(search_movies(query_movie,page))
 	session["page"] = page
 
+	# Check if we have some results, if not tell the user that there is no matching results
+	# and propose it to make a new search
+	if total_pages == 1 and len(select_form.movie.choices) == 0:
+		flash("Aucun résultat pour cette recherche", "warning")
+		return redirect(url_for("add_movie"))
+
 	return render_template('select_movie_wizard.html', select_form=select_form, cur_page=page, total_pages=total_pages, has_prev=has_prev, has_next=has_next,endpoint=endpoint)
 
 @app.route('/movies/add/confirm', methods=['POST'], endpoint="confirm_add_movie")
