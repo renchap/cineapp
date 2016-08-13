@@ -27,6 +27,10 @@
 		        $('#container_overlay').show();	
 			$(this).parents('form').submit()
 		    });
+		
+		// Force submit button enabling
+ 	    	$(":submit").prop("disabled", false);
+
 		});
 	</script>
 {% endblock %}
