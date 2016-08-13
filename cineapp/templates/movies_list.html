@@ -1,5 +1,10 @@
 {% extends "base.html" %} 
 {% block content %}
+	<style>
+		{% for cur_user in users %}
+			.color_{{cur_user.id}} { text-align:center; background-color: #{{cur_user.graph_color}} }
+		{% endfor %}
+	</style>
 	<script>
 	$(document).ready(function() {
 	    {% if clear_table == True %}
@@ -14,7 +19,7 @@
 			  "processing": true,
 			  "serverSide": true,
 			  "displayLength": 100,
-			  fixedHeader: { "header": true, "footer": true },
+			  "fixedHeader": { "header": true, "footer": true },
 			  "ajax": {
 				"url": "{{ url_for('update_datatable') }}",
 				"type" : "POST",
@@ -24,14 +29,15 @@
 			  },
 			  "columns" : [
 				{ "data": "name",
-				  className: "dt-right",
+				  "className": "align-left",
 				  "render": function(data,type,row) {
 					return $("<div>").append($("<a/>").attr("href", row.DT_RowData.link).text(data)).html();
 					}
 			        },
-				{ "data": "director", className: "dt-right" },
+				{ "data": "director"},
 			  	{ "data": "average", "orderable" : true },
 				{ "data": "my_mark",
+				  "className": "color_{{g.user.id}}",
 				  "render": function(data,type,row) {
 						if (row.my_mark == null)  {
   							return '<a class=\"btn btn-primary btn-xs\" href=' + row.DT_RowData.mark_link + '>Noter</a>'
@@ -42,6 +48,7 @@
 					}
 				 },
 				 { "data": "my_when",
+				  "className": "color_{{g.user.id}}",
 				   "render": function(data,type,row) {
 						if (row.my_where == 'C')  {
 							return '<span title="Vu au cinema" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Oui">' + row.my_when + "</span>"
@@ -53,11 +60,11 @@
 			{% for cur_user in users %}
 				{% if g.user.id != cur_user.id %}
 				 { "data": "other_marks.{{ cur_user.id }}",
+				  "className": "color_{{cur_user.id}}",
 			           "render": function(data,type,row) {
 					if (row.other_marks[{{cur_user.id}}]  == null)  {
 						if (row.DT_RowData.homework_link[{{cur_user.id}}]["when"] == null) {
 							return '-';
-							//return '<a class=\"btn btn-success btn-xs\" href=' + row.DT_RowData.homework_link[{{cur_user.id}}]["link"] + '>Devoir</a>'
 						} else {
 							return '<a disabled="true" title="Devoir donne par" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="' + row.DT_RowData.homework_link[{{cur_user.id}}]["who"] +'" class="btn btn-warning btn-xs">Devoir</button>'
 						}
@@ -67,6 +74,7 @@
 				   }
 				 },
 				 { "data": "other_when.{{ cur_user.id }}",
+				  "className": "color_{{cur_user.id}}",
 				   "render" : function(data,type,row) {
 						if (row.other_where[{{cur_user.id}}]  == 'C')  {
 							return '<span title="Vu au cinema" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Oui">' + row.other_when[{{cur_user.id}}] + "</span>"
@@ -93,7 +101,7 @@
 				},
 			}
 		);
-	
+
 		// Enable popover on table redraw	
 		table.on( 'draw', function () {
 	                    $('[data-toggle="popover"]').popover();
@@ -131,37 +139,39 @@
 		<table class="table table-striped" id="movielist">
 		<!-- Display the users name -->
 		<thead>
-		<tr>
-		<td colspan="3"></td>
-		<th colspan="2" class="text-center">
-	  		<div>
-				<img src="{{ config.GRAVATAR_URL }}{{ g.user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
-			</div>
-			<strong>Mes Notes</strong>
-		</th>
-			{% for cur_user in users %}
-				{% if g.user.id != cur_user.id %}
+			<tr>
+				<th class="text-center" style="border:0;width:35%;"></th>
+				<th class="text-center" style="border:0;width:25%;"></th>
+				<th class="text-center" style="border:0;"></th>
 				<th colspan="2" class="text-center">
-		  		<div>
-					<img src="{{ config.GRAVATAR_URL }}{{ cur_user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
-				</div>
-				<strong>{{ cur_user.nickname }}</strong></th>
-				{% endif %}
-			{% endfor %}	
-		</tr>
-		<tr>
-			<th class="text-center" style="border:0;width:35%;">Titre</th>
-			<th class="text-center" style="border:0;width:25%;">Realisateur</th>
-			<th class="text-center" style="border:0;">Moyenne</th>
-			<th class="text-center" style="border:0;">Note</th>
-			<th class="text-center" style="border:0;">Date</th>
-			{% for cur_user in users %}
-				{% if g.user.id != cur_user.id %}
-				<th class="text-center" style="border:0;"><strong>Note</strong></th>
-				<th class="text-center" style="border:0;"><strong>Date</strong></th>
-				{% endif %}
-			{% endfor %}	
-		</tr>
+					<div>
+						<img src="{{ config.GRAVATAR_URL }}{{ g.user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
+					</div>
+					<strong>Mes Notes</strong>
+				</th>
+					{% for cur_user in users %}
+						{% if g.user.id != cur_user.id %}
+						<th colspan="2" class="text-center">
+						<div>
+							<img src="{{ config.GRAVATAR_URL }}{{ cur_user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
+						</div>
+						<strong>{{ cur_user.nickname }}</strong></th>
+						{% endif %}
+					{% endfor %}
+			</tr>
+			<tr>
+				<th class="text-center" style="border:0;width:35%;">Titre</th>
+				<th class="text-center" style="border:0;width:25%;">Realisateur</th>
+				<th class="text-center" style="border:0;">Moyenne</th>
+				<th class="text-center" style="border:0;">Note</th>
+				<th class="text-center" style="border:0;">Date</th>
+				{% for cur_user in users %}
+					{% if g.user.id != cur_user.id %}
+					<th class="text-center" style="border:0;"><strong>Note</strong></th>
+					<th class="text-center" style="border:0;"><strong>Date</strong></th>
+					{% endif %}
+				{% endfor %}
+			</tr>
 		</thead>
 		</table>
 	</div>
