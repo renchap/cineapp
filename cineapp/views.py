@@ -1051,6 +1051,7 @@ def list_homeworks():
 	return render_template('list_homeworks.html',my_homeworks=my_homeworks,given_homeworks=given_homeworks,my_homework_filter_form=my_homework_filter_form,given_homework_filter_form=given_homework_filter_form)
 
 @app.route('/graph/mark', endpoint="graph_by_mark")
+@app.route('/graph/mark_percent', endpoint="graph_by_mark_percent")
 @app.route('/graph/type', endpoint="graph_by_type")
 @app.route('/graph/origin', endpoint="graph_by_origin")
 @app.route('/graph/year', endpoint="graph_by_year")
@@ -1106,6 +1107,24 @@ def show_graphs():
 			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : [] }
 			for cur_mark in frange(0,20,0.5):
 				data[cur_user.nickname]["data"].append(Mark.query.filter(Mark.mark==cur_mark,Mark.user_id==cur_user.id).count())
+
+	if graph_to_generate == "mark_percent":
+		
+		# Distributed marks graph
+		graph_type="line"
+
+		# Fill the labels_array with all marks possible
+		for cur_mark in frange(0,20,0.5):
+			labels.append(cur_mark)
+
+		movies_count = Movie.query.count()
+
+		# Fill the dictionnary with distributed_marks by user
+		for cur_user in users:
+			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : [] }
+			for cur_mark in frange(0,20,0.5):
+				percent = float((Mark.query.filter(Mark.mark==cur_mark,Mark.user_id==cur_user.id).count() * 100)) / float(movies_count)
+				data[cur_user.nickname]["data"].append(round(percent,2))
 
 	elif graph_to_generate == "type":
 
