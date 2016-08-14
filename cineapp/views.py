@@ -83,7 +83,6 @@ def list_movies():
 	if request.endpoint == "reset_list":
 
 		# Reset all the values in order to have the initial list
-		session['search_type']="list"
 		session.pop('query',None)
 
 		# Tell that we must reset the table on next load
@@ -158,6 +157,7 @@ def list_movies():
 
 	else:
 		# We are in list mode, check if we must clear the table after a reset
+		session['search_type']="list"
 		clear_table=session.pop('clear_table_on_next_reload',None)
 
 	# Let's fetch all the users, I will need them
