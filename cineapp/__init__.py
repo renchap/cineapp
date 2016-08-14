@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from flask import Flask
 from flask.ext.login import login_user, logout_user, current_user, login_required, LoginManager
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -11,8 +13,17 @@ from logging.handlers import RotatingFileHandler
 app = Flask(__name__)
 
 # Global Variables
-app.config['VERSION'] = "1.0.3"
+app.config['VERSION'] = "1.1.0-dev"
 app.config['GRAVATAR_URL'] = "https://www.gravatar.com/avatar/"
+app.config['GRAPH_LIST'] = [
+		{ "graph_endpoint": "graph_by_mark", "graph_label": u"Répartition par note" },
+		{ "graph_endpoint": "graph_by_type", "graph_label": u"Répartition par type" },
+		{ "graph_endpoint": "graph_by_origin", "graph_label": u"Répartition par origine" },
+		{ "graph_endpoint": "average_by_type", "graph_label": u"Moyenne par type" },
+		{ "graph_endpoint": "average_by_origin", "graph_label": u"Moyenne par origine" },
+		{ "graph_endpoint": "graph_by_year", "graph_label": u"Répartition par année" },
+		{ "graph_endpoint": "graph_by_year_theater", "graph_label": u"Films vus au ciné" }
+	]
 
 # Configuration file reading
 if os.environ.get('TEST') == "yes":

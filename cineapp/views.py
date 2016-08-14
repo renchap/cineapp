@@ -34,6 +34,9 @@ def before_request():
 	# Make the search form available in all templates (Including base.html)
 	g.search_form = SearchMovieForm(prefix="search")
 
+	# Make the graph list available in the whole app
+	g.graph_list = app.config['GRAPH_LIST']
+
 @app.route('/login', methods=['GET','POST'])
 def login():
 
@@ -1057,6 +1060,28 @@ def list_homeworks():
 @login_required
 def show_graphs():
 
+	# Retrieve the graph_list from the app context and use it in a local variable
+	graph_list = app.config['GRAPH_LIST']
+
+	# Identify prev and next graph
+	for index_graph in range(len(graph_list)):
+		if request.endpoint == graph_list[index_graph]["graph_endpoint"]:
+
+			# Set the graph_title
+			graph_title=graph_list[index_graph]["graph_label"]
+	
+			# Set the graph pagination
+			if index_graph - 1 >= 0:
+				prev_graph=graph_list[index_graph-1]
+			else:
+				prev_graph=None
+
+			if index_graph + 1 < len(graph_list):
+				next_graph=graph_list[index_graph+1]
+			else:
+				next_graph=None
+			break;
+
 	# Generate the correct data considering the route
 	graph_to_generate=os.path.basename(request.url_rule.rule)
 
@@ -1070,7 +1095,6 @@ def show_graphs():
 	if graph_to_generate == "mark":
 		
 		# Distributed marks graph
-		graph_title="Repartition par note"
 		graph_type="line"
 
 		# Fill the labels_array with all marks possible
@@ -1086,7 +1110,6 @@ def show_graphs():
 	elif graph_to_generate == "type":
 
 		# Distributed types graph
-		graph_title="Repartition par type"
 		graph_type="bar"
 
 		# Fill the types_array with all the types stored into the database
@@ -1103,7 +1126,6 @@ def show_graphs():
 	elif graph_to_generate == "origin":
 
 		# Distributed marks graph
-		graph_title="Repartition par origine"
 		graph_type="bar"
 
 		# Fill the origin_array with all the types stored into the database
@@ -1121,7 +1143,6 @@ def show_graphs():
 	elif graph_to_generate == "average_type":
 
 		# Average by type
-		graph_title="Moyenne des films par type"
 		graph_type="radar"
 
 		# Fill the types array with all the types stored into the database
@@ -1144,7 +1165,6 @@ def show_graphs():
 	elif graph_to_generate == "average_origin":
 
 		# Average by type
-		graph_title="Moyenne des films par origine"
 		graph_type="radar"
 
 		# Fill the origins array with all the origins stored into the database
@@ -1167,7 +1187,6 @@ def show_graphs():
 	elif graph_to_generate == "year":
 
 		# Distributed movies graph by year
-		graph_title="Repartition par annee"
 		graph_type="line"
 
 		# Search the min and max year in order to generate a optimized graph
@@ -1186,7 +1205,6 @@ def show_graphs():
 	elif graph_to_generate == "year_theater":
 
 		# Distributed movies graph by year
-		graph_title="Films vus au cine"
 		graph_type="line"
 
 		# Search the min and max year in order to generate a optimized graph
@@ -1203,7 +1221,7 @@ def show_graphs():
 				data[cur_user.nickname]["data"].append(Mark.query.filter(Mark.mark!=None,Mark.user_id==cur_user.id,Mark.seen_where=="C",db.func.year(Mark.seen_when)==cur_year).count())
 
 
-	return render_template('show_graphs.html',graph_title=graph_title,graph_type=graph_type,labels=labels,data=data)
+	return render_template('show_graphs.html',graph_title=graph_title,graph_type=graph_type,labels=labels,data=data,prev_graph=prev_graph,next_graph=next_graph)
 
 @app.route('/dashboard')
 @login_required
@@ -1327,7 +1345,3 @@ def update_activity_flow():
 
 	# Return the dictionnary as a JSON object
 	return json.dumps(activity_dict)
-	
-@app.route('/dt')
-def dt_test():
-	return render_template('dt_test.html')

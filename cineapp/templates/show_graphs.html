@@ -1,9 +1,25 @@
 {% extends "base.html" %}
 {% block content %}
+<div class="container">	
+	<h1 class="text-center">{{ graph_title }}</h1>
+<nav>
+	<ul class="pager">
+{% if prev_graph %}
+		<li class="previous">
+			<a href="{{ url_for(prev_graph["graph_endpoint"]) }}"><span aria-hidden="true">&larr;</span> {{ prev_graph["graph_label"] }}</a>
+		</li>
+{% endif %}
+{% if next_graph %}
+		<li class="next">
+			<a href="{{ url_for(next_graph["graph_endpoint"]) }}">{{ next_graph["graph_label"] }} <span aria-hidden="true">&rarr;</span></a>
+		</li>
+{% endif %}
+	</ul>
+</nav>
+</div>
 <div class="container">
 	<div class="row">
 		<div class="panel panel-default">
-			  <div class="panel-heading">{{ graph_title }}</div>
 			  <div class="panel-body">
 				<canvas id="canvas" width="200" height="100"></canvas>
 			  </div>
