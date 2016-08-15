@@ -2,6 +2,8 @@
 from cineapp import db
 from cineapp.models import Movie, Mark
 from sqlalchemy.sql.expression import literal, desc
+import PIL, os
+from PIL import Image
 
 def frange(start, end, step):
 	tmp = start
@@ -46,3 +48,28 @@ def get_activity_list(start, length):
 
 	# Return the filled object
 	return object_dict
+
+def resize_avatar(avatar_path):
+
+	""" 
+		Function that resizes the uploaded avatar to a correct avatar size
+	"""
+	try:
+		basewidth = 200
+		img = Image.open(avatar_path)
+
+		# Resize the image
+		wpercent = (basewidth / float(img.size[0]))
+		hsize = int((float(img.size[1]) * float(wpercent)))
+		img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+
+		# Save the image
+		img.save(avatar_path + '.png')
+		
+		# Rename the image
+		os.rename(avatar_path + '.png',avatar_path)
+
+		# Return true
+		return True
+	except:
+		return False

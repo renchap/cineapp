@@ -145,7 +145,7 @@
 				<th class="text-center" style="border:0;"></th>
 				<th colspan="2" class="text-center">
 					<div>
-						<img src="{{ config.GRAVATAR_URL }}{{ g.user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
+						<img src="{{ config.AVATARS_URL }}{{ g.user.avatar }}" height="50" width="50" class="avatar img-circle" alt="avatar">
 					</div>
 					<strong>Mes Notes</strong>
 				</th>
@@ -153,7 +153,7 @@
 						{% if g.user.id != cur_user.id %}
 						<th colspan="2" class="text-center">
 						<div>
-							<img src="{{ config.GRAVATAR_URL }}{{ cur_user.avatar }}?d=identicon&s=40" class="avatar img-circle" alt="avatar">
+							<img src="{{ config.AVATARS_URL }}{{ cur_user.avatar }}" height="50" width="50" class="avatar img-circle" alt="avatar">
 						</div>
 						<strong>{{ cur_user.nickname }}</strong></th>
 						{% endif %}

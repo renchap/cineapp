@@ -26,6 +26,11 @@ app.config['GRAPH_LIST'] = [
 		{ "graph_endpoint": "graph_by_year_theater", "graph_label": u"Films vus au ciné" }
 	]
 
+# Upload image control
+app.config['ALLOWED_MIMETYPES'] = [ 'image/png', 'image/jpeg']
+app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024
+app.config['AVATARS_URL'] = "/static/avatars/"
+
 # Configuration file reading
 if os.environ.get('TEST') == "yes":
 	app.config.from_pyfile('configs/settings_test.cfg')
@@ -66,6 +71,13 @@ babel = Babel(app)
 try:
 	if not os.path.isdir(app.config['LOGDIR']):
 		os.makedirs(app.config['LOGDIR'],0o755)
+except:
+	sys.exit(2)
+
+# Create the avatar directory if it doesn't exists
+try:
+	if not os.path.isdir(app.config['AVATARS_FOLDER']):
+		os.makedirs(app.config['AVATARS_FOLDER'],0o755)
 except:
 	sys.exit(2)
 

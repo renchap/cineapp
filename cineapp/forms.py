@@ -2,7 +2,7 @@
 
 from flask.ext.wtf import Form
 from flask.ext.wtf.html5 import SearchField
-from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField, TextAreaField, BooleanField, DateField
+from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField, TextAreaField, BooleanField, DateField, FileField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import Required,DataRequired, EqualTo, Email, URL, ValidationError
 from cineapp.models import Origin, Type,User
@@ -110,6 +110,7 @@ class UserForm(Form):
 	notif_mark_add = BooleanField()
 	notif_homework_add = BooleanField()
 	submit_user = SubmitField("Sauver")
+	upload_avatar = FileField("Image de profil")
 
 	# Specific constructor in order to set notifications correctly
 	def __init__(self,user=None,*args,**kwargs):

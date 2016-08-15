@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import urllib, hashlib, re, os, locale, json, copy
+import urllib, hashlib, re, os, locale, json, copy, time
 from datetime import datetime
 from flask import render_template, flash, redirect, url_for, g, request, session
 from flask.ext.login import login_user, logout_user, current_user, login_required
@@ -12,12 +12,13 @@ from cineapp.forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, S
 from cineapp.models import User, Movie, Mark, Origin, Type
 from cineapp.tvmdb import search_movies,get_movie,download_poster, search_page_number
 from cineapp.emails import add_movie_notification, mark_movie_notification, add_homework_notification, update_movie_notification
-from cineapp.utils import frange, get_activity_list
+from cineapp.utils import frange, get_activity_list, resize_avatar
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy.orm.exc import FlushError
 from sqlalchemy import desc, or_, and_, Table
 from sqlalchemy.sql.expression import select, case, literal
 from bcrypt import hashpw, gensalt
+from werkzeug.utils import secure_filename
 
 @app.route('/')
 @app.route('/index')
@@ -878,11 +879,55 @@ def edit_user_profile():
 		g.user.notifications["notif_homework_add"] = form.notif_homework_add.data
 		g.user.notifications["notif_mark_add"] = form.notif_mark_add.data
 
+		# Update the avatar if we have to
+		if 'upload_avatar' in request.files:
+			new_avatar=request.files['upload_avatar']
+
+			# Check if the image has the correct mimetype ==> If not,abort the update
+			if new_avatar.content_type not in app.config['ALLOWED_MIMETYPES']:
+				flash('Format d\'image incorrect',"danger")
+				return redirect(url_for('edit_user_profile'))
+
+			# Save the file using the nickname hash
+			if new_avatar.filename != '':
+
+				# Define the future old avatar to remove
+				old_avatar = g.user.avatar
+
+				# Generate the new avatar
+				g.user.avatar = hashlib.sha256(g.user.nickname + str(int(time.time()))).hexdigest()
+				new_avatar.save(os.path.join(app.config['AVATARS_FOLDER'], g.user.avatar ))
+				
+				# Resize the image
+				if resize_avatar(os.path.join(app.config['AVATARS_FOLDER'], g.user.avatar)):
+
+					# Try to remove the previous avatar
+					try:
+						os.remove(os.path.join(app.config['AVATARS_FOLDER'], old_avatar))
+						flash("Avatar correctement mis à jour","success")
+					except OSError,e:
+						app.logger.error('Impossible de supprimer l\'avatar')
+						app.logger.error(str(e))
+				else:
+					# Delete the new avatar and go back to the previous one
+					flash("Impossible de redimensionner l\'image","success")
+					g.user.avatar=old_avatar
+					try:
+						os.remove(os.path.join(app.config['AVATARS_FOLDER'], g.user.avatar))
+					except OSError,e:
+						app.logger.error('Impossible de supprimer le nouvel avatar')
+						app.logger.error(str(e))
+					
+		# Let's do the update
 		try:
+			# Update the user
 			db.session.add(g.user)
 			db.session.commit()
+
 			flash('Informations mises à jour','success')
-		except:
+
+		except Exception,e:
+			print e
 			flash('Impossible de mettre à jour l\'utilisateur', 'danger')
 
 	else:
@@ -1117,13 +1162,16 @@ def show_graphs():
 		for cur_mark in frange(0,20,0.5):
 			labels.append(cur_mark)
 
-		movies_count = Movie.query.count()
 
 		# Fill the dictionnary with distributed_marks by user
 		for cur_user in users:
 			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : [] }
+
+			# Set the percentage considering the total movies number seen for each user and not globally
+			user_movies_count = Mark.query.filter(Mark.user_id==cur_user.id).count()
+
 			for cur_mark in frange(0,20,0.5):
-				percent = float((Mark.query.filter(Mark.mark==cur_mark,Mark.user_id==cur_user.id).count() * 100)) / float(movies_count)
+				percent = float((Mark.query.filter(Mark.mark==cur_mark,Mark.user_id==cur_user.id).count() * 100)) / float(user_movies_count)
 				data[cur_user.nickname]["data"].append(round(percent,2))
 
 	elif graph_to_generate == "type":

@@ -2,13 +2,16 @@
 
 {% block content %}
 	<div class="container">
+	<form class="form-horizontal" role="form" method="post" action="" enctype="multipart/form-data">
 	    <h1>Edition du profil</h1>
 		<hr>
 		<div class="row">
 	      <!-- left column -->
 	      <div class="col-md-3">
 		<div class="text-center">
-		  <img src="{{ config.GRAVATAR_URL}}{{ g.user.avatar }}?d=identicon&s=100" class="avatar img-circle" alt="avatar">
+		  <img src="{{ config.AVATARS_URL}}{{ g.user.avatar }}" class="avatar img-circle" alt="avatar" width="125" heigh="125">
+		</div>
+		<div class="text-center">
 		</div>
 	      </div>
 	      
@@ -19,14 +22,16 @@
 		{% elif state == "password" %}
 		<h3>Changement du mot de passe</h3>
 		{% endif %}
-		
-		<form class="form-horizontal" role="form" method="post" action="">
-			{{ form.hidden_tag() }}
+		{{ form.hidden_tag() }}
 		  {% if state == "user" %}
 		  <div class="form-group">
 		    <label class="col-lg-3 control-label">Email:</label>
 		    <div class="col-lg-8">
 			{{ render_field(form.email,label_visible=false) }}
+		    </div>
+		    <label class="col-lg-3 control-label">Avatar:</label>
+		    <div class="col-lg-8" style="padding-left:0px;">
+			{{ render_field(form.upload_avatar,label_visible=false,parse_class=False,style="vertical-align:top;",group=False) }}
 		    </div>
 		  </div>
 		  <h3>Notifications</h3>
