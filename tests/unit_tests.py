@@ -28,6 +28,13 @@ class FlaskrTestCase(unittest.TestCase):
 	app.config['WTF_CSRF_ENABLED'] = False
 	app.config['TESTING'] = True
 
+	# Delete the directories if they exisits
+	if os.path.isdir(os.path.join(app.config['POSTERS_PATH'])):
+		shutil.rmtree(app.config['POSTERS_PATH'])
+
+	if os.path.isdir(os.path.join(app.config['AVATARS_FOLDER'])):
+		shutil.rmtree(app.config['AVATARS_FOLDER'])
+
 	# Create directories
 	os.makedirs(app.config['POSTERS_PATH'])
 	os.makedirs(app.config['AVATARS_FOLDER'])
