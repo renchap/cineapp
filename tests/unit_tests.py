@@ -23,9 +23,17 @@ class FlaskrTestCase(unittest.TestCase):
 	if os.environ.get('TRAVIS') == "yes":
 		app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@127.0.0.1/cineapp_ci'
 		app.config['POSTER_PATH'] = "/home/travis/cineapp_ci/static/posters"
+		app.config['AVATARS_FOLDER'] = "/home/travis/cineapp_ci/static/avatars"
 
 	app.config['WTF_CSRF_ENABLED'] = False
 	app.config['TESTING'] = True
+
+	# Delete the directories if they exisits
+	if os.path.isdir(os.path.join(app.config['POSTERS_PATH'])):
+		shutil.rmtree(app.config['POSTERS_PATH'])
+
+	if os.path.isdir(os.path.join(app.config['AVATARS_FOLDER'])):
+		shutil.rmtree(app.config['AVATARS_FOLDER'])
 
 	# Create directories
 	os.makedirs(app.config['POSTERS_PATH'])
