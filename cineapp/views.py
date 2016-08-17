@@ -901,13 +901,13 @@ def edit_user_profile():
 		if 'upload_avatar' in request.files:
 			new_avatar=request.files['upload_avatar']
 
-			# Check if the image has the correct mimetype ==> If not,abort the update
-			if new_avatar.content_type not in app.config['ALLOWED_MIMETYPES']:
-				flash('Format d\'image incorrect',"danger")
-				return redirect(url_for('edit_user_profile'))
-
 			# Save the file using the nickname hash
 			if new_avatar.filename != '':
+
+				# Check if the image has the correct mimetype ==> If not,abort the update
+				if new_avatar.content_type not in app.config['ALLOWED_MIMETYPES']:
+					flash('Format d\'image incorrect',"danger")
+					return redirect(url_for('edit_user_profile'))
 
 				# Define the future old avatar to remove
 				old_avatar = g.user.avatar
@@ -921,7 +921,9 @@ def edit_user_profile():
 
 					# Try to remove the previous avatar
 					try:
-						os.remove(os.path.join(app.config['AVATARS_FOLDER'], old_avatar))
+						if old_avatar != None:
+							os.remove(os.path.join(app.config['AVATARS_FOLDER'], old_avatar))
+
 						flash("Avatar correctement mis à jour","success")
 					except OSError,e:
 						app.logger.error('Impossible de supprimer l\'avatar')
