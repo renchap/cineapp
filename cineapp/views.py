@@ -708,6 +708,8 @@ def confirm_movie():
 			movie.url=temp_movie.url
 			movie.tmvdb_id=temp_movie.tmvdb_id
 			movie.director=temp_movie.director
+			movie.overview=temp_movie.overview
+			movie.duration=temp_movie.duration
 			movie.poster_path=temp_movie.poster_path
 			movie.type=confirm_form.type.data.id
 			movie.origin=confirm_form.origin.data.id
