@@ -63,6 +63,15 @@ def resize_avatar(avatar_path):
 		hsize = int((float(img.size[1]) * float(wpercent)))
 		img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
 
+		# And then we crop
+		half_the_width = img.size[0] / 2
+		half_the_height = img.size[1] / 2
+		img = img.crop( ( half_the_width - ( basewidth /2 ),
+				half_the_height - ( basewidth /2 ),
+				half_the_width + ( basewidth /2 ),
+				half_the_height + ( basewidth /2 ) )
+			)
+			
 		# Save the image
 		img.save(avatar_path + '.png')
 		
@@ -71,5 +80,10 @@ def resize_avatar(avatar_path):
 
 		# Return true
 		return True
-	except:
+	except Exception,e:
+
+		# Try to remove the temporary picture if it exists
+		if os.path.isfile(avatar_path + '.png'):
+			os.remove(avatar_path + '.png')
+
 		return False
