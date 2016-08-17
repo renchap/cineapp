@@ -114,6 +114,7 @@ aria-hidden="true">&rarr;</span></a>
 				</td>
 				<td class="col-md-1 text-center">
 					{% if cur_mark["mark"] == "homework_in_progress" %}
+					<img src="{{ config.AVATARS_URL}}{{  cur_mark["homework_who"].avatar }}" height="30" width="30" alt="homework_avatar" class="avatar img-circle"/>
 					<a class="disabled btn btn-warning btn-xs">Devoir</button>
 					{% elif cur_mark["mark"] == None %}
 						{% if g.user.id != (cur_mark["user"]).id %}
@@ -122,7 +123,14 @@ aria-hidden="true">&rarr;</span></a>
 							<a class="disabled btn btn-danger btn-xs">Pas de note</a>
 						{% endif %}
 					{% else %}	
-					<strong>{{ cur_mark["mark"] }}</strong>
+					<div>
+						<strong>{{ cur_mark["mark"] }}</strong>
+					</div>
+					{% endif %}
+				</td>
+				<td class="text-center">
+					{% if cur_mark["homework_who"] %}
+						<img src="{{ config.AVATARS_URL}}{{  cur_mark["homework_who"].avatar }}" height="30" width="30" alt="homework_avatar" class="avatar img-circle"/>
 					{% endif %}
 				</td>
 				<td class="col-md-2 text-center">

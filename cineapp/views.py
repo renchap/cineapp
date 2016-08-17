@@ -425,9 +425,9 @@ def show_movie(movie_id):
 			# We are in homework mode if a user gave an homework AND the mark is still none
 			# If not we are in mark mode
 			if marked_movie.homework_who != None and marked_movie.mark == None:
-				mark_users.append({ "user": cur_user, "mark": "homework_in_progress", "seen_where": None, "seen_when": None, "comment": None })
+				mark_users.append({ "user": cur_user, "mark": "homework_in_progress", "seen_where": None, "seen_when": None, "comment": None, "homework_who": marked_movie.homework_who_user })
 			else:
-				mark_users.append({ "user": cur_user, "mark": marked_movie.mark, "seen_where": seen_where_text, "seen_when": marked_movie.updated_when.strftime("%d/%m/%Y") ,"comment": marked_movie.comment })
+				mark_users.append({ "user": cur_user, "mark": marked_movie.mark, "seen_where": seen_where_text, "seen_when": marked_movie.seen_when.strftime("%d/%m/%Y") ,"comment": marked_movie.comment, "homework_who": marked_movie.homework_who_user })
 		else:
 			mark_users.append({ "user" : cur_user, "mark": None, "seen_where": None, "seen_when": None, "comment": None })
 
