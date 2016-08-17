@@ -72,6 +72,7 @@ try:
 	if not os.path.isdir(app.config['LOGDIR']):
 		os.makedirs(app.config['LOGDIR'],0o755)
 except:
+	print "Unable to create " + app.config['LOGDIR']
 	sys.exit(2)
 
 # Create the avatar directory if it doesn't exists
@@ -79,6 +80,7 @@ try:
 	if not os.path.isdir(app.config['AVATARS_FOLDER']):
 		os.makedirs(app.config['AVATARS_FOLDER'],0o755)
 except:
+	print "Unable to create " + app.config['AVATARS_FOLDER']
 	sys.exit(2)
 
 # Open a file rotated every 100MB
