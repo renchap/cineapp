@@ -3,6 +3,11 @@
 	<div class="container">	
 	<nav>
 		<ul class="pager">
+			<li>
+				<a href="{{ url_for('show_movie_random') }}">Sélection aléatoire</a>
+			</li>
+		</ul>
+		<ul class="pager">
         {% if movie_prev %}
 			<li class="previous">
 			<a href="{{ url_for('show_movie', movie_id=movie_prev.id) }}"><span

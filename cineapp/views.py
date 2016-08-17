@@ -19,6 +19,7 @@ from sqlalchemy import desc, or_, and_, Table
 from sqlalchemy.sql.expression import select, case, literal
 from bcrypt import hashpw, gensalt
 from werkzeug.utils import secure_filename
+from random import randint
 
 @app.route('/')
 @app.route('/index')
@@ -392,6 +393,21 @@ def update_datatable():
 
 	# Send the json object to the browser
 	return json.dumps(dict_movie) 
+
+@app.route('/movies/show/random')
+@login_required
+def show_movie_random():
+	"""
+		Function that redirects to a random movie sheet
+	"""
+	# Get the movie number stored in the databaese
+	count = Movie.query.count()
+
+	# Get the random id
+	random_id = randint(1,count)
+
+	# Redirect to the movie sheet selected randomly
+	return redirect(url_for('show_movie',movie_id=random_id))
 
 @app.route('/movies/show/<int:movie_id>')
 @login_required
