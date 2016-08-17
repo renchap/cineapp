@@ -23,6 +23,7 @@ class FlaskrTestCase(unittest.TestCase):
 	if os.environ.get('TRAVIS') == "yes":
 		app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@127.0.0.1/cineapp_ci'
 		app.config['POSTER_PATH'] = "/home/travis/cineapp_ci/static/posters"
+		app.config['AVATARS_FOLDER'] = "/home/travis/cineapp_ci/static/avatars"
 
 	app.config['WTF_CSRF_ENABLED'] = False
 	app.config['TESTING'] = True
