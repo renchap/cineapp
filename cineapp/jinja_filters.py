@@ -17,4 +17,7 @@ def date_format(date,format_date):
 	"""
 		Convert a date object into a custom format
 	"""
-	return date.strftime(format_date)
+	try:
+		return date.strftime(format_date)
+	except:
+		return None
