@@ -899,7 +899,7 @@ def edit_user_profile():
 				# Generate the new avatar
 				g.user.avatar = hashlib.sha256(g.user.nickname + str(int(time.time()))).hexdigest()
 				new_avatar.save(os.path.join(app.config['AVATARS_FOLDER'], g.user.avatar ))
-				
+
 				# Resize the image
 				if resize_avatar(os.path.join(app.config['AVATARS_FOLDER'], g.user.avatar)):
 
@@ -913,12 +913,14 @@ def edit_user_profile():
 				else:
 					# Delete the new avatar and go back to the previous one
 					flash("Impossible de redimensionner l\'image","success")
-					g.user.avatar=old_avatar
 					try:
 						os.remove(os.path.join(app.config['AVATARS_FOLDER'], g.user.avatar))
 					except OSError,e:
 						app.logger.error('Impossible de supprimer le nouvel avatar')
 						app.logger.error(str(e))
+	
+					# Reuse the old avatar
+					g.user.avatar=old_avatar
 					
 		# Let's do the update
 		try:
