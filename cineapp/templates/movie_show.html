@@ -23,7 +23,7 @@ aria-hidden="true">&rarr;</span></a>
 		<h1>{{ movie.name }}</h1>
 	</div>
 	<div class="centered text-center">
-		<h4>({{ movie.release_date }})</h4>
+		<h4>({{ movie.release_date|date_format("%d/%m/%Y") }})</h4>
 	</div>
 	<div class="row">
 		<div class="col-md-2">
@@ -36,12 +36,12 @@ aria-hidden="true">&rarr;</span></a>
 		<div class="col-md-10">
 			<table class="table table-striped">
 				<tr class="text-left">
-				 <td>Real:</td>
+				 <td>Réalisateur:</td>
 				 <td>{{ movie.director }}</td>
 				</tr>
 				<tr class="text-left">
 				 <td>Sortie:</td>
-				 <td>{{ movie.release_date }}</td>
+				 <td>{{ movie.release_date|date_format("%d/%m/%Y") }}</td>
 				</tr>
 				<tr class="text-left">
 				 <td>Type:</td>
@@ -54,6 +54,22 @@ aria-hidden="true">&rarr;</span></a>
 				<tr class="text-left">
 				 <td>Origine:</td>
 				 <td>{{ movie.origin_object.origin }}</td>
+				</tr>
+				<tr class="text-left">
+				 <td>Durée:</td>
+				 {% if movie.duration %}
+				 <td>{{ movie.duration|minutes_to_human_duration }}</td>
+				 {% else %}
+				 <td>Inconnue</td>
+				 {% endif %}
+				</tr>
+				<tr class="text-left">
+				 <td>Résumé:</td>
+				 {% if movie.overview %}
+				 <td>{{ movie.overview }}</td>
+				 {% else %}
+				 <td>Néant</td>
+				 {% endif %}
 				</tr>
 			</table>
 		</div>

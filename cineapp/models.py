@@ -85,6 +85,8 @@ class Movie(db.Model):
 	url = db.Column(db.String(100), index=True)
 	origin = db.Column(db.String(5), db.ForeignKey('origins.id'), index=True)
 	director = db.Column(db.String(50), index=True)
+	duration = db.Column(db.Integer())
+	overview = db.Column(db.String(2000))
 	tmvdb_id = db.Column(db.Integer, unique=True)
 	poster_path = db.Column(db.String(255))
 	added_when = db.Column(db.DateTime())

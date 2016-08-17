@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json, urllib2,sys, time, urllib, os, math
 from datetime import datetime
 from cineapp import app,db
@@ -120,7 +121,9 @@ def get_movie(id,fetch_poster=True):
 		url="http://www.themoviedb.org/movie/" + str(id),
 		tmvdb_id=id,
 		poster_path=url,
-		director=director
+		director=director,
+		overview=movie['overview'],
+		duration=movie['runtime']
 	)
 
 	return movie_obj
