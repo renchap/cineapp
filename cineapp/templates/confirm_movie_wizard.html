@@ -5,7 +5,7 @@
 			<h1>{{ movie.name }}</h1>
 		</div>
 		<div class="centered text-center">
-			<h4>Sortie le: {{ movie.release_date }}</h4>
+			<h4>Sortie le: {{ movie.release_date|date_format("%d/%m/%Y") }}</h4>
 		</div>
 		<div class="row">
 			<div class="col-md-2">
@@ -26,7 +26,7 @@
 					</tr>
 					<tr class="text-left">
 					 <td class="col-md-2">Sortie:</td>
-					 <td>{{ movie.release_date }}</td>
+					 <td>{{ movie.release_date|date_format("%d/%m/%Y") }}</td>
 					</tr>
 					<tr class="text-left">
 					 <td class="col-md-2">Fiche:</td>
