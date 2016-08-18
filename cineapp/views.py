@@ -715,7 +715,9 @@ def confirm_movie():
 					"release_date" : movie.release_date,
 					"director" : movie.director,
 					"type" : movie.type_object.type,
-					"origin" : movie.origin_object.origin
+					"origin" : movie.origin_object.origin,
+					"duration": movie.duration,
+					"overview": movie.overview
 					}
 
 			# Update the object that will be stored in the database
@@ -749,7 +751,9 @@ def confirm_movie():
 					"director" : movie.director,
 					"type" : movie.type_object.type,
 					"origin" : movie.origin_object.origin,
-					"id" : movie.id
+					"id" : movie.id,
+					"duration": movie.duration,
+					"overview": movie.overview
 					}
 
 				# Movie has been updated => Send notifications

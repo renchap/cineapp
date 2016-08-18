@@ -21,7 +21,7 @@
 			<div class="col-md-10">
 				<table class="table table-striped">
 					<tr class="text-left">
-					 <td>Real:</td>
+					 <td>Réalisateur:</td>
 					 <td>{{ movie.director }}</td>
 					</tr>
 					<tr class="text-left">
@@ -29,8 +29,24 @@
 					 <td>{{ movie.release_date }}</td>
 					</tr>
 					<tr class="text-left">
-					 <td>Fiche Allocine:</td>
+					 <td>Fiche:</td>
 					 <td><a href="{{ movie.url }}">{{ movie.url }}</a></td>
+					</tr>
+					<tr class="text-left">
+					 <td>Durée:</td>
+					 {% if movie.duration %}	
+					 <td>{{ movie.duration|minutes_to_human_duration }}</td>
+					 {% else %}
+					 <td>Inconnue</td>
+					 {% endif %}
+					</tr>
+					<tr class="text-left">
+					 <td>Résumé:</td>
+					 {% if movie.overview %}	
+					 <td>{{ movie.overview }}</td>
+					 {% else %}
+					 <td>Néant</td>
+					 {% endif %}
 					</tr>
 					<tr class="text-left">
 					 <td>Type:</td>
