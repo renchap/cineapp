@@ -26,12 +26,14 @@
 						<th>Film</th>
 					</tr>
 				</thead>
+				<tbody>
 					{% for option in select_form.movie %}
 					<tr>
 						<td class="text-center">{{ option }}</td>
 						<td>{{ option.label(class_="radio_label") }}</td>
 					</tr>
 					{% endfor %}
+				</tbody>
 			</table>
 		</div>
 		<div class="row text-center col-md-offset-1 col-md-10">	

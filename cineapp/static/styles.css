@@ -129,6 +129,6 @@ footer {
     opacity: 0.5;
 }
 
-.table > tbody > tr > td {
+.table-vertical > tbody > tr > td {
      vertical-align: middle;
 }

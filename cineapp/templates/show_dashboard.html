@@ -10,7 +10,7 @@
 						<div id="average">{{ stats_dict[g.user.id]["avg"] }}</div>
 						<br/>
 						  <div>
-							<table class="table">
+							<table class="table table-vertical">
 								{% for cur_avg in stats_dict %}
 								{% if g.user.id != cur_avg %}
 								<tr>
@@ -43,7 +43,7 @@
 							</div>
 							<br/>
 							<div>
-								<table class="table">
+								<table class="table table-vertical">
 									{% for cur_avg in stats_dict %}
 									{% if g.user.id != cur_avg %}
 									<tr>
