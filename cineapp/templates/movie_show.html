@@ -41,39 +41,39 @@ aria-hidden="true">&rarr;</span></a>
 		<div class="col-md-10">
 			<table class="table table-striped">
 				<tr class="text-left">
-				 <td>Réalisateur:</td>
+				 <td class="col-md-2">Réalisateur:</td>
 				 <td>{{ movie.director }}</td>
 				</tr>
 				<tr class="text-left">
-				 <td>Sortie:</td>
+				 <td class="col-md-2">Sortie:</td>
 				 <td>{{ movie.release_date|date_format("%d/%m/%Y") }}</td>
 				</tr>
 				<tr class="text-left">
-				 <td>Type:</td>
+				 <td class="col-md-2">Type:</td>
 				<td> {{ movie.type_object.type }} </td>
 				</tr>
 				<tr class="text-left">
-				 <td>Fiche:</td>
+				 <td class="col-md-2">Fiche:</td>
 				 <td><a href="{{ movie.url }}">{{ movie.url }}</a></td>
 				</tr>
 				<tr class="text-left">
-				 <td>Origine:</td>
+				 <td class="col-md-2">Origine:</td>
 				 <td>{{ movie.origin_object.origin }}</td>
 				</tr>
 				<tr class="text-left">
-				 <td>Durée:</td>
+				 <td class="col-md-2">Durée:</td>
 				 {% if movie.duration %}
 				 <td>{{ movie.duration|minutes_to_human_duration }}</td>
 				 {% else %}
-				 <td>Inconnue</td>
+				 <td class="col-md-2">Inconnue</td>
 				 {% endif %}
 				</tr>
 				<tr class="text-left">
-				 <td>Résumé:</td>
+				 <td class="col-md-2">Résumé:</td>
 				 {% if movie.overview %}
 				 <td>{{ movie.overview }}</td>
 				 {% else %}
-				 <td>Néant</td>
+				 <td class="col-md-2">Néant</td>
 				 {% endif %}
 				</tr>
 			</table>
