@@ -59,7 +59,7 @@ class SearchMovieForm(Form):
 	submit_search = SubmitField('Chercher')
 
 class SelectMovieForm(Form):
-	movie = RadioField('Film', choices=[], coerce=int)
+	movie = RadioField('Film',[Required(message="Veuillez sélectionner un film")],choices=[], coerce=int)
 	submit_select = SubmitField('Selectioner')
 
 	# Specific constructer in order to pass a movie list

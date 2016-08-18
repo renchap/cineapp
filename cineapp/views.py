@@ -622,7 +622,7 @@ def confirm_movie():
 
 		# Fetch the query from the previous form in order to fill correctly the radio choices
 		query_movie = session.get('query_movie', None)
-		page = session.get('page', None)
+		page = session.get('page', 1)
 
 		if query_movie != None and page != None:
 			select_form=SelectMovieForm(search_movies(query_movie,page))
@@ -644,9 +644,13 @@ def confirm_movie():
 
 			# Go to the final confirmation form
 			return render_template('confirm_movie_wizard.html', movie=movie_to_create, form=confirm_form, endpoint=endpoint)
-
 		else:
-			return redirect(url_for('select_movie',page=page))
+			# Warn the user that the form is incomplete
+			flash("Veuillez sélectionner un film","danger")
+			if endpoint == "add":
+				return redirect(url_for('select_add_movie',page=page))
+			elif endpoint == "update":
+				return redirect(url_for('select_update_movie',page=page))
 
 	# Create the form we're going to use	
 	confirm_form=ConfirmMovieForm()
