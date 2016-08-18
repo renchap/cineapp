@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from cineapp import app
+import datetime
 
 @app.template_filter()
 def minutes_to_human_duration(minutes_duration):
@@ -18,6 +19,12 @@ def date_format(date,format_date):
 		Convert a date object into a custom format
 	"""
 	try:
-		return date.strftime(format_date)
-	except:
+		if isinstance(date, basestring):
+			date_array=date.split('-')
+			date_to_convert=datetime.datetime(int(date_array[0]),int(date_array[1]),int(date_array[2]))
+			return date_to_convert.strftime(format_date)
+		else:
+			return date.strftime(format_date)
+	except Exception,e:
+		print e
 		return None
