@@ -27,25 +27,17 @@ def tmvdb_connect(url):
 
 	return json.load(data)
 
-def download_poster(movie):
+def download_poster(url):
 
 	""" Function that downloads the poster from the tvmdb and update the database with the correct path
 	"""
 	try:
-		img = urllib2.urlopen(movie.poster_path)
-		localFile = open(os.path.join(app.config['POSTERS_PATH'], os.path.basename(movie.poster_path)), 'wb')
+		img = urllib2.urlopen(url)
+		localFile = open(os.path.join(app.config['POSTERS_PATH'], os.path.basename(url)), 'wb')
 		localFile.write(img.read())
 		localFile.close()
 
 	except Exception as e:
-		print e
-		return False
-
-	# Let's update the field in the database
-	movie.poster_path=os.path.basename(movie.poster_path)
-	try:
-		db.session.commit()
-	except:
 		return False
 
 	# If we are here, everything is okay
@@ -92,28 +84,32 @@ def get_movie(id,fetch_poster=True):
 	# Initialize url variable
 	url = None
 
-	# Fetch the poster if we have to
-	if fetch_poster == True:
+	# Fetch global configuration parameters
+	config_api=tmvdb_connect(os.path.join(app.config['API_URL'], "configuration?api_key=" + app.config['API_KEY'] +"&language=fr"))
+	base_url=config_api['images']['secure_base_url']
 
-		# Fetch global configuration parameters
-		config_api=tmvdb_connect(os.path.join(app.config['API_URL'], "configuration?api_key=" + app.config['API_KEY'] +"&language=fr"))
-		base_url=config_api['images']['secure_base_url']
+	# Try to get the poster in French
+	movie_poster=tmvdb_connect(os.path.join(app.config['API_URL'],("movie/" + str(id) + "/images?api_key=" + app.config['API_KEY'] + "&language=fr&include_image_language=fr,null")))
 
-		# Try to get the poster in French
-		movie_poster=tmvdb_connect(os.path.join(app.config['API_URL'],("movie/" + str(id) + "/images?api_key=" + app.config['API_KEY'] + "&language=fr&include_image_language=fr,null")))
+	# Fetch poster url !
+	try:
+		url = base_url + 'w185' + movie_poster['posters'][0]['file_path']
+	except IndexError:
 
-		# Fetch poster url !
+		# No poster with the french or null language= => Fallback in english
+		movie_poster=tmvdb_connect(os.path.join(app.config['API_URL'],("movie/" + str(id) + "/images?api_key=" + app.config['API_KEY'])))
+
 		try:
 			url = base_url + 'w185' + movie_poster['posters'][0]['file_path']
 		except IndexError:
+			pass
 
-			# No poster with the french or null language= => Fallback in english
-			movie_poster=tmvdb_connect(os.path.join(app.config['API_URL'],("movie/" + str(id) + "/images?api_key=" + app.config['API_KEY'])))
-
-			try:
-				url = base_url + 'w185' + movie_poster['posters'][0]['file_path']
-			except IndexError:
-				pass
+	# Download the poster and update the database
+	if fetch_poster == True:
+		if url and download_poster(url):
+			url=os.path.basename(url)
+		else:
+			url=None
 
 	# Create the movie object
 	movie_obj=Movie(name=movie['title'],

@@ -634,7 +634,7 @@ def confirm_movie():
 			# Note : Movie_id is the TMVDB id
 			confirm_form=ConfirmMovieForm()
 
-			movie_to_create=get_movie(select_form.movie.data)
+			movie_to_create=get_movie(select_form.movie.data, False)
 			confirm_form.movie_id.data=select_form.movie.data
 
 			if endpoint == "add":
@@ -674,12 +674,6 @@ def confirm_movie():
 				new_movie_id=movie_to_create.id
 				db.session.commit()
 				flash('Film ajouté','success')
-
-				# Donwload the poster and update the database
-				if download_poster(movie_to_create):
-					flash('Affiche téléchargée','success')
-				else:
-					flash('Impossible de télécharger le poster','warning')
 
 				# Movie has been added => Send notifications
 				add_movie_notification(movie_to_create)
@@ -743,8 +737,8 @@ def confirm_movie():
 				db.session.commit()
 				flash('Film mis à jour','success')
 
-				# Donwload the poster and update the database
-				if download_poster(movie):
+				# Check if the poster has been correctly downloaded
+				if movie.poster_path:
 					flash('Affiche téléchargée','success')
 				else:
 					flash('Impossible de télécharger le poster','warning')
