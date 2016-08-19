@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from flask import Flask
 from flask.ext.login import login_user, logout_user, current_user, login_required, LoginManager
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -11,8 +13,26 @@ from logging.handlers import RotatingFileHandler
 app = Flask(__name__)
 
 # Global Variables
-app.config['VERSION'] = "1.0.3"
+app.config['VERSION'] = "1.1.0"
 app.config['GRAVATAR_URL'] = "https://www.gravatar.com/avatar/"
+app.config['GRAPH_LIST'] = [
+		{ "graph_endpoint": "graph_by_mark", "graph_label": u"Répartition par note" },
+		{ "graph_endpoint": "graph_by_mark_percent", "graph_label": u"Répartition par note (en %)" },
+		{ "graph_endpoint": "graph_by_type", "graph_label": u"Répartition par type" },
+		{ "graph_endpoint": "graph_by_origin", "graph_label": u"Répartition par origine" },
+		{ "graph_endpoint": "average_by_type", "graph_label": u"Moyenne par type" },
+		{ "graph_endpoint": "average_by_origin", "graph_label": u"Moyenne par origine" },
+		{ "graph_endpoint": "graph_by_year", "graph_label": u"Répartition par année" },
+		{ "graph_endpoint": "graph_by_year_theater", "graph_label": u"Films vus au ciné" }
+	]
+
+# Upload image control
+app.config['ALLOWED_MIMETYPES'] = [ 'image/png', 'image/jpeg']
+app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024
+app.config['AVATARS_URL'] = "/static/avatars/"
+
+# TMVDB parameters
+app.config['TMVDB_BASE_URL'] = "https://themoviedb.org/movie"
 
 # Configuration file reading
 if os.environ.get('TEST') == "yes":
@@ -55,6 +75,15 @@ try:
 	if not os.path.isdir(app.config['LOGDIR']):
 		os.makedirs(app.config['LOGDIR'],0o755)
 except:
+	print "Unable to create " + app.config['LOGDIR']
+	sys.exit(2)
+
+# Create the avatar directory if it doesn't exists
+try:
+	if not os.path.isdir(app.config['AVATARS_FOLDER']):
+		os.makedirs(app.config['AVATARS_FOLDER'],0o755)
+except:
+	print "Unable to create " + app.config['AVATARS_FOLDER']
 	sys.exit(2)
 
 # Open a file rotated every 100MB
@@ -64,4 +93,4 @@ app.logger.setLevel(logging.INFO)
 app.logger.addHandler(file_handler)
 app.logger.info('Cineapp startup')
 
-from cineapp import views, models
+from cineapp import views, models, jinja_filters

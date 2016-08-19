@@ -2,7 +2,7 @@
 
 from flask.ext.wtf import Form
 from flask.ext.wtf.html5 import SearchField
-from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField, TextAreaField, BooleanField, DateField
+from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField, TextAreaField, BooleanField, DateField, FileField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import Required,DataRequired, EqualTo, Email, URL, ValidationError
 from cineapp.models import Origin, Type,User
@@ -59,7 +59,7 @@ class SearchMovieForm(Form):
 	submit_search = SubmitField('Chercher')
 
 class SelectMovieForm(Form):
-	movie = RadioField('Film', choices=[], coerce=int)
+	movie = RadioField('Film',[Required(message="Veuillez sélectionner un film")],choices=[], coerce=int)
 	submit_select = SubmitField('Selectioner')
 
 	# Specific constructer in order to pass a movie list
@@ -71,7 +71,19 @@ class SelectMovieForm(Form):
 		# Local variable
 		choice_list=[]
 		for cur_movie in movies_list:
-			choice_list.append((cur_movie['id'], cur_movie['title']))
+
+			# Extract the year if we can
+			if cur_movie.release_date != None and cur_movie.release_date != "":
+				try:
+					movie_year = datetime.strptime(cur_movie.release_date,"%Y-%m-%d").strftime("%Y")
+				except ValueError:
+					# If we are here that means the datetime module can't handle the date
+					# Do it manually
+					movie_year = cur_movie.release_date.split("-")[0] 
+			else:
+				movie_year = "Inconnu"
+
+			choice_list.append((cur_movie.tmvdb_id, cur_movie.name + " ( " + movie_year + " - " + cur_movie.director + " )"))
 
 		self.movie.choices = choice_list
 
@@ -88,7 +100,7 @@ class ConfirmMovieForm(Form):
 class FilterForm(Form):
 	origin = QuerySelectField('Origine',query_factory=get_origins, get_label='origin',allow_blank=True,blank_text=u'--Pas de filtre--')
 	type = QuerySelectField('Type',query_factory=get_types,get_label='type',allow_blank=True,blank_text=u'--Pas de filtre--')
-	seen_where = QuerySelectField('Vu au cine par',query_factory=get_users,get_label='nickname',allow_blank=True,blank_text=u'--Pas de filtre--')
+	where = QuerySelectField('Vu au cine par',query_factory=get_users,get_label='nickname',allow_blank=True,blank_text=u'--Pas de filtre--')
 	submit_filter = SubmitField("Filtrer")
 
 class UserForm(Form):
@@ -98,6 +110,7 @@ class UserForm(Form):
 	notif_mark_add = BooleanField()
 	notif_homework_add = BooleanField()
 	submit_user = SubmitField("Sauver")
+	upload_avatar = FileField("Image de profil")
 
 	# Specific constructor in order to set notifications correctly
 	def __init__(self,user=None,*args,**kwargs):

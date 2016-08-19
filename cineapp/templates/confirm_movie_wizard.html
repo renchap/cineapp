@@ -5,7 +5,7 @@
 			<h1>{{ movie.name }}</h1>
 		</div>
 		<div class="centered text-center">
-			<h4>Sortie le: {{ movie.release_date }}</h4>
+			<h4>Sortie le: {{ movie.release_date|date_format("%d/%m/%Y") }}</h4>
 		</div>
 		<div class="row">
 			<div class="col-md-2">
@@ -16,28 +16,44 @@
 				{% endif %}
 			</div>
 			{%from "_formhelpers.html" import render_field %}
-			<form action="{{ url_wizard_next }}" method="post" name="confirmform">
+			<form action="{{ url_for('confirm_' + endpoint + '_movie') }}" method="post" name="confirmform">
 			{{ form.hidden_tag() }}
 			<div class="col-md-10">
 				<table class="table table-striped">
 					<tr class="text-left">
-					 <td>Real:</td>
+					 <td class="col-md-2">Réalisateur:</td>
 					 <td>{{ movie.director }}</td>
 					</tr>
 					<tr class="text-left">
-					 <td>Sortie:</td>
-					 <td>{{ movie.release_date }}</td>
+					 <td class="col-md-2">Sortie:</td>
+					 <td>{{ movie.release_date|date_format("%d/%m/%Y") }}</td>
 					</tr>
 					<tr class="text-left">
-					 <td>Fiche Allocine:</td>
+					 <td class="col-md-2">Fiche:</td>
 					 <td><a href="{{ movie.url }}">{{ movie.url }}</a></td>
 					</tr>
 					<tr class="text-left">
-					 <td>Type:</td>
+					 <td class="col-md-2">Durée:</td>
+					 {% if movie.duration %}
+					 <td>{{ movie.duration|minutes_to_human_duration }}</td>
+					 {% else %}
+					 <td class="col-md-2">Inconnue</td>
+					 {% endif %}
+					</tr>
+					<tr class="text-left">
+					 <td class="col-md-2">Résumé:</td>
+					 {% if movie.overview %}
+					 <td>{{ movie.overview }}</td>
+					 {% else %}
+					 <td class="col-md-2">Néant</td>
+					 {% endif %}
+					</tr>
+					<tr class="text-left">
+					 <td class="col-md-2">Type:</td>
 					<td> {{ render_field(form.type,label_visible=false) }} </td>
 					</tr>
 					<tr class="text-left">
-					 <td>Origine:</td>
+					 <td class="col-md-2">Origine:</td>
 					 <td>{{ render_field(form.origin,label_visible=false) }}</td>
 					</tr>
 				</table>

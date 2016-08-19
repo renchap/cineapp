@@ -8,19 +8,20 @@
 					  <div class="panel-heading text-center">Moyenne</div>
 					  <div class="panel-body text-center">
 						<div id="average">{{ stats_dict[g.user.id]["avg"] }}</div>
-					  </div>
-					  <div>
-						<table class="table">
-							{% for cur_avg in stats_dict %}
-							{% if g.user.id != cur_avg %}
-							<tr>
-								<td class="text-right"><img src="{{ config.GRAVATAR_URL}}{{ stats_dict[cur_avg]["user"].avatar }}?d=identicon&s=15" class="avatar img-circle" alt="avatar"></td>
-								<td class="text-left">{{ stats_dict[cur_avg]["user"].nickname }}</td>
-								<td class="text-left"> {{ stats_dict[cur_avg]["avg"] }}</td>
-							</tr>
-							{% endif %}
-							{% endfor %}
-						</table>
+						<br/>
+						  <div>
+							<table class="table table-vertical">
+								{% for cur_avg in stats_dict %}
+								{% if g.user.id != cur_avg %}
+								<tr>
+									<td class="text-right"><img src="{{ config.AVATARS_URL}}{{ stats_dict[cur_avg]["user"].avatar }}" width="30" height="30" class="avatar img-circle" alt="avatar"></td>
+									<td class="text-left">{{ stats_dict[cur_avg]["user"].nickname }}</td>
+									<td class="text-left"> {{ stats_dict[cur_avg]["avg"] }}</td>
+								</tr>
+								{% endif %}
+								{% endfor %}
+							</table>
+						  </div>
 					  </div>
 				</div>
 			</div>
@@ -42,11 +43,11 @@
 							</div>
 							<br/>
 							<div>
-								<table class="table">
+								<table class="table table-vertical">
 									{% for cur_avg in stats_dict %}
 									{% if g.user.id != cur_avg %}
 									<tr>
-										<td class="text-right"><img src="{{ config.GRAVATAR_URL}}{{ stats_dict[cur_avg]["user"].avatar }}?d=identicon&s=15" class="avatar img-circle" alt="avatar"></td>
+										<td class="text-right"><img src="{{ config.AVATARS_URL}}{{ stats_dict[cur_avg]["user"].avatar }}" width="30" height="30" class="avatar img-circle" alt="avatar"></td>
 										<td class="text-left">{{ stats_dict[cur_avg]["user"].nickname }}</td>
 										<td class="text-right"><span id="seenmovies_small">{{ stats_dict[cur_avg]["movies_total"] }}</span> ( <span id="theaters_small">{{ stats_dict[cur_avg]["movies_theaters"] }}</span> / <span id="home_small">{{ stats_dict[cur_avg]["movies_home"] }}</span> ) </td>
 									</tr>

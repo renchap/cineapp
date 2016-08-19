@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import urllib, hashlib, re, os, locale, json, copy
+import urllib, hashlib, re, os, locale, json, copy, time
 from datetime import datetime
 from flask import render_template, flash, redirect, url_for, g, request, session
 from flask.ext.login import login_user, logout_user, current_user, login_required
@@ -10,14 +10,16 @@ from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from cineapp import app, db, lm
 from cineapp.forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm, UserForm, PasswordForm, HomeworkForm, UpdateMovieForm
 from cineapp.models import User, Movie, Mark, Origin, Type
-from cineapp.tvmdb import search_movies,get_movie,download_poster
+from cineapp.tvmdb import search_movies,get_movie,download_poster, search_page_number
 from cineapp.emails import add_movie_notification, mark_movie_notification, add_homework_notification, update_movie_notification
-from cineapp.utils import frange, get_activity_list
+from cineapp.utils import frange, get_activity_list, resize_avatar
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy.orm.exc import FlushError
 from sqlalchemy import desc, or_, and_, Table
 from sqlalchemy.sql.expression import select, case, literal
 from bcrypt import hashpw, gensalt
+from werkzeug.utils import secure_filename
+from random import randint
 
 @app.route('/')
 @app.route('/index')
@@ -33,6 +35,9 @@ def before_request():
 
 	# Make the search form available in all templates (Including base.html)
 	g.search_form = SearchMovieForm(prefix="search")
+
+	# Make the graph list available in the whole app
+	g.graph_list = app.config['GRAPH_LIST']
 
 @app.route('/login', methods=['GET','POST'])
 def login():
@@ -66,43 +71,51 @@ def logout():
 	return redirect(url_for('index'))
 
 @app.route('/movies/list')
+@app.route('/movies/reset', endpoint="reset_list")
 @app.route('/movies/filter', methods=[ 'GET', 'POST' ], endpoint="filter_form")
-@app.route('/movies/filter/<int:page>', endpoint="filter_mode")
-def list_movies(page=1):
+def list_movies():
 
 	# Display the search form
 	filter_form = FilterForm()
 
 	# Fetch the query string or dict => We'll need it later
-	session_query=session.get('query')
+	session_query=session.get('query',None)
 	
-	# If clear_table session variable is set to false, that means we come from add_homework
-	if session.pop('clear_table',None) == False:
-		clear_table=False
-	else:
-		clear_table=True
+	# By default, don't clean the datatable state
+	clear_table=False
 
-	# Let's check if we are in list mode or filter mode
-	url_rule=request.url_rule
-	if url_rule.rule == "/movies/filter" or url_rule.rule == "/movies/filter/<int:page>":
-		# Tell to the pagination system that we are in filter mode
-		route_rule="filter_mode"
-		session['search_type']="filter"
+	# If we catch the reset_list endpoint, well reset the list in initial state
+	if request.endpoint == "reset_list":
 
-		# We are in filter mode
-		if g.search_form.submit_search.data == True:
-			# We come from the form into the navbar
-			if g.search_form.validate_on_submit():
-				filter_string=g.search_form.search.data
-				session['query']=filter_string
+		# Reset all the values in order to have the initial list
+		session.pop('query',None)
 
-		elif filter_form.submit_filter.data == True:
-			# We come from the filter form above the datatable
-			# Build the filter request
+		# Tell that we must reset the table on next load
+		session['clear_table_on_next_reload']=True
 
-			if filter_form.origin.data == None and filter_form.type.data == None and filter_form.seen_where.data == None:
-				# All filter are empty => Let's display the list
-				return redirect(url_for('list_movies'))
+		# And go back to the list
+		return redirect(url_for("list_movies"))
+
+	# We are in filter mode
+	if g.search_form.submit_search.data == True:
+		# We come from the form into the navbar
+		if g.search_form.validate_on_submit():
+			filter_string=g.search_form.search.data
+			session['query']=filter_string
+
+			session['search_type']="filter"
+			
+			# Reset the datatable to a fresh state
+			clear_table=True
+
+	elif filter_form.submit_filter.data == True:
+		# We come from the filter form above the datatable
+		# Build the filter request
+
+		if filter_form.origin.data == None and filter_form.type.data == None and filter_form.where.data == None:
+			# All filter are empty => Let's display the list
+			session['search_type']="list"
+		else:
 
 			# Put the forms parameter into a session object in order to be handled by the datatable
 			session['search_type']="filter_origin_type"
@@ -114,48 +127,47 @@ def list_movies(page=1):
 			if filter_form.type.data != None:
 				filter_dict['type'] = filter_form.type.data.id
 
-			if filter_form.seen_where.data != None:
-				filter_dict['seen_where'] = filter_form.seen_where.data.id
+			if filter_form.where.data != None:
+				filter_dict['seenwhere'] = filter_form.where.data.id
 
 			session['query']=filter_dict
 
-		elif isinstance(session_query,dict):
-			# We come from an homework link and we want to fill the form
-			session['search_type']="filter_origin_type"
-			
-			# Rebuild the form setting default values stores into the session object
-			# We need to check if the variable is not or none in order to avoid an exception
-			if session_query['origin'] == None:
-				origin = None
-			else:
-				origin=Origin.query.get(session_query['origin'])
+		# Reset the datatable to a fresh state
+		clear_table=True
 
-			if session_query['type'] == None:
-				type = None
-			else:
-				type=Type.query.get(session_query['type'])
+	elif isinstance(session_query,dict):
 
-			if session_query['seen_where'] == None:
-				seen_where=None
-			else:
-				seen_where=User.query.get(session_query['seen_where'])
-
-			# Recreate the form with the set default values
-			filter_form=FilterForm(origin=origin,type=type,seen_where=seen_where)
+		# We come from an homework link and we want to fill the form
+		session['search_type']="filter_origin_type"
+		
+		# Rebuild the form setting default values stores into the session object
+		# We need to check if the variable is not or none in order to avoid an exception
+		if session_query['origin'] == None:
+			origin = None
 		else:
-			# We are in filter mode with a pagination request
-			filter_string=session.get('query',None)
+			origin=Origin.query.get(session_query['origin'])
+
+		if session_query['type'] == None:
+			type = None
+		else:
+			type=Type.query.get(session_query['type'])
+
+		if session_query['seen_where'] == None:
+			seen_where=None
+		else:
+			seen_where=User.query.get(session_query['seen_where'])
+
+		# Recreate the form with the set default values
+		filter_form=FilterForm(origin=origin,type=type,where=seen_where)
 
 	else:
-
-		# Tell to the pagination system that we are in list mode
-		route_rule="list_movies"
+		# We are in list mode, check if we must clear the table after a reset
 		session['search_type']="list"
+		clear_table=session.pop('clear_table_on_next_reload',None)
 
 	# Let's fetch all the users, I will need them
 	users = User.query.all()
-
-	return render_template('movies_list.html', users=users,route_rule=route_rule,filter_form=filter_form,clear_table=clear_table)
+	return render_template('movies_list.html', users=users,filter_form=filter_form,clear_table=clear_table)
 
 @app.route('/movies/json', methods=['GET','POST'])
 @login_required
@@ -172,15 +184,30 @@ def update_datatable():
 	order_dir=order_by[0]['dir']
 
 	# Guess which is the sort column
-	m=re.match('other_marks.(.*)',order_column)
+	m=re.match('other_(.*)\.(.*)',order_column)
 
+	# That first if is for the others column
+	# Regex is matched
 	if m != None:
-		filter_user=m.group(1)
+		filter_user=m.group(2)
+		if m.group(1) == "marks":
+			filter_field = Mark.mark
+		elif m.group(1) == "when":
+			filter_field = Mark.seen_when
+			
+	# Filtering by logged user mark
 	elif order_column == "my_mark":
 		filter_user = g.user.id
+		filter_field = Mark.mark
+
+	# Filtering by logged user seen date
+	elif order_column == "my_when":
+		filter_user = g.user.id
+		filter_field = Mark.seen_when
 	else:
 		filter_user = None
-	
+
+	# If we enter here, we are going to filter by user (my_* column or others_* column)	
 	if filter_user != None:
 
 		# Let's build the filtered requested following what has been posted in the filter form
@@ -188,7 +215,7 @@ def update_datatable():
 		movies_query = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user)
 
 		# Check that we have a real list in order to avoid an exception	
-		if filter_fields is list:
+		if isinstance(filter_fields,dict):
 			if filter_fields['origin'] != None:
 				movies_query = movies_query.filter(Movie.origin==filter_fields['origin'])
 
@@ -216,31 +243,29 @@ def update_datatable():
 		# Sort my desc marks
 		if order_dir == "desc":
 			if session.get('search_type') == 'list': 
-				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).filter(Mark.mark != None).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
+				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).filter(filter_field != None).order_by(desc(filter_field)).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).count()
 
 			elif session.get('search_type') == 'filter_origin_type':
-				movies = movies_query.filter(Mark.mark != None).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
+				movies = movies_query.filter(filter_field != None).order_by(desc(filter_field)).slice(int(start),int(start) + int(length))
 				count_movies=movies_query.filter(Mark.mark != None).count()
 					
 			elif session.get('search_type') == 'filter':
-				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).filter(Mark.mark != None).order_by(desc(Mark.mark)).slice(int(start),int(start) + int(length))
-				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).filter(Mark.mark != None).count()
+				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).filter(filter_field != None).order_by(desc(filter_field)).slice(int(start),int(start) + int(length))
+				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).filter(filter_field != None).count()
 
 		# Sort by asc marks
 		else:
 			if session.get('search_type') == 'list': 
-				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).filter(Mark.mark != None).order_by(Mark.mark).slice(int(start),int(start) + int(length))
+				movies = Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).filter(filter_field != None).order_by(filter_field).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).filter_by(user_id=filter_user).count()
 			elif session.get('search_type') == 'filter_origin_type':
-				movies = movies_query.filter(Mark.mark != None).order_by(Mark.mark).slice(int(start),int(start) + int(length))
-				count_movies=movies_query.filter(Mark.mark != None).count()
+				movies = movies_query.filter(filter_field != None).order_by(filter_field).slice(int(start),int(start) + int(length))
+				count_movies=movies_query.filter(filter_field != None).count()
 			elif session.get('search_type') == 'filter':
-				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).filter(Mark.mark != None).order_by(Mark.mark).slice(int(start),int(start) + int(length))
+				movies = Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).filter(filter_field != None).order_by(filter_field).slice(int(start),int(start) + int(length))
 				count_movies=Movie.query.outerjoin(Mark).whoosh_search(session.get('query')).filter_by(user_id=filter_user).count()
 	else:
-		# db.session.query(Mark,db.func.avg(Mark.mark)).join(Movie).group_by(Mark.movie_id).having(db.func.avg(Mark.mark!=None)).order_by(db.func.avg(Mark.mark)).slice(0,20)
-
 		# If we are are => No sort by user but only global sort or no sort
 		if session.get('search_type') == 'list': 
 			if order_column == "average":
@@ -369,6 +394,21 @@ def update_datatable():
 	# Send the json object to the browser
 	return json.dumps(dict_movie) 
 
+@app.route('/movies/show/random')
+@login_required
+def show_movie_random():
+	"""
+		Function that redirects to a random movie sheet
+	"""
+	# Get the movie number stored in the databaese
+	count = Movie.query.count()
+
+	# Get the random id
+	random_id = randint(1,count)
+
+	# Redirect to the movie sheet selected randomly
+	return redirect(url_for('show_movie',movie_id=random_id))
+
 @app.route('/movies/show/<int:movie_id>')
 @login_required
 def show_movie(movie_id):
@@ -401,9 +441,9 @@ def show_movie(movie_id):
 			# We are in homework mode if a user gave an homework AND the mark is still none
 			# If not we are in mark mode
 			if marked_movie.homework_who != None and marked_movie.mark == None:
-				mark_users.append({ "user": cur_user, "mark": "homework_in_progress", "seen_where": None, "seen_when": None, "comment": None })
+				mark_users.append({ "user": cur_user, "mark": "homework_in_progress", "seen_where": None, "seen_when": None, "comment": None, "homework_who": marked_movie.homework_who_user })
 			else:
-				mark_users.append({ "user": cur_user, "mark": marked_movie.mark, "seen_where": seen_where_text, "seen_when": marked_movie.seen_when.strftime("%d/%m/%Y") ,"comment": marked_movie.comment })
+				mark_users.append({ "user": cur_user, "mark": marked_movie.mark, "seen_where": seen_where_text, "seen_when": marked_movie.seen_when.strftime("%d/%m/%Y") ,"comment": marked_movie.comment, "homework_who": marked_movie.homework_who_user })
 		else:
 			mark_users.append({ "user" : cur_user, "mark": None, "seen_where": None, "seen_when": None, "comment": None })
 
@@ -488,83 +528,250 @@ def mark_movie(movie_id_form):
 def add_movie():
 	# First, generate all the forms that we going to use in the view
 	search_form=SearchMovieForm() 
-	select_form=SelectMovieForm()
-	confirm_form=ConfirmMovieForm()
 
-	# Search form is validated => Let's fetch the movirs from tvdb.org
-	if search_form.submit_search.data  and search_form.validate_on_submit():
-		select_form=SelectMovieForm(search_movies(search_form.search.data))
+	# Render the template
+	return render_template('add_movie_wizard.html', search_form=search_form, header_text=u"Ajout d'un film", endpoint="add")
 
-		# Put it in a session in order to do the validation
+@app.route('/movies/add/select/<int:page>', methods=['GET','POST'], endpoint="select_add_movie")
+@app.route('/movies/add/select', methods=['POST'], endpoint="select_add_movie")
+@app.route('/movies/update/select/<int:page>', methods=['GET','POST'], endpoint="select_update_movie")
+@app.route('/movies/update/select', methods=['POST'], endpoint="select_update_movie")
+@login_required
+def select_movie(page=1):
+
+	"""
+		This functions fetch movies from the API using pagination system in order to avoid a timeout with the API
+		and also a too long time execution due to an high movies number to fetch and display
+	"""
+
+	# Calculate endpoint
+	endpoint=request.endpoint.split("_")[1]
+
+	# Create a search form in order to get the search query from the search wizard step
+	search_form=SearchMovieForm()
+
+	# If we come from the search_movie for, put the query string into a session
+	if search_form.search.data != None and search_form.search.data != "":
+		query_movie=search_form.search.data
 		session['query_movie'] = search_form.search.data
+	else:
+		query_movie=session.get('query_movie',None)
+
+	# Check if we correctly do a search, if not => Let's go back to the add movie form
+	if search_form.submit_search.data and not search_form.validate_on_submit():
+		flash('Veuillez saisir une recherche !', 'warning')
 		
-		# Display the selection form
-		if len(select_form.movie.choices) == 0:
-			flash("Aucun film correspondant","danger")
-			return render_template('add_movie_wizard.html', search_form=search_form)
-		else:
-			return render_template('select_movie_wizard.html', select_form=select_form,url_wizard_next=url_for("add_movie"))
+		if endpoint == "add":
+			header_text=u"Ajout d'un film"
+		elif endpoint == "update":
+			movie = session.get("movie")
+			header_text=u"Mise à jour du film " + movie.name
+
+		return render_template('add_movie_wizard.html', search_form=search_form, header_text=header_text,endpoint=endpoint)
+
+	# If we are here and that there is nothing into query_string => There is an issue
+	# Let's go back to the main form
+	if query_movie == None:
+		flash("Absence de chaine de recherche", 'danger')
+		return redirect(url_for('add_movie'))
+
+	# Fetch how many pages we have to handle
+	total_pages = search_page_number(query_movie)
+
+	# Check if the page number is correct
+	if page < 1 or page > total_pages:
+		flash("Page de resultat inexistante", 'danger')
+		return redirect(url_for('add_movie'))
+
+	# Pagination management
+	if page - 1 >= 1:
+		has_prev = True
+	else:
+		has_prev = False
+
+	if page + 1 <= total_pages:
+		has_next = True
+	else:
+		has_next = False
+
+	# Fetch the query from the previous form in order to fill correctly the radio choices
+	select_form=SelectMovieForm(search_movies(query_movie,page))
+	session["page"] = page
+
+	# Check if we have some results, if not tell the user that there is no matching results
+	# and propose it to make a new search
+	if total_pages == 1 and len(select_form.movie.choices) == 0:
+		flash("Aucun résultat pour cette recherche", "warning")
+		return redirect(url_for("add_movie"))
+
+	return render_template('select_movie_wizard.html', select_form=select_form, cur_page=page, total_pages=total_pages, has_prev=has_prev, has_next=has_next,endpoint=endpoint)
+
+@app.route('/movies/add/confirm', methods=['POST'], endpoint="confirm_add_movie")
+@app.route('/movies/update/confirm', methods=['POST'], endpoint="confirm_update_movie")
+@login_required
+def confirm_movie():
+
+	# Calculate endpoint
+	endpoint=request.endpoint.split("_")[1]
+
+	# Create the select form for validation
+	select_form=SelectMovieForm()
 
 	# Validate selection form
 	if select_form.submit_select.data:
 
 		# Fetch the query from the previous form in order to fill correctly the radio choices
-		movie_query = session.get('query_movie', None)
-		if movie_query != None:
-			select_form=SelectMovieForm(search_movies(movie_query))
+		query_movie = session.get('query_movie', None)
+		page = session.get('page', 1)
 
+		if query_movie != None and page != None:
+			select_form=SelectMovieForm(search_movies(query_movie,page))
+
+		# If we are here, we displayed the form once and we want to go to the wizard next step doing a form validation
 		if select_form.validate_on_submit():
 		
-			# Fetch the query from the previous form in order to fill correctly the radio choices
-			movie_query = session.get('query_movie', None)
-			if movie_query != None:
-				select_form=SelectMovieForm(search_movies(movie_query))
-
 			# Last step : Set type and origin and add the movie
 			# Note : Movie_id is the TMVDB id
-			movie_to_create=get_movie(select_form.movie.data)
+			confirm_form=ConfirmMovieForm()
+
+			movie_to_create=get_movie(select_form.movie.data, False)
 			confirm_form.movie_id.data=select_form.movie.data
 
+			if endpoint == "add":
+				confirm_form.submit_confirm.label.text="Ajouter le film"
+			elif endpoint == "update":
+				confirm_form.submit_confirm.label.text=u"Mettre à jour le film"
+
 			# Go to the final confirmation form
-			return render_template('confirm_movie_wizard.html', movie=movie_to_create, form=confirm_form)
+			return render_template('confirm_movie_wizard.html', movie=movie_to_create, form=confirm_form, endpoint=endpoint)
+		else:
+			# Warn the user that the form is incomplete
+			flash("Veuillez sélectionner un film","danger")
+			if endpoint == "add":
+				return redirect(url_for('select_add_movie',page=page))
+			elif endpoint == "update":
+				return redirect(url_for('select_update_movie',page=page))
+
+	# Create the form we're going to use	
+	confirm_form=ConfirmMovieForm()
 
 	# Confirmation form => add into the database
 	if confirm_form.submit_confirm.data and confirm_form.validate_on_submit():
 
-		# Form is okay => We can add the movie
-		movie_to_create=get_movie(confirm_form.movie_id.data)
-		movie_to_create.added_by_user=g.user.id
-		movie_to_create.type=confirm_form.type.data.id
-		movie_to_create.origin=confirm_form.origin.data.id
-		movie_to_create.added_when=datetime.now()
+		if endpoint == "add":
 
-		# Add the movie in the database
-		try:
-			db.session.add(movie_to_create)
-			db.session.flush()
-			new_movie_id=movie_to_create.id
-			db.session.commit()
-			flash('Film ajouté','success')
+			# Form is okay => We can add the movie
+			movie_to_create=get_movie(confirm_form.movie_id.data)
+			movie_to_create.added_by_user=g.user.id
+			movie_to_create.type=confirm_form.type.data.id
+			movie_to_create.origin=confirm_form.origin.data.id
+			movie_to_create.added_when=datetime.now()
 
-			# Donwload the poster and update the database
-			if download_poster(movie_to_create):
-				flash('Affiche téléchargée','success')
-			else:
-				flash('Impossible de télécharger le poster','warning')
+			# Add the movie in the database
+			try:
+				db.session.add(movie_to_create)
+				db.session.flush()
+				new_movie_id=movie_to_create.id
+				db.session.commit()
+				flash('Film ajouté','success')
 
-			# Movie has been added => Send notifications
-			add_movie_notification(movie_to_create)
+				# Movie has been added => Send notifications
+				add_movie_notification(movie_to_create)
+				
+				# Movie added ==> Go to the mark form !
+				return redirect(url_for('mark_movie',movie_id_form=new_movie_id))
+
+			except IntegrityError as e:
+				flash('Film déjà existant','danger')
+				db.session.rollback()
+				return redirect(url_for('add_movie'))
+
+		elif endpoint == "update":
+	
+			# Form is okay => Fetch the movie and update it
+			movie_id=session.get('movie_id',None)
+
+			if movie_id == None:
+				flash("Erreur générale","danger")
+				return redirect(url_for("list_movies"))
 			
-			# Movie added ==> Go to the mark form !
-			return redirect(url_for('mark_movie',movie_id_form=new_movie_id))
+			# If we are here, we have a usable movie_id value
+			movie=Movie.query.get(movie_id)
 
-		except IntegrityError as e:
-			flash('Film déjà existant','danger')
-			db.session.rollback()
-			return redirect(url_for('add_movie'))
+			# If the movie_id is an incorrect value => Go back to the movie list
+			# Don't go back to the movie file page since the movie_id is an incorrect value
+			if movie == None:
+				flash("Erreur générale","danger")
+				return redirect(url_for("movies_list"))
 
-	# If we are here, that means we want to display the first form
-	return render_template('add_movie_wizard.html', search_form=search_form, header_text=u"Ajout d'un film")
+			# All checks are okay => Update the movie !
+			temp_movie=get_movie(confirm_form.movie_id.data)
+
+			# Put the notifications into a dictionnary since I can't get 
+			notification_data={}
+			notification_data["old"]={ "name": movie.name,
+					"release_date" : movie.release_date,
+					"director" : movie.director,
+					"type" : movie.type_object.type,
+					"origin" : movie.origin_object.origin,
+					"duration": movie.duration,
+					"overview": movie.overview
+					}
+
+			# Update the object that will be stored in the database
+			movie.name=temp_movie.name
+			movie.release_date=temp_movie.release_date
+			movie.url=temp_movie.url
+			movie.tmvdb_id=temp_movie.tmvdb_id
+			movie.director=temp_movie.director
+			movie.overview=temp_movie.overview
+			movie.duration=temp_movie.duration
+			movie.poster_path=temp_movie.poster_path
+			movie.type=confirm_form.type.data.id
+			movie.origin=confirm_form.origin.data.id
+
+			# Add the movie in the database
+			try:
+				db.session.add(movie)
+				db.session.flush()
+				db.session.commit()
+				flash('Film mis à jour','success')
+
+				# Check if the poster has been correctly downloaded
+				if movie.poster_path:
+					flash('Affiche téléchargée','success')
+				else:
+					flash('Impossible de télécharger le poster','warning')
+				
+				# Update the dictionnary with the update movie data
+				notification_data["new"]={ "name": movie.name,
+					"release_date" : movie.release_date,
+					"director" : movie.director,
+					"type" : movie.type_object.type,
+					"origin" : movie.origin_object.origin,
+					"id" : movie.id,
+					"duration": movie.duration,
+					"overview": movie.overview
+					}
+
+				# Movie has been updated => Send notifications
+				update_movie_notification(notification_data)
+
+				# Clear the session variables
+				session.pop('movie')
+				session.pop('movie_id')
+				session.pop('query_movie')
+				
+				# Movie updated ==> Go to the movie page !
+				return redirect(url_for('show_movie',movie_id=movie.id))
+
+			except IntegrityError as e:
+				flash('Film déjà existant','danger')
+				db.session.rollback()
+				return redirect(url_for('show_movie',movie_id=movie.id))
+
+	# If no validation form is filled, go back to the wizard first step
+	return redirect(url_for('add_movie')) 
 
 @app.route('/movies/update',methods=['POST'])
 @login_required
@@ -589,7 +796,7 @@ def update_movie():
 		# Put the object into the session array => We'll need it later
 		session['movie']=movie
 
-		return render_template('add_movie_wizard.html', search_form=search_form,header_text=u"Mise à jour de la fiche du film " + movie.name)
+		return render_template('add_movie_wizard.html', search_form=search_form,header_text=u"Mise à jour de la fiche du film " + movie.name, endpoint="update")
 
 	# Search form is validated => Let's fetch the movirs from tvdb.org
 	if search_form.submit_search.data:
@@ -640,84 +847,6 @@ def update_movie():
 			flash("Veuillez sélectionenr un film","danger")
 			return render_template('select_movie_wizard.html', select_form=select_form,url_wizard_next=url_for("update_movie"))
 
-	# Confirmation form => Update the movie into the database
-	if confirm_form.submit_confirm.data and confirm_form.validate_on_submit():
-
-		# Form is okay => Fetch the movie and update it
-		movie_id=session.get('movie_id',None)
-
-		if movie_id == None:
-			flash("Erreur générale","danger")
-			return redirect(url_for("list_movies"))
-		
-		# If we are here, we have a usable movie_id value
-		movie=Movie.query.get(movie_id)
-
-		# If the movie_id is an incorrect value => Go back to the movie list
-		# Don't go back to the movie file page since the movie_id is an incorrect value
-		if movie == None:
-			flash("Erreur générale","danger")
-			return redirect(url_for("movies_list"))
-
-		# All checks are okay => Update the movie !
-		temp_movie=get_movie(confirm_form.movie_id.data)
-
-		# Put the notifications into a dictionnary since I can't get 
-		notification_data={}
-		notification_data["old"]={ "name": movie.name,
-				"release_date" : movie.release_date,
-				"director" : movie.director,
-				"type" : movie.type_object.type,
-				"origin" : movie.origin_object.origin
-				}
-
-		# Update the object that will be stored in the database
-		movie.name=temp_movie.name
-		movie.release_date=temp_movie.release_date
-		movie.url=temp_movie.url
-		movie.tmvdb_id=temp_movie.tmvdb_id
-		movie.director=temp_movie.director
-		movie.poster_path=temp_movie.poster_path
-		movie.type=confirm_form.type.data.id
-		movie.origin=confirm_form.origin.data.id
-
-		# Add the movie in the database
-		try:
-			db.session.add(movie)
-			db.session.flush()
-			db.session.commit()
-			flash('Film mis à jour','success')
-
-			# Donwload the poster and update the database
-			if download_poster(movie):
-				flash('Affiche téléchargée','success')
-			else:
-				flash('Impossible de télécharger le poster','warning')
-			
-			# Update the dictionnary with the update movie data
-			notification_data["new"]={ "name": movie.name,
-				"release_date" : movie.release_date,
-				"director" : movie.director,
-				"type" : movie.type_object.type,
-				"origin" : movie.origin_object.origin,
-				"id" : movie.id
-				}
-
-			# Movie has been updated => Send notifications
-			update_movie_notification(notification_data)
-
-			# Clear the session variables
-			session.pop('movie')
-			session.pop('movie_id')
-			session.pop('query_movie')
-			
-			# Movie updated ==> Go to the movie page !
-			return redirect(url_for('show_movie',movie_id=movie.id))
-
-		except IntegrityError as e:
-			flash('Film déjà existant','danger')
-			db.session.rollback()
-			return redirect(url_for('show_movie',movie_id=movie.id))
 
 @app.route('/my/marks')
 @app.route('/my/marks/<int:page>')
@@ -770,11 +899,59 @@ def edit_user_profile():
 		g.user.notifications["notif_homework_add"] = form.notif_homework_add.data
 		g.user.notifications["notif_mark_add"] = form.notif_mark_add.data
 
+		# Update the avatar if we have to
+		if 'upload_avatar' in request.files:
+			new_avatar=request.files['upload_avatar']
+
+			# Save the file using the nickname hash
+			if new_avatar.filename != '':
+
+				# Check if the image has the correct mimetype ==> If not,abort the update
+				if new_avatar.content_type not in app.config['ALLOWED_MIMETYPES']:
+					flash('Format d\'image incorrect',"danger")
+					return redirect(url_for('edit_user_profile'))
+
+				# Define the future old avatar to remove
+				old_avatar = g.user.avatar
+
+				# Generate the new avatar
+				g.user.avatar = hashlib.sha256(g.user.nickname + str(int(time.time()))).hexdigest()
+				new_avatar.save(os.path.join(app.config['AVATARS_FOLDER'], g.user.avatar ))
+
+				# Resize the image
+				if resize_avatar(os.path.join(app.config['AVATARS_FOLDER'], g.user.avatar)):
+
+					# Try to remove the previous avatar
+					try:
+						if old_avatar != None:
+							os.remove(os.path.join(app.config['AVATARS_FOLDER'], old_avatar))
+
+						flash("Avatar correctement mis à jour","success")
+					except OSError,e:
+						app.logger.error('Impossible de supprimer l\'avatar')
+						app.logger.error(str(e))
+				else:
+					# Delete the new avatar and go back to the previous one
+					flash("Impossible de redimensionner l\'image","success")
+					try:
+						os.remove(os.path.join(app.config['AVATARS_FOLDER'], g.user.avatar))
+					except OSError,e:
+						app.logger.error('Impossible de supprimer le nouvel avatar')
+						app.logger.error(str(e))
+	
+					# Reuse the old avatar
+					g.user.avatar=old_avatar
+					
+		# Let's do the update
 		try:
+			# Update the user
 			db.session.add(g.user)
 			db.session.commit()
+
 			flash('Informations mises à jour','success')
-		except:
+
+		except Exception,e:
+			print e
 			flash('Impossible de mettre à jour l\'utilisateur', 'danger')
 
 	else:
@@ -933,7 +1110,7 @@ def list_homeworks():
 
 			given_homeworks = Mark.query.join(Mark.movie).filter(and_(Mark.homework_who == g.user.id, Mark.homework_who != None, Mark.user_id == given_homework_filter_form.user_filter.data.id)).order_by(desc(case([(Mark.mark == None, 0)],1)),Movie.name)
 		else:
-			given_homeworks = Mark.query.join(Mark.movie).filter(and_(Mark.homework_who != None)).order_by(desc(case([(Mark.mark == None, 0)],1)),Movie.name)
+			given_homeworks = Mark.query.join(Mark.movie).filter(and_(Mark.homework_who == g.user.id)).order_by(desc(case([(Mark.mark == None, 0)],1)),Movie.name)
 
 	elif session.get('given_homework_filter', None) != None:
 		given_homeworks = Mark.query.join(Mark.movie).filter(and_(Mark.homework_who == g.user.id, Mark.user_id == session.get('given_homework_filter'))).order_by(desc(case([(Mark.mark == None, 0)],1)),Movie.name)
@@ -943,6 +1120,7 @@ def list_homeworks():
 	return render_template('list_homeworks.html',my_homeworks=my_homeworks,given_homeworks=given_homeworks,my_homework_filter_form=my_homework_filter_form,given_homework_filter_form=given_homework_filter_form)
 
 @app.route('/graph/mark', endpoint="graph_by_mark")
+@app.route('/graph/mark_percent', endpoint="graph_by_mark_percent")
 @app.route('/graph/type', endpoint="graph_by_type")
 @app.route('/graph/origin', endpoint="graph_by_origin")
 @app.route('/graph/year', endpoint="graph_by_year")
@@ -951,6 +1129,28 @@ def list_homeworks():
 @app.route('/graph/average_origin', endpoint="average_by_origin")
 @login_required
 def show_graphs():
+
+	# Retrieve the graph_list from the app context and use it in a local variable
+	graph_list = app.config['GRAPH_LIST']
+
+	# Identify prev and next graph
+	for index_graph in range(len(graph_list)):
+		if request.endpoint == graph_list[index_graph]["graph_endpoint"]:
+
+			# Set the graph_title
+			graph_title=graph_list[index_graph]["graph_label"]
+	
+			# Set the graph pagination
+			if index_graph - 1 >= 0:
+				prev_graph=graph_list[index_graph-1]
+			else:
+				prev_graph=None
+
+			if index_graph + 1 < len(graph_list):
+				next_graph=graph_list[index_graph+1]
+			else:
+				next_graph=None
+			break;
 
 	# Generate the correct data considering the route
 	graph_to_generate=os.path.basename(request.url_rule.rule)
@@ -965,7 +1165,6 @@ def show_graphs():
 	if graph_to_generate == "mark":
 		
 		# Distributed marks graph
-		graph_title="Repartition par note"
 		graph_type="line"
 
 		# Fill the labels_array with all marks possible
@@ -978,10 +1177,30 @@ def show_graphs():
 			for cur_mark in frange(0,20,0.5):
 				data[cur_user.nickname]["data"].append(Mark.query.filter(Mark.mark==cur_mark,Mark.user_id==cur_user.id).count())
 
+	if graph_to_generate == "mark_percent":
+		
+		# Distributed marks graph
+		graph_type="line"
+
+		# Fill the labels_array with all marks possible
+		for cur_mark in frange(0,20,0.5):
+			labels.append(cur_mark)
+
+
+		# Fill the dictionnary with distributed_marks by user
+		for cur_user in users:
+			data[cur_user.nickname] = { "color" : cur_user.graph_color, "data" : [] }
+
+			# Set the percentage considering the total movies number seen for each user and not globally
+			user_movies_count = Mark.query.filter(Mark.user_id==cur_user.id).count()
+
+			for cur_mark in frange(0,20,0.5):
+				percent = float((Mark.query.filter(Mark.mark==cur_mark,Mark.user_id==cur_user.id).count() * 100)) / float(user_movies_count)
+				data[cur_user.nickname]["data"].append(round(percent,2))
+
 	elif graph_to_generate == "type":
 
 		# Distributed types graph
-		graph_title="Repartition par type"
 		graph_type="bar"
 
 		# Fill the types_array with all the types stored into the database
@@ -998,7 +1217,6 @@ def show_graphs():
 	elif graph_to_generate == "origin":
 
 		# Distributed marks graph
-		graph_title="Repartition par origine"
 		graph_type="bar"
 
 		# Fill the origin_array with all the types stored into the database
@@ -1016,7 +1234,6 @@ def show_graphs():
 	elif graph_to_generate == "average_type":
 
 		# Average by type
-		graph_title="Moyenne des films par type"
 		graph_type="radar"
 
 		# Fill the types array with all the types stored into the database
@@ -1039,7 +1256,6 @@ def show_graphs():
 	elif graph_to_generate == "average_origin":
 
 		# Average by type
-		graph_title="Moyenne des films par origine"
 		graph_type="radar"
 
 		# Fill the origins array with all the origins stored into the database
@@ -1062,7 +1278,6 @@ def show_graphs():
 	elif graph_to_generate == "year":
 
 		# Distributed movies graph by year
-		graph_title="Repartition par annee"
 		graph_type="line"
 
 		# Search the min and max year in order to generate a optimized graph
@@ -1081,7 +1296,6 @@ def show_graphs():
 	elif graph_to_generate == "year_theater":
 
 		# Distributed movies graph by year
-		graph_title="Films vus au cine"
 		graph_type="line"
 
 		# Search the min and max year in order to generate a optimized graph
@@ -1098,7 +1312,7 @@ def show_graphs():
 				data[cur_user.nickname]["data"].append(Mark.query.filter(Mark.mark!=None,Mark.user_id==cur_user.id,Mark.seen_where=="C",db.func.year(Mark.seen_when)==cur_year).count())
 
 
-	return render_template('show_graphs.html',graph_title=graph_title,graph_type=graph_type,labels=labels,data=data)
+	return render_template('show_graphs.html',graph_title=graph_title,graph_type=graph_type,labels=labels,data=data,prev_graph=prev_graph,next_graph=next_graph)
 
 @app.route('/dashboard')
 @login_required
@@ -1222,7 +1436,3 @@ def update_activity_flow():
 
 	# Return the dictionnary as a JSON object
 	return json.dumps(activity_dict)
-	
-@app.route('/dt')
-def dt_test():
-	return render_template('dt_test.html')

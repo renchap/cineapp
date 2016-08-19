@@ -5,7 +5,7 @@
 			<h1>{{ header_text }}</h1>
 		</div>
 		{%from "_formhelpers.html" import render_field %}
-		<form action="" method="post" name="searchmovie">
+		<form action="{{ url_for( 'select_' + endpoint + '_movie') }}" method="post" name="searchmovie">
 			{{ search_form.hidden_tag() }}
 	        <div class="input-group">
 			{{ render_field(search_form.search,label_visible=false,message=False,placeholder="Fast and furious 7, Les Tuche") }} 
@@ -15,6 +15,22 @@
 		</div>
 			
 		</form>
+		<div id="container_overlay">
+			<div id="spinner" class="spinner"/>
+		</div>
         </div>
+	<script type="text/javascript">
+		$(document).ready(function(){
+		    $("form input[type=submit]").click(function() {
+   		    	$("#search").prop("readonly", true);
+   		    	$("#submit_search").prop("disabled", true);
+		        $('#container_overlay').show();	
+			$(this).parents('form').submit()
+		    });
+		
+		// Force submit button enabling
+ 	    	$("#submit_search").prop("disabled", false);
 
+		});
+	</script>
 {% endblock %}
