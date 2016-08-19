@@ -119,7 +119,6 @@ aria-hidden="true">&rarr;</span></a>
 				</td>
 				<td class="col-md-1 text-center">
 					{% if cur_mark["mark"] == "homework_in_progress" %}
-					<img src="{{ config.AVATARS_URL}}{{  cur_mark["homework_who"].avatar }}" height="30" width="30" alt="homework_avatar" class="avatar img-circle"/>
 					<a class="disabled btn btn-warning btn-xs">Devoir</button>
 					{% elif cur_mark["mark"] == None %}
 						{% if g.user.id != (cur_mark["user"]).id %}
