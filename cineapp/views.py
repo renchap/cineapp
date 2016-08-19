@@ -669,6 +669,13 @@ def confirm_movie():
 
 			# Add the movie in the database
 			try:
+
+				# Check if the poster has been correctly downloaded
+				if movie_to_create.poster_path:
+					flash('Affiche téléchargée','success')
+				else:
+					flash('Impossible de télécharger le poster','warning')
+
 				db.session.add(movie_to_create)
 				db.session.flush()
 				new_movie_id=movie_to_create.id
