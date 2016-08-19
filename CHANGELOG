@@ -1,3 +1,20 @@
+Version 1.1.0 (2016-08-19)
+-------------
+* [FEAT]: Graph navigation buttons (#2)
+* [FEAT]: Movie list : Save the current movie page (#4)
+* [FEAT]: Movie list : Allow sort on average mark (#11)
+* [FEAT]: Movie list : Put a different color for each user column (#28)
+* [FEAT]: Alphabetical order is used for movie navigation (#29)
+* [FEAT]: New graph - Distributed marks in % with movies seen by user as reference (#33)
+* [FEAT]: Improve result page for a TMDB movie search (#34)
+* [FEAT]: Movie sheet - Add overview and duration (#37)
+* [FEAT]: Movies can now have several directors (#39)
+* [FEAT]: Movies can be sorted by date (#42)
+* [FEAT]: Customizable avatar on user profile (#44)
+* [FIX]: Movie sheet : Display the correct mark date (#35)
+* [FIX]: Crashes with common names on the update movie page (#41)
+* [FIX]:  Handle correctly the Origin/Type filter when ordering by date (#43)
+
 Version 1.0.3 (2016-07-12)
 -------------
 * [FIX]: Date and location movie viewing have been added on the movie page (#27)
