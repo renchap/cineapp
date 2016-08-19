@@ -114,7 +114,7 @@ def get_movie(id,fetch_poster=True):
 	# Create the movie object
 	movie_obj=Movie(name=movie['title'],
 		release_date=movie['release_date'],
-		url="http://www.themoviedb.org/movie/" + str(id),
+		url=os.path.join(app.config['TMVDB_BASE_URL'],str(id)),
 		tmvdb_id=id,
 		poster_path=url,
 		director=director,

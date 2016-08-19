@@ -31,6 +31,9 @@ app.config['ALLOWED_MIMETYPES'] = [ 'image/png', 'image/jpeg']
 app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024
 app.config['AVATARS_URL'] = "/static/avatars/"
 
+# TMVDB parameters
+app.config['TMVDB_BASE_URL'] = "https://themoviedb.org/movie"
+
 # Configuration file reading
 if os.environ.get('TEST') == "yes":
 	app.config.from_pyfile('configs/settings_test.cfg')
