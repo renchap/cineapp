@@ -41,7 +41,7 @@ aria-hidden="true">&rarr;</span></a>
 		<div class="col-md-10">
 			<table class="table table-striped">
 				<tr class="text-left">
-				 <td class="col-md-2">Réalisateur:</td>
+				 <td class="col-md-1">Réalisateur:</td>
 				 <td>{{ movie.director }}</td>
 				</tr>
 				<tr class="text-left">
@@ -65,7 +65,7 @@ aria-hidden="true">&rarr;</span></a>
 				 {% if movie.duration %}
 				 <td>{{ movie.duration|minutes_to_human_duration }}</td>
 				 {% else %}
-				 <td class="col-md-2">Inconnue</td>
+				 <td>Inconnue</td>
 				 {% endif %}
 				</tr>
 				<tr class="text-left">
@@ -73,7 +73,7 @@ aria-hidden="true">&rarr;</span></a>
 				 {% if movie.overview %}
 				 <td>{{ movie.overview }}</td>
 				 {% else %}
-				 <td class="col-md-2">Néant</td>
+				 <td>Néant</td>
 				 {% endif %}
 				</tr>
 			</table>
