@@ -1,5 +1,6 @@
 {% extends "base.html" %} 
 {% block content %}
+	{% if not mark %}
 	<div class="container">	
 	<nav>
 		<ul class="pager">
@@ -23,6 +24,7 @@ aria-hidden="true">&rarr;</span></a>
 		</ul>
 	</nav>
 	</div>
+	{% endif %}
 	<div class="container">
 	<div class="centered text-center">
 		<h1>{{ movie.name }}</h1>
