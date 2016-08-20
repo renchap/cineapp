@@ -496,7 +496,7 @@ def mark_movie(movie_id_form):
 				notif_type="homework"
 			else:
 				flash_message_success="Note mise à jour"
-				notif_type="update"
+				mtif_type="update"
 		try:
 			db.session.add(marked_movie)
 			db.session.commit()
@@ -632,18 +632,35 @@ def confirm_movie():
 		
 			# Last step : Set type and origin and add the movie
 			# Note : Movie_id is the TMVDB id
-			confirm_form=ConfirmMovieForm()
-
-			movie_to_create=get_movie(select_form.movie.data, False)
-			confirm_form.movie_id.data=select_form.movie.data
+			movie_form_tmvdb=get_movie(select_form.movie.data, False)
 
 			if endpoint == "add":
+
+				# Generate the confirmation form with the correct value
+				confirm_form=ConfirmMovieForm()
 				confirm_form.submit_confirm.label.text="Ajouter le film"
+				confirm_form.movie_id.data=select_form.movie.data
+
 			elif endpoint == "update":
+				
+				# Get the movie object in order to get origin and type
+				movie_id=session.get('movie_id',None)
+
+				if movie_id == None:
+					flash("Erreur générale","danger")
+					return redirect(url_for("list_movies"))
+
+				# If we are here, we have a usable movie_id value => Let's fetch the movie object
+				# and use the type and origin value for filling confirm_form.
+				movie_to_update=Movie.query.get(movie_id)
+				confirm_form=ConfirmMovieForm(origin=movie_to_update.origin_object,type=movie_to_update.type_object)
+
+				# And then update the others fields
+				confirm_form.movie_id.data=select_form.movie.data
 				confirm_form.submit_confirm.label.text=u"Mettre à jour le film"
 
 			# Go to the final confirmation form
-			return render_template('confirm_movie_wizard.html', movie=movie_to_create, form=confirm_form, endpoint=endpoint)
+			return render_template('confirm_movie_wizard.html', movie=movie_form_tmvdb, form=confirm_form, endpoint=endpoint)
 		else:
 			# Warn the user that the form is incomplete
 			flash("Veuillez sélectionner un film","danger")
