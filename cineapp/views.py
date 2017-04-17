@@ -128,7 +128,7 @@ def list_movies():
 				filter_dict['type'] = filter_form.type.data.id
 
 			if filter_form.where.data != None:
-				filter_dict['seenwhere'] = filter_form.where.data.id
+				filter_dict['seen_where'] = filter_form.where.data.id
 
 			session['query']=filter_dict
 
