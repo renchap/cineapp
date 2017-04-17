@@ -6,6 +6,7 @@ from cineapp import mail, db
 from cineapp.models import User
 from threading import Thread
 from cineapp import app
+import html2text
 
 # Send mail into a dedicated thread in order to avoir the web app to wait
 def send_async_email(app, msg):
@@ -45,6 +46,11 @@ def add_movie_notification(movie):
 # Function which sends notifications to users when a movie is added
 def mark_movie_notification(mark,notif_type):
 	users = User.query.filter_by().all()
+
+	# Convert the HTML content to text in order to have a nice display in the mail
+	html_converter = html2text.HTML2Text()
+        mark.comment=html_converter.handle(mark.comment).strip()
+
 	for cur_user in users:
 		# Check if the cur_user is the logged user who added the movie
 		# in order to change the mail text

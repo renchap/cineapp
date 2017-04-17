@@ -6,7 +6,7 @@
 	{% if parse_class %}
 	{{ field(class_='form-control', **kwargs) }}
 	{% else %}
-	{{ field(class_='', **kwargs) }}
+	{{ field(**kwargs) }}
 	{% endif %}
         {% if message and field.errors %}
             {% for e in field.errors %}

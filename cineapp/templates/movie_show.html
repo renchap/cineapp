@@ -97,7 +97,7 @@ aria-hidden="true">&rarr;</span></a>
 		<form method="post" action="" name="markmovie">
 			{{ form.hidden_tag() }}
 			{{ render_field(form.mark,message=True) }}
-			{{ render_field(form.comment,message=True) }}
+			{{ render_field(form.comment,message=True,parse_class=False) }}
 			{{ render_field(form.seen_when,message=True) }}
 			{{ form.seen_where.label }}	
 			{% for option in form.seen_where %}
@@ -148,7 +148,7 @@ aria-hidden="true">&rarr;</span></a>
 				</td>
 				<td class="col-md-7 text-justify">
 					{% if cur_mark["comment"] != None %}
-					{{ cur_mark["comment"] }}
+					{{ cur_mark["comment"]|safe }}
 					{% else %}
 					N/A
 					{% endif %}

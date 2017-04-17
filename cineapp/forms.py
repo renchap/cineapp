@@ -5,7 +5,8 @@ from flask.ext.wtf.html5 import SearchField
 from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenField, SelectField, TextAreaField, BooleanField, DateField, FileField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import Required,DataRequired, EqualTo, Email, URL, ValidationError
-from cineapp.models import Origin, Type,User
+from cineapp.models import Origin, Type, User
+from cineapp.widgets import CKTextAreaField
 from datetime import datetime
 
 def get_origins():
@@ -40,9 +41,10 @@ class MarkMovieForm(Form):
 		locales = ('de_DE', 'de')
 
 	mark = StringField('Note du Film', [DataRequired()])
-	comment = TextAreaField('Commentaire du Film', [DataRequired()])
+	comment = CKTextAreaField('Commentaire du Film', [DataRequired()])
 	seen_where = RadioField('Ou j\'ai vu le film', [Required(message="Date invalide")],choices=[('C', u'Cinema'), ('M', 'Maison')], default='M')
 	seen_when = DateField('Vu le :', default=datetime.now,format="%d/%m/%Y")
+	submit_mark = SubmitField('Noter')
 
 	# The method name is important
 	# A validate_XXX method will validate a field named XXX
