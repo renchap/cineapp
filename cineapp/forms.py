@@ -62,7 +62,7 @@ class SearchMovieForm(Form):
 
 class SelectMovieForm(Form):
 	movie = RadioField('Film',[Required(message="Veuillez sélectionner un film")],choices=[], coerce=int)
-	submit_select = SubmitField('Selectioner')
+	submit_select = SubmitField(u'Sélectionner')
 
 	# Specific constructer in order to pass a movie list
 	def __init__(self,movies_list=[]):
