@@ -465,55 +465,61 @@ def mark_movie(movie_id_form):
 	# Let's check if the movie has already been marked
 	marked_movie=Mark.query.get((g.user.id,movie_id_form))
 
-	# Mark the movie and display the correct page
-	if form.validate_on_submit():
+	# Test if the form has been submitted
+	if form.submit_mark.data:
 
-		if marked_movie == None:
-			# The movie has never been marked => Create the object
-			marked_movie=Mark(user_id=g.user.id,
-				movie_id=movie.id,
-				seen_when=form.seen_when.data,
-				seen_where=form.seen_where.data,
-				mark=form.mark.data,
-				comment=form.comment.data,
-				updated_when=datetime.now()
-			)	
-	
-			flash_message_success="Note ajoutée"
-			notif_type="add"
-		else:
-			# Update Movie
-			marked_movie.mark=form.mark.data
-			marked_movie.comment=form.comment.data
-			marked_movie.seen_when=form.seen_when.data
-			marked_movie.seen_where=form.seen_where.data
+		# Mark the movie and display the correct page
+		if form.validate_on_submit():
 
-			# If we mark an homework, let's set the date in order to be on the activity flow
-			# Rating an homework mean there is an homework date but not a mark date
-			if marked_movie.updated_when == None and marked_movie.homework_when != None:
-				marked_movie.updated_when=datetime.now()
-				flash_message_success="Devoir rempli"
-				notif_type="homework"
+			if marked_movie == None:
+				# The movie has never been marked => Create the object
+				marked_movie=Mark(user_id=g.user.id,
+					movie_id=movie.id,
+					seen_when=form.seen_when.data,
+					seen_where=form.seen_where.data,
+					mark=form.mark.data,
+					comment=form.comment.data,
+					updated_when=datetime.now()
+				)	
+		
+				flash_message_success="Note ajoutée"
+				notif_type="add"
 			else:
-				flash_message_success="Note mise à jour"
-				mtif_type="update"
-		try:
-			db.session.add(marked_movie)
-			db.session.commit()
-			flash(flash_message_success,'success')
+				# Update Movie
+				marked_movie.mark=form.mark.data
+				marked_movie.comment=form.comment.data
+				marked_movie.seen_when=form.seen_when.data
+				marked_movie.seen_where=form.seen_where.data
 
-			# Send notification
-			mark_movie_notification(marked_movie,notif_type)
-			return redirect(url_for('show_movie',movie_id=movie_id_form))
-			
-		except IntegrityError:
-			db.session.rollback()
-			flash('Impossible de noter le film','danger')
-			return render_template('movie_show.html', movie=movie, mark=True, marked_flag=False, form=form)
+				# If we mark an homework, let's set the date in order to be on the activity flow
+				# Rating an homework mean there is an homework date but not a mark date
+				if marked_movie.updated_when == None and marked_movie.homework_when != None:
+					marked_movie.updated_when=datetime.now()
+					flash_message_success="Devoir rempli"
+					notif_type="homework"
+				else:
+					flash_message_success="Note mise à jour"
+					notif_type="update"
+			try:
+				db.session.add(marked_movie)
+				db.session.commit()
+				flash(flash_message_success,'success')
 
-		except FlushError:
-			db.session.rollback()
-			flash('Impossible de noter le film','danger')
+				# Send notification
+				mark_movie_notification(marked_movie,notif_type)
+				return redirect(url_for('show_movie',movie_id=movie_id_form))
+				
+			except IntegrityError:
+				db.session.rollback()
+				flash('Impossible de noter le film','danger')
+				return render_template('movie_show.html', movie=movie, mark=True, marked_flag=False, form=form)
+
+			except FlushError:
+				db.session.rollback()
+				flash('Impossible de noter le film','danger')
+				return render_template('movie_show.html', movie=movie, mark=True, marked_flag=False, form=form)
+		
+		else:
 			return render_template('movie_show.html', movie=movie, mark=True, marked_flag=False, form=form)
 
 	if marked_movie is None or marked_movie.mark == None:

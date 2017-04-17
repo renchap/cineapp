@@ -107,7 +107,7 @@ aria-hidden="true">&rarr;</span></a>
 			</label>
 			</div>
 			{% endfor %}
-			<input type="submit" class="btn btn-success center-block" value="Noter">
+			{{ render_field(form.submit_mark,label_visible=false,class="btn btn-success center-block") }}	
 		</form>
 	{% else %}
 		<div class="centered text-center">
