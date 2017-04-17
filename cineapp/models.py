@@ -7,6 +7,7 @@ from whoosh import fields
 from whoosh.support.charset import accent_map
 from whoosh.support.charset import default_charset, charset_table_to_dict
 from cineapp.types import JSONEncodedDict
+from sqlalchemy import tuple_
 
 class User(db.Model):
 
@@ -100,14 +101,14 @@ class Movie(db.Model):
 			Return the next item into the database
 			Let's consider alphabetical order
 		"""
-		return db.session.query(Movie).filter(Movie.name > self.name).order_by(Movie.name).first()
+		return db.session.query(Movie).filter(tuple_(Movie.name,Movie.release_date) > tuple_(self.name,self.release_date)).order_by(Movie.name,Movie.release_date).first()
 
 	def prev(self):
 		"""
 			Return the previous item into the database
 			Let's consider alphabetical order
 		"""
-		return db.session.query(Movie).filter(Movie.name < self.name).order_by(desc(Movie.name)).first()
+		return db.session.query(Movie).filter(tuple_(Movie.name,Movie.release_date) < tuple_(self.name,self.release_date)).order_by(desc(Movie.name),desc(Movie.release_date)).first()
 
 class Mark(db.Model):
 	
