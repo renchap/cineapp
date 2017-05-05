@@ -65,7 +65,11 @@
 		<div class="row">	
 			<div class="col-md-6">
 				<div class="panel panel-default">
-					  <div class="panel-heading text-center">Films vus en {{cur_year}}</div>
+					  <div class="panel-heading text-center">
+					  <button id="year_nav_left" value="{{ g.cur_date.year - 1 }}"  class="glyphicon glyphicon-menu-left" aria-hidden="true"></button>
+					  <span>Films vus par </span><span>{{ dashboard_graph_form.user_list }}</span><span> en </span><span id="graph_cur_year">{{cur_year}}</span>
+					  <button id="year_nav_right" value="{{ g.cur_date.year +1 }}" class="glyphicon glyphicon-menu-right" aria-hidden="true"></button>
+					  </div>
 					  <div class="panel-body">
 						<canvas id="canvas" width="200" height="100"></canvas>
 					  </div>
@@ -112,44 +116,112 @@
 <script>
 // Context initialization
 var ctx = document.getElementById("canvas").getContext("2d");
+var json_data = { theaters: {}, others: {} };
+var data, graph;
 
-// Data structure
-var data= { 
-	labels : [ {% for cur_label in labels %} "{{ cur_label }}", {% endfor %} ],
-	datasets : [
+function draw_graph() {
+
+    // Le code a exécuter !
+    $.post(
+		"{{ url_for('graph_movies_by_year') }}",
 		{
-			fill: true,
-			borderColor : "#C3D9FF",
-			backgroundColor : "#C3D9FF",
-			label: "Ciné",
-			data: [ {% for data in data["theaters"] %} {{ data }}, {% endfor %}]
+			year: $('#graph_cur_year').text(),
+			user: $('#user_list').val()
 		},
-		{
-			fill: true,
-			borderColor : "#FF0084",
-			backgroundColor : "#FF0084",
-			label: "Maison",
-			data: [ {% for data in data["others"] %} {{ data }}, {% endfor %}]
-		},
-		]
+		update_graph_display,
+		"json" 
+	);
+}
+
+
+
+function update_graph_display(json_data) {
+
+	// Destroy the graph if it is already initializes
+	// in order to clear all the previous data
+	if (graph != undefined) {
+		graph.destroy()
 	}
 
-// Draw graph
-var graph=new Chart(ctx, {
-	type: "bar",
-	data: data,
-    options: {
-        scales: {
-                xAxes: [{
-                        stacked: true
-                }],
-                yAxes: [{
-                        stacked: true
-                }]
-            }
-        }
-    }
-);
+	// Data structure
+	data= { 
+		labels : [ {% for cur_label in labels %} "{{ cur_label }}", {% endfor %} ],
+		datasets : [
+			{
+				fill: true,
+				borderColor : "#C3D9FF",
+				backgroundColor : "#C3D9FF",
+				label: "Ciné",
+				data: json_data["theaters"]
+			},
+			{
+				fill: true,
+				borderColor : "#FF0084",
+				backgroundColor : "#FF0084",
+				label: "Maison",
+				data: json_data["others"]
+			},
+			]
+		}
 
+	// Draw graph
+	graph=new Chart(ctx, {
+			type: "bar",
+			data: data,
+		    options: {
+			scales: {
+				xAxes: [{
+					stacked: true
+				}],
+				yAxes: [{
+					stacked: true
+			}]
+		    }
+		}
+	    }
+	);
+}
+
+function update_graph_year_nav() {
+    if ($("#year_nav_right").val() > "{{ cur_year }}") {
+		$("#year_nav_right").hide()
+	}
+	else {
+		$("#year_nav_right").show()
+	}
+}
+
+// Update graph on user change
+$("#user_list").change(function() {
+	draw_graph();
+});
+
+// Update graph on button click
+$("button").click(function(){
+    // Let's update button and text values
+    $("#graph_cur_year").text($(this).val())
+	
+    if (this.id == "year_nav_left") {
+	    $("#year_nav_left").val(parseInt($("#year_nav_left").val()) - 1)
+	    $("#year_nav_right").val(parseInt($("#year_nav_right").val()) - 1)
+    }
+    else if (this.id == "year_nav_right") {
+	    $("#year_nav_left").val(parseInt($("#year_nav_left").val()) + 1)
+	    $("#year_nav_right").val(parseInt($("#year_nav_right").val()) + 1)
+    }
+
+    // Let's redraw the graph considering the new year
+    draw_graph();
+
+    // Update navbar button
+    update_graph_year_nav()
+});
+
+// Let's draw the graph when the document is ready
+jQuery(document).ready(function($) {
+	draw_graph();
+        update_graph_year_nav();
+
+});
 </script>
 {% endblock %}

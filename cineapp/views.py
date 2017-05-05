@@ -8,7 +8,7 @@ from flask.ext.wtf import Form
 from wtforms.ext.sqlalchemy.orm import model_form
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from cineapp import app, db, lm
-from cineapp.forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm, UserForm, PasswordForm, HomeworkForm, UpdateMovieForm
+from cineapp.forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm, UserForm, PasswordForm, HomeworkForm, UpdateMovieForm, DashboardGraphForm
 from cineapp.models import User, Movie, Mark, Origin, Type
 from cineapp.tvmdb import search_movies,get_movie,download_poster, search_page_number
 from cineapp.emails import add_movie_notification, mark_movie_notification, add_homework_notification, update_movie_notification
@@ -38,6 +38,9 @@ def before_request():
 
 	# Make the graph list available in the whole app
 	g.graph_list = app.config['GRAPH_LIST']
+
+	# Return the current datz
+	g.cur_date = datetime.now()
 
 @app.route('/login', methods=['GET','POST'])
 def login():
@@ -1353,7 +1356,9 @@ def show_dashboard():
 	activity_list=[]
 	stats_dict={}
 	labels=[]
-	data={"theaters": [], "others": []}
+
+	# Generate a field with the user list
+        dashboard_graph_form = DashboardGraphForm(user_list=g.user)
 	
 	# Fetch the last 20 last activity records
 	activity_dict=get_activity_list(0,20)
@@ -1388,13 +1393,11 @@ def show_dashboard():
 	locale.setlocale(locale.LC_ALL, "fr_FR.UTF-8")
 	for cur_month in range(1,13,1):
 		labels.append(datetime.strptime(str(cur_month), "%m").strftime("%B").decode('utf-8'))
-		data["theaters"].append(Mark.query.filter(Mark.mark!=None,Mark.user_id==g.user.id,Mark.user_id==g.user.id,Mark.seen_where=="C",db.func.month(Mark.seen_when)==cur_month,db.func.year(Mark.seen_when)==cur_year).count())
-		data["others"].append(Mark.query.filter(Mark.mark!=None,Mark.user_id==g.user.id,Mark.user_id==g.user.id,Mark.seen_where=="M",db.func.month(Mark.seen_when)==cur_month,db.func.year(Mark.seen_when)==cur_year).count())
 
 	# Go back to default locale
 	locale.setlocale(locale.LC_ALL,locale.getdefaultlocale())
 	
-	return render_template('show_dashboard.html', activity_list=activity_dict["list"], general_stats=general_stats,labels=labels,data=data,cur_year=cur_year,stats_dict=stats_dict)
+	return render_template('show_dashboard.html', activity_list=activity_dict["list"], general_stats=general_stats,labels=labels,cur_year=cur_year,stats_dict=stats_dict,dashboard_graph_form=dashboard_graph_form)
 
 @app.route('/activity/show')
 @login_required
@@ -1466,3 +1469,24 @@ def update_activity_flow():
 
 	# Return the dictionnary as a JSON object
 	return json.dumps(activity_dict)
+
+@app.route('/json/graph_by_year', methods=['POST'])
+@login_required
+def graph_movies_by_year():
+	
+	# Fetch the year in the post data
+	year=request.form.get("year")
+	user=request.form.get("user")
+
+	# Create data dictionary containing movies seen for the logged user
+	# in theaters and in others places
+	data={"theaters": [], "others": []}
+
+	# Fill the dictionnary for each month
+	for cur_month in range(1,13,1):
+
+		data["theaters"].append(Mark.query.filter(Mark.mark!=None,Mark.user_id==user,Mark.user_id==user,Mark.seen_where=="C",db.func.month(Mark.seen_when)==cur_month,db.func.year(Mark.seen_when)==year).count())
+		data["others"].append(Mark.query.filter(Mark.mark!=None,Mark.user_id==user,Mark.user_id==user,Mark.seen_where=="M",db.func.month(Mark.seen_when)==cur_month,db.func.year(Mark.seen_when)==year).count())
+	
+	# Send the dictionnary to the client side
+	return json.dumps(data)

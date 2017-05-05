@@ -151,3 +151,6 @@ class HomeworkForm(Form):
 		super(HomeworkForm, self).__init__(*args,**kwargs)
 
 		self.user_filter.label.text=label_name
+
+class DashboardGraphForm(Form):
+	user_list = QuerySelectField(query_factory=get_users,get_label='nickname')
