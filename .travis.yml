@@ -10,7 +10,7 @@ before_script:
 before_install:
 - sudo apt-get update && sudo apt-get --reinstall install -qq language-pack-en language-pack-fr
 - mkdir /home/travis/build/ptitoliv/cineapp/tmp/
-- mkdir /home/travis/build/ptitoliv/cineapp/migrations/versions
+- mkdir -p /home/travis/build/ptitoliv/cineapp/migrations/versions
 - mysql -e 'create database cineapp_ci;'
 script:
 - python manage.py db migrate

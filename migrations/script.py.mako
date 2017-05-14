@@ -12,6 +12,8 @@ down_revision = ${repr(down_revision)}
 
 from alembic import op
 import sqlalchemy as sa
+import cineapp.migration_types
+
 ${imports if imports else ""}
 
 def upgrade():
