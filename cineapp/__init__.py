@@ -9,6 +9,7 @@ from flask.ext.mail import Mail
 from flask.ext.babel import Babel
 import logging, sys, os
 from logging.handlers import RotatingFileHandler
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
 
@@ -66,6 +67,10 @@ mail = Mail(app)
 # Translation engine init
 babel = Babel(app)
 
+# SocketIO subsystem (For Chat feature)
+socketio=SocketIO()
+socketio.init_app(app)
+
 ##################
 # Logging system #
 ##################
@@ -93,4 +98,4 @@ app.logger.setLevel(logging.INFO)
 app.logger.addHandler(file_handler)
 app.logger.info('Cineapp startup')
 
-from cineapp import views, models, jinja_filters
+from cineapp import views, models, jinja_filters, chat
