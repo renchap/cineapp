@@ -22,6 +22,7 @@ class User(db.Model):
 	notifications = db.Column(JSONEncodedDict(255), nullable=False)
 	graph_color = db.Column(db.String(6))
 	added_movies = db.relationship('Movie', backref='added_by', lazy='dynamic')
+	posted_messages = db.relationship('ChatMessage', backref='posted_by', lazy='dynamic')
 
 	@property
 	def is_authenticated(self):
@@ -129,6 +130,15 @@ class Mark(db.Model):
 	movie = db.relationship('Movie', backref='marked_by_users')
 	user = db.relationship('User', backref='marked_movies',foreign_keys='Mark.user_id')
 	homework_who_user = db.relationship('User', backref='given_homework',foreign_keys='Mark.homework_who')
+
+class ChatMessage(db.Model):
+	__tablename__ = "chat_messages"
+	__table_args__ = {'mysql_charset': 'utf8', 'mysql_collate': 'utf8_general_ci'}
+
+	message_id = db.Column(db.Integer, primary_key=True)
+	user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+	posted_when = db.Column(db.DateTime())
+	message = db.Column(db.String(1000))
 
 # Enable FTS indexation
 whooshalchemy.whoosh_index(app, Movie)

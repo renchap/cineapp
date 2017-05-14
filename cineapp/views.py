@@ -63,6 +63,11 @@ def login():
 				return redirect(url_for('login'))
 			# User authenticated => Let's login it
 			login_user(user)
+
+			# Let's write user nickname in the session (Will be user for the chat feature)
+			# We need to use a session since g object is not available because before_request is not executed on sockets event
+			session["user"] = user
+
 			return redirect(request.args.get('next') or url_for('index'))
 		return redirect(url_for('index'))
 	
