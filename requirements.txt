@@ -13,6 +13,7 @@ Flask-Migrate==1.7.0
 Flask-OpenID==1.2.5
 Flask-Script==2.0.5
 Flask-Session==0.2.3
+Flask-SocketIO==2.8.6
 Flask-SQLAlchemy==2.1
 Flask-WhooshAlchemy-Redux==0.7.1
 Flask-WTF==0.12
