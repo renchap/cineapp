@@ -254,3 +254,7 @@ footer {
 .comment_number {
     background-color:#5bc0de;
 }
+
+#mark_container {
+    padding-bottom:10px;
+}
