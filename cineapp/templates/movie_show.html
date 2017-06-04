@@ -196,19 +196,34 @@ aria-hidden="true">&rarr;</span></a>
 	    // Callback that display the posted comment
 	    function display_comment(data) {
 
-		// Create the div block for inserting the comment	
-		var new_comment = "<div class='media media_comment' style='background-color:{{ g.user.graph_color }};' media_comment_" + data.mark_comment.mark_user_id + ">"
-	 		+ "<div class='media-left'>"
-			+ "<img src='{{ config.AVATARS_URL}}{{ g.user.avatar }}' class='img-circle avatar' alt='user profile image'>"
-			+ "</div>"
-			+ "<div class='media-body'>"
-			+ "<h4 class='media-heading'>" + data.user.nickname
-			+ "<small><i> " + data.mark_comment.posted_when + "</i></small></h4>"
-			+ "<p>" + data.mark_comment.message + "</p>"
-		 	+ "</div></div>"
+		// If the server detected an empty message
+		// Display an error but not the comment
+		if (data.error != null) {
+			var new_comment = "<div class='alert alert-danger modal-dialog text-center'>"
+				+ data.error
+				+ "</div>"
+		}
+		else {
+
+			// Create the div block for inserting the comment	
+			var new_comment = "<div class='media media_comment' style='background-color:{{ g.user.graph_color }};' media_comment_" + data.mark_comment.mark_user_id + ">"
+				+ "<div class='media-left'>"
+				+ "<img src='{{ config.AVATARS_URL}}{{ g.user.avatar }}' class='img-circle avatar' alt='user profile image'>"
+				+ "</div>"
+				+ "<div class='media-body'>"
+				+ "<h4 class='media-heading'>" + data.user.nickname
+				+ "<small><i> " + data.mark_comment.posted_when + "</i></small></h4>"
+				+ "<p>" + data.mark_comment.message + "</p>"
+				+ "</div></div>"
+		}
 
 		// Insert the element
-		$(new_comment).insertAfter('#comment_form_' + data.mark_comment.mark_user_id ).hide().slideDown("slow");
+		if (data.error != null) {
+			$(new_comment).insertAfter('#comment_form_' + data.mark_comment.mark_user_id ).hide().slideDown("slow").delay(1000).fadeTo(500,0).slideUp("slow");
+		}
+		else {
+			$(new_comment).insertAfter('#comment_form_' + data.mark_comment.mark_user_id ).hide().slideDown("slow");
+		}
 
 		// Update the comment number
 		$("#comment_number_text_" + data.mark_comment.mark_user_id).text(data.mark_comment_number)

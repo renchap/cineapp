@@ -23,6 +23,11 @@ def add_mark_comment():
 	mark_comment.posted_when = datetime.now()
 	mark_comment.message = comment
 
+	# Let's check if the message is empty or not
+	# If the message is empty don't add it and return an error status
+	if not comment:
+		return jsonify( { "error":"Vous ne pouvez pas insérer un commentaire vide", "mark_comment": mark_comment.serialize() } )
+
 	# Add the object into the database
 	try:
 		db.session.add(mark_comment)
@@ -30,7 +35,7 @@ def add_mark_comment():
 			
 		# TODO : DO BETEER REALLY !!!!
 		mark_comment.posted_when = mark_comment.posted_when.strftime('%Y-%m-%d %H:%M:%S')
-			
+
 	except IntegrityError:
 		db.session.rollback()
 
