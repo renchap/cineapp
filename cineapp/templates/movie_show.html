@@ -4,17 +4,15 @@
 	<div class="container">	
 	<nav>
 		<ul class="pager">
-			<li>
-				<a href="{{ url_for('show_movie_random') }}">Sélection aléatoire</a>
-			</li>
-		</ul>
-		<ul class="pager">
         {% if movie_prev %}
 			<li class="previous">
 			<a href="{{ url_for('show_movie', movie_id=movie_prev.id) }}"><span
 aria-hidden="true">&larr;</span> {{ movie_prev.name }}</a>
 			</li>
 	{% endif %}
+			<li>
+				<a href="{{ url_for('show_movie_random') }}">Sélection aléatoire</a>
+			</li>
         {% if movie_next %}
 			<li class="next">
 			<a href="{{ url_for('show_movie', movie_id=movie_next.id) }}"> {{ movie_next.name }} <span
@@ -28,9 +26,6 @@ aria-hidden="true">&rarr;</span></a>
 	<div class="container">
 	<div class="centered text-center">
 		<h1>{{ movie.name }}</h1>
-	</div>
-	<div class="centered text-center">
-		<h4>({{ movie.release_date|date_format("%d/%m/%Y") }})</h4>
 	</div>
 	<div class="row">
 		<div class="col-md-2">
@@ -82,15 +77,19 @@ aria-hidden="true">&rarr;</span></a>
 		</div>
 		{% if not mark %}
 		<div class="text-center">
-			<form method="post" action="{{url_for("update_movie") }}" name="updatemovie">
+			<form method="post" action="{{url_for("update_movie") }}" name="updatemovie" style="display:inline;">
 				{{ update_movie_form.hidden_tag() }}
 				{{ update_movie_form.movie_id}}
-				{{ update_movie_form.submit_update_movie(class="btn btn-primary center-block") }}
+				{{ update_movie_form.submit_update_movie(class="btn btn-primary center-block",style="display:inline;") }}
+			{% if marked_flag %}
 			</form>
+			<a href="{{ url_for("mark_movie",movie_id_form=movie.id) }}" class="btn btn-primary">Mettre à jour la note</a>
+			{% else %}
+			<a href="{{ url_for('mark_movie',movie_id_form=movie.id) }}" class="btn btn-primary">Noter ce film</a>
+			{% endif %}
 		</div>
 		{% endif %}
 	</div>
-	<hr/>
 	<div class="container">
 	{% if mark %}
 		{%from "_formhelpers.html" import render_field %}
@@ -110,59 +109,194 @@ aria-hidden="true">&rarr;</span></a>
 			{{ render_field(form.submit_mark,label_visible=false,class="btn btn-success center-block") }}	
 		</form>
 	{% else %}
-		<div class="centered text-center">
-			<h2>Notes</h2>
+		<div class="text-right">
+			<a href="#" id="display_all_button" class="btn btn-success"><i class="fa fa-minus-square" id="display_all_icon" aria-hidden="true"></i> <span id="display_all_text">Cacher tout</span></a>
 		</div>
-		<table class="table table-striped table-vertical">
 		{% for cur_mark in mark_users %}
-			<tr>
-				<td class="col-md-2 text-center">
-					{{ (cur_mark["user"]).nickname }}
-				</td>
-				<td class="col-md-1 text-center">
-					{% if cur_mark["mark"] == "homework_in_progress" %}
-					<a class="disabled btn btn-warning btn-xs">Devoir</button>
-					{% elif cur_mark["mark"] == None %}
-						{% if g.user.id != (cur_mark["user"]).id %}
-							<a href={{ url_for("add_homework",movie_id=movie.id,user_id=cur_mark["user"].id) }} class="btn btn-success btn-xs">Donner un devoir</button>
-						{% else %}
-							<a class="disabled btn btn-danger btn-xs">Pas de note</a>
-						{% endif %}
-					{% else %}	
+		<div class="media media_mark media_mark_{{ cur_mark["user"].id }}">
+			<div class="media-left">
+			    <img src="{{ config.AVATARS_URL}}{{ cur_mark["user"].avatar }}" class="img-circle avatar" alt="user profile image">
+			    <div class="h4 text-center">
+				{% if cur_mark["mark"] == "homework_in_progress" %}
+					<a class="disabled btn btn-warning btn-xs">Devoir</a>
+				{% elif cur_mark["mark"] == None %}
+					{% if g.user.id != (cur_mark["user"]).id %}
+						<a href={{ url_for("add_homework",movie_id=movie.id,user_id=cur_mark["user"].id) }} class="btn btn-success btn-xs">Donner un devoir</a>
+					{% else %}
+						<a class="disabled btn btn-danger btn-xs">Pas de note</a>
+					{% endif %}
+				{% else %}	
 					<div>
-						<strong>{{ cur_mark["mark"] }}</strong>
+						<h3><span class="label label-success">{{ cur_mark["mark"] }}</span></h3>
 					</div>
 					{% endif %}
-				</td>
-				<td class="text-center">
+		    	    </div>
+			</div>
+			<div class="media-body">
+				<h4 class="media-heading">{{ (cur_mark["user"]).nickname }}
+					<small><i>	
+						{% if cur_mark["seen_where"] != None %}
+							<span id="seen_when">{{ cur_mark["seen_when"] }}</span> <span id="seen_where">({{ cur_mark["seen_where"] }})</span>
+						{% else %}
+							N/A
+						{% endif %}
+					</i></small>
 					{% if cur_mark["homework_who"] %}
 						<img src="{{ config.AVATARS_URL}}{{  cur_mark["homework_who"].avatar }}" height="30" width="30" alt="homework_avatar" class="avatar img-circle"/>
 					{% endif %}
-				</td>
-				<td class="col-md-2 text-center">
-					{% if cur_mark["seen_where"] != None %}
-					{{ cur_mark["seen_when"] }}<br/><span id="seen_where">({{ cur_mark["seen_where"] }})</span>
-					{% else %}
-					N/A
-					{% endif %}
-				</td>
-				<td class="col-md-7 text-justify">
-					{% if cur_mark["comment"] != None %}
+					<div class="pull-right">
+					      <span class="label label-default pull-right comment_number"><i class="glyphicon glyphicon-comment"></i><span id="comment_number_text_{{ cur_mark["user"].id }}">{{ cur_mark["mark_comments"]|length }}</span></span>
+					</div>
+				</h4>
+				<p>
+				{% if cur_mark["comment"] != None %}
 					{{ cur_mark["comment"]|safe }}
-					{% else %}
+				{% else %}
 					N/A
+				{% endif %}
+				</p>
+				<div class="comment_toolbar" id="comment_toolbar_{{ cur_mark["user"].id }}">
+					{% if cur_mark["mark"] != None and cur_mark["mark"] != "homework_in_progress" %}
+					<div class="input-group comment_form" id="comment_form_{{ cur_mark["user"].id }}"> 
+					    <input class="form-control comment_text" placeholder="Réagir sur la note de {{ cur_mark["user"].nickname }}" type="text" id="comment_text_{{ cur_mark["user"].id }}">
+					    <span class="input-group-addon">
+						<a class="post_comment" id="comment_link_{{ cur_mark["user"].id }}" href="#"><i class="fa fa-edit"></i></a>
+					    </span>
+					</div>
+					{% else %}
+						<i>Pas de commentaire possible car pas de note</i>
 					{% endif %}
-				</td>
-			</tr>
-		{% endfor %}
-		</table>
-		<div class="text-center">
-			{% if marked_flag %}
-			<a href="{{ url_for("mark_movie",movie_id_form=movie.id) }}" class="btn btn-primary">Mettre à jour la note</a>
-			{% else %}
-			<a href="{{ url_for('mark_movie',movie_id_form=movie.id) }}" class="btn btn-primary">Noter ce film</a>
-			{% endif %}
+					{% for cur_comment in cur_mark["mark_comments"] %}
+					<div class="media media_comment media_comment_{{ cur_comment.user.avatar }}" style="background-color:{{ cur_comment.user.graph_color }}">
+						<div class="media-left">
+						    <img src="{{ config.AVATARS_URL}}{{ cur_comment.user.avatar }}" class="img-circle avatar" alt="user profile image">
+						</div>
+						<div class="media-body">
+							<h4 class="media-heading">{{ cur_comment.user.nickname }}
+								<small><i>{{ cur_comment.posted_when }}</i></small>
+							</h4>
+							<p>
+								{{ cur_comment.message }}
+							</p>
+						</div>
+					</div>
+					{% endfor %}
+				</div>
+			</div>
+			<div class="media-right">
+		            <a href="#" class="display_link" id="display_link_{{ cur_mark["user"].id }}"><i class="display_button fa fa-minus-square fa-2x display" id="display_icon_{{ cur_mark["user"].id }}" style="color:#5cb95c;" aria-hidden="true"></i></a>
+			</div>
 		</div>
+		{% endfor %}
 	{% endif %}
 	</div>
+        <script>
+	$(document).ready(function(){
+
+	    // Callback that display the posted comment
+	    function display_comment(data) {
+
+		// Create the div block for inserting the comment	
+		var new_comment = "<div class='media media_comment' style='background-color:{{ g.user.graph_color }};' media_comment_" + data.mark_comment.mark_user_id + ">"
+	 		+ "<div class='media-left'>"
+			+ "<img src='{{ config.AVATARS_URL}}{{ g.user.avatar }}' class='img-circle avatar' alt='user profile image'>"
+			+ "</div>"
+			+ "<div class='media-body'>"
+			+ "<h4 class='media-heading'>" + data.user.nickname
+			+ "<small><i> " + data.mark_comment.posted_when + "</i></small></h4>"
+			+ "<p>" + data.mark_comment.message + "</p>"
+		 	+ "</div></div>"
+
+		// Insert the element
+		$(new_comment).insertAfter('#comment_form_' + data.mark_comment.mark_user_id ).hide().slideDown("slow");
+
+		// Update the comment number
+		$("#comment_number_text_" + data.mark_comment.mark_user_id).text(data.mark_comment_number)
+
+		// Reset the comment text input field
+		$(".comment_text").val("")
+		};
+
+	    // Function that buils the AJAX Request
+	    // and send the comment to the server side
+	    function send_comment(type,obj) {
+
+		// Let's extract the user id from the link id
+		var user = $(obj).attr("id").replace("comment_" + type + "_","")
+
+		// Fetch the comment text
+		var comment_text = $("#comment_text_" + user).val()
+
+		// Let's send the comment
+		$.post(
+			"{{ url_for('add_mark_comment') }}",
+			{ 
+				 comment : comment_text,
+				 movie_id: {{ movie.id }},
+				 dest_user: user
+			},
+				 display_comment
+		);
+     	    };
+
+	    // Send comment if we click on the edit button	
+	    $('.post_comment').click(function (e) {
+
+		// Disable anchor behaviour in order to avoid to go back on the top of the page
+		e.preventDefault()
+
+		// Send comment
+		send_comment("link",$(this))
+
+            }); 
+
+            // Message send from the input field when enter key is pressed
+            $('.comment_text').on('keypress', function (e) {
+
+                 if(e.which === 13){
+
+			// Let's send the comment
+			send_comment("text",$(this))
+                }
+            });
+
+	    // Display/Hide comment individually
+	    $(".display_link").click(function (e) {
+
+		// Disable anchor behaviour in order to avoid to go back on the top of the page
+		e.preventDefault()
+
+		// Let's extract the user id from the display button
+		var user = $(this).attr("id").replace("display_link_","")
+
+		if ($("#display_icon_" + user).hasClass("fa-minus-square")) {
+			$("#display_icon_" + user).addClass("fa-plus-square").removeClass("fa-minus-square")
+			$("#comment_toolbar_" + user).slideUp()
+		} else if ($("#display_icon_" + user).hasClass("fa-plus-square")) {
+			$("#display_icon_" + user).addClass("fa-minus-square").removeClass("fa-plus-square")
+			$("#comment_toolbar_" + user).slideDown()
+		}
+		});
+
+	    // Display/Hide all comments
+	    $("#display_all_button").click(function (e) {
+
+		// Disable anchor behaviour in order to avoid to go back on the top of the page
+		e.preventDefault()
+
+		if ($("#display_all_icon").hasClass("fa-minus-square")) {
+			$("#display_all_icon").addClass("fa-plus-square").removeClass("fa-minus-square")
+			$(".display_button").addClass("fa-plus-square").removeClass("fa-minus-square")
+			$("#display_all_text").text("Montrer Tout")
+			$(".comment_toolbar").slideUp()
+		} else if ($("#display_all_icon").hasClass("fa-plus-square")) {
+			$("#display_all_icon").addClass("fa-minus-square").removeClass("fa-plus-square")
+			$(".display_button").addClass("fa-minus-square").removeClass("fa-plus-square")
+			$(".comment_toolbar").slideDown()
+			$("#display_all_text").text("Cacher Tout")
+		}
+		});
+
+	});
+	</script>
 {% endblock %}

@@ -52,6 +52,17 @@ class User(db.Model):
 			"notif_homework_add": None,
 		}
 
+	def serialize(self):
+		return {
+			"id": self.id,
+			"nickname": self.nickname,
+			"password": self.password,
+			"email": self.email,
+			"avatar": self.avatar,
+			"notifications": self.notifications,
+			"graph_color": self.graph_color
+		}
+
 class Type(db.Model):
 	
 	__tablename__ = "types"
@@ -130,6 +141,7 @@ class Mark(db.Model):
 	movie = db.relationship('Movie', backref='marked_by_users')
 	user = db.relationship('User', backref='marked_movies',foreign_keys='Mark.user_id')
 	homework_who_user = db.relationship('User', backref='given_homework',foreign_keys='Mark.homework_who')
+	comments = db.relationship('MarkComment', backref='mark', order_by=desc("posted_when"))
 
 class ChatMessage(db.Model):
 	__tablename__ = "chat_messages"
@@ -140,5 +152,27 @@ class ChatMessage(db.Model):
 	posted_when = db.Column(db.DateTime())
 	message = db.Column(db.String(1000))
 
+class MarkComment(db.Model):
+        __tablename__ = "mark_comment"
+        __table_args__ = (db.ForeignKeyConstraint([ "mark_user_id", "mark_movie_id" ], [ "marks.user_id", "marks.movie_id" ]), {'mysql_charset': 'utf8', 'mysql_collate': 'utf8_general_ci'} )
+
+        markcomment_id = db.Column(db.Integer, primary_key=True)
+        user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+        mark_user_id = db.Column(db.Integer)
+        mark_movie_id = db.Column(db.Integer)
+        posted_when = db.Column(db.DateTime())
+        message = db.Column(db.String(1000))
+	user = db.relationship("User", backref="comments")
+
+	def serialize(self):
+		return {
+			"markcomment_id": self.markcomment_id,
+			"user_id": self.user_id,
+			"mark_user_id": self.mark_user_id,
+			"mark_movie_id": self.mark_movie_id,
+			"posted_when": self.posted_when,
+			"message": self.message
+		}
+        
 # Enable FTS indexation
 whooshalchemy.whoosh_index(app, Movie)
