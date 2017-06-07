@@ -111,6 +111,7 @@ class UserForm(Form):
 	notif_movie_add = BooleanField()
 	notif_mark_add = BooleanField()
 	notif_homework_add = BooleanField()
+	notif_comment_add = BooleanField()
 	submit_user = SubmitField("Sauver")
 	upload_avatar = FileField("Image de profil")
 
@@ -122,18 +123,21 @@ class UserForm(Form):
 
 		# Fill the notifications field from using the dictionnary dict
 		if user != None and user.notifications != None:
-			
-			if user.notifications["notif_own_activity"] != None:
+
+			if "notif_own_activity" in user.notifications and user.notifications["notif_own_activity"] != None:
 				self.notif_own_activity.data=user.notifications["notif_own_activity"]
 
-			if user.notifications["notif_movie_add"] != None:
+			if "notif_movie_add" in user.notifications and user.notifications["notif_movie_add"] != None:
 				self.notif_movie_add.data=user.notifications["notif_movie_add"]
 
-			if user.notifications["notif_mark_add"] != None:
+			if "notif_mark_add" in user.notifications and user.notifications["notif_mark_add"] != None:
 				self.notif_mark_add.data=user.notifications["notif_mark_add"]
 
-			if user.notifications["notif_homework_add"] != None:
+			if "notif_homework_add" in user.notifications and user.notifications["notif_homework_add"] != None:
 				self.notif_homework_add.data=user.notifications["notif_homework_add"]
+
+			if "notif_comment_add" in user.notifications and user.notifications["notif_comment_add"] != None:
+				self.notif_comment_add.data=user.notifications["notif_comment_add"]
 
 class PasswordForm(Form):
 	password = PasswordField('Mot de passe',[DataRequired('Champ Requis'), EqualTo('confirm',message='Les mots de passe ne correspondent pas')])

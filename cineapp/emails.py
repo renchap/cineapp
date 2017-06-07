@@ -135,3 +135,38 @@ def update_movie_notification(notif):
 		if cur_user.notifications != None and cur_user.notifications["notif_movie_add"] == True and send_own_activity_mail==True:
 			send_email('[Cineapp] - Modification d\'un film' , app.config['MAIL_SENDER'],[ cur_user.email ] ,
 			render_template('update_movie_notification.txt', dest_user=cur_user, add_user=g.user,notif=notif,you_user=you_user))
+
+# Function which sends notification to user when a comment has been posted on a mark
+def mark_comment_notification(mark_comment):
+	users = User.query.filter_by().all()
+
+	# Check if the comment is posted by a user on his own mark
+	if mark_comment.user.id==mark_comment.mark.user.id:
+		own_mark_user=True
+	else:
+		own_mark_user=False
+
+	for cur_user in users:
+
+		send_own_activity_mail=True
+
+		# Check if the logged user posted the comment
+		if cur_user.id==g.user.id:
+			you_user=True
+
+			# Check if we must send an email for user own activity	
+			if cur_user.notifications != None and "notif_own_activity" in cur_user.notifications and cur_user.notifications["notif_own_activity"] == False:
+				send_own_activity_mail=False
+		else:
+			you_user=False
+
+		# Check if the comment refers to a mark for the logged user
+		if cur_user.id==mark_comment.mark.user.id:
+			you_dest_user=True
+		else:
+			you_dest_user=False
+
+		# Send the mail if we have too	
+		if cur_user.notifications != None and "notif_comment_add" in cur_user.notifications and cur_user.notifications["notif_comment_add"] == True and send_own_activity_mail==True:
+			send_email('[Cineapp] - Ajout d\'un commentaire' , app.config['MAIL_SENDER'],[ cur_user.email ] ,
+			render_template('mark_comment_notification.txt', dest_user=cur_user, mark_comment=mark_comment, you_user=you_user,you_dest_user=you_dest_user,own_mark_user=own_mark_user))

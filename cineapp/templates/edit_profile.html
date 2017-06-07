@@ -60,6 +60,12 @@
 		    <div class="col-lg-8">
 			{{ render_field(form.notif_homework_add,label_visible=false,parse_class=false) }}
 		    </div>
+		    <div class="col-lg-3">
+			    <label class="pull-right">Ajout d'un commentaire:</label>
+		    </div>
+		    <div class="col-lg-8">
+			{{ render_field(form.notif_comment_add,label_visible=false,parse_class=false) }}
+		    </div>
 		  </div>
 		  {% elif state=="password" %}
 		  <div class="form-group">

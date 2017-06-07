@@ -50,6 +50,7 @@ class User(db.Model):
 			"notif_movie_add" : None,
 			"notif_mark_add": None,
 			"notif_homework_add": None,
+			"notif_comment_add": None,
 		}
 
 	def serialize(self):

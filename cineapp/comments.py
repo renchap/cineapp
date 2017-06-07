@@ -5,6 +5,7 @@ from flask import render_template, flash, redirect, url_for, g, request, session
 from flask.ext.login import login_required
 from cineapp.models import User, MarkComment
 from datetime import datetime
+from emails import mark_comment_notification
 
 @app.route('/json/add_mark_comment', methods=['POST'])
 @login_required
@@ -38,6 +39,9 @@ def add_mark_comment():
 
 	except IntegrityError:
 		db.session.rollback()
+
+	# Try to send the email
+	mark_comment_notification(mark_comment)
 
 	# Build the dict we're going to send to the frontend
 	data_dict = { "user": g.user.serialize(), "mark_comment": mark_comment.serialize(), "mark_comment_number": MarkComment.query.filter(MarkComment.mark_user_id==dest_user,MarkComment.mark_movie_id==movie_id).count()}
