@@ -184,6 +184,11 @@ footer {
     height: 250px;
 }
 
+.btn-comment {
+    background-color:#aa66cc;
+    color:white;
+}
+
 ::-webkit-scrollbar-track
 {
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
@@ -238,9 +243,10 @@ footer {
 }
 
 .media_comment {
+	border-radius: 20px;
 	padding-top:10px;
+	padding-bottom:10px;
 	padding-left:10px;
-	margin:0;
 }
 
 .comment_form {
@@ -257,4 +263,12 @@ footer {
 
 #mark_container {
     padding-bottom:10px;
+}
+
+.fa-bg-white {
+    color:white;
+}
+
+.comment_tools .btn {
+    margin-right:10px;
 }
