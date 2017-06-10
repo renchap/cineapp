@@ -99,6 +99,10 @@
 								{% elif cur_object["entry_type"] == "homeworks" %}
 								<td><a class="disabled btn btn-warning btn-xs">Devoir</a></td>
 								<td>{{ cur_object["object"].homework_who_user.nickname }} vient de donner  <a href="{{ url_for('show_movie', movie_id=cur_object["object"].movie_id) }}"> {{ cur_object["object"].movie.name }}</a> en devoir à {{ cur_object["object"].user.nickname }}</td>
+
+								{% elif cur_object["entry_type"] == "comments" %}
+								<td><a class="disabled btn btn-comment btn-xs">Commentaire</a></td>
+								<td>{{ cur_object["object"].user.nickname }} vient de poster un <span title="Commentaire" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="{{ cur_object["object"].message}}"><strong>commentaire</strong></span> sur le film  <a href="{{ url_for('show_movie', movie_id=cur_object["object"].mark.movie.id) }}"> {{ cur_object["object"].mark.movie.name }}</a> en réponse à <span title="Commentaire" data-toggle="popover" data-placement="top" data-html="true" data-trigger="hover" data-content="{{ cur_object["object"].mark.comment}}"><strong>{{ cur_object["object"].mark.user.nickname }}</strong></td>
 								{% endif %}
 							</tr>
 							{% endfor %}

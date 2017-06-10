@@ -1470,6 +1470,12 @@ def update_activity_flow():
 			# Define the text that will be shown on the datatable
 			entry_text=cur_activity["object"].homework_who_user.nickname + " vient de donner <a href=\"" + url_for('show_movie', movie_id=cur_activity["object"].movie_id) + "\">" +  cur_activity["object"].movie.name + "</a> en devoir a " + cur_activity["object"].user.nickname
 
+		elif cur_activity["entry_type"] == "comments":
+			entry_type="<a class=\"disabled btn btn-comment btn-xs\">Commentaire</a>"
+
+			# Define the text that will be shown on the datatable
+			entry_text=cur_activity["object"].user.nickname + " vient de poster un <span title=\"Commentaire\" data-toggle=\"popover\" data-placement=\"top\" data-trigger=\"hover\" data-content=\"" + cur_activity["object"].message + "\"><strong>commentaire</strong></span> sur le film <a href=\"" + url_for('show_movie', movie_id=cur_activity["object"].mark.movie.id) + "\">" +  cur_activity["object"].mark.movie.name + u"</a> en réponse à <strong><span title=\"Commentaire\" data-toggle=\"popover\" data-placement=\"top\" data-trigger=\"hover\" data-html=\"true\" data-content=\"" + cur_activity["object"].mark.comment + "\">" + cur_activity["object"].mark.user.nickname + "</strong></span>"
+
 		# Append the processed entry to the dictionnary that will be used by the datatable
 		activity_dict["data"].append({"entry_type" : entry_type, "entry_text" : entry_text })
 
