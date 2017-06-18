@@ -143,6 +143,7 @@ class Mark(db.Model):
 	user = db.relationship('User', backref='marked_movies',foreign_keys='Mark.user_id')
 	homework_who_user = db.relationship('User', backref='given_homework',foreign_keys='Mark.homework_who')
 	comments = db.relationship('MarkComment', backref='mark', order_by=desc("posted_when"))
+	active_comments = db.relationship('MarkComment', order_by=desc("posted_when"), primaryjoin=("and_(MarkComment.mark_user_id==Mark.user_id, MarkComment.mark_movie_id==Mark.movie_id,MarkComment.deleted_when==None)"))
 
 class ChatMessage(db.Model):
 	__tablename__ = "chat_messages"
@@ -162,8 +163,10 @@ class MarkComment(db.Model):
         mark_user_id = db.Column(db.Integer)
         mark_movie_id = db.Column(db.Integer)
         posted_when = db.Column(db.DateTime())
+        deleted_when = db.Column(db.DateTime())
         message = db.Column(db.String(1000))
 	user = db.relationship("User", backref="comments")
+	old_message = None
 
 	def serialize(self):
 		return {

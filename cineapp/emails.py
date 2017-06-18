@@ -137,7 +137,7 @@ def update_movie_notification(notif):
 			render_template('update_movie_notification.txt', dest_user=cur_user, add_user=g.user,notif=notif,you_user=you_user))
 
 # Function which sends notification to user when a comment has been posted on a mark
-def mark_comment_notification(mark_comment):
+def mark_comment_notification(mark_comment,notif_type):
 	users = User.query.filter_by().all()
 
 	# Check if the comment is posted by a user on his own mark
@@ -168,5 +168,21 @@ def mark_comment_notification(mark_comment):
 
 		# Send the mail if we have too	
 		if cur_user.notifications != None and "notif_comment_add" in cur_user.notifications and cur_user.notifications["notif_comment_add"] == True and send_own_activity_mail==True:
-			send_email('[Cineapp] - Ajout d\'un commentaire' , app.config['MAIL_SENDER'],[ cur_user.email ] ,
-			render_template('mark_comment_notification.txt', dest_user=cur_user, mark_comment=mark_comment, you_user=you_user,you_dest_user=you_dest_user,own_mark_user=own_mark_user))
+
+			# Check the kind of mail we must send considering the notification type
+			if notif_type == "add_mark_comment":
+				mail_title = "Ajout d\'un commentaire"
+				notif_template = "mark_comment_notification.txt"
+
+			elif notif_type == "edit_mark_comment":
+
+				mail_title = "Modification d\'un commentaire"
+				notif_template = "mark_update_comment_notification.txt"
+
+			elif notif_type == "delete_mark_comment":
+
+				mail_title = "Suppression d\'un commentaire"
+				notif_template = "mark_delete_comment_notification.txt"
+
+			send_email('[Cineapp] - ' + mail_title , app.config['MAIL_SENDER'],[ cur_user.email ] ,
+			render_template(notif_template, dest_user=cur_user, mark_comment=mark_comment, you_user=you_user,you_dest_user=you_dest_user,own_mark_user=own_mark_user))

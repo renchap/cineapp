@@ -110,15 +110,15 @@ aria-hidden="true">&rarr;</span></a>
 		</form>
 	{% else %}
 		<div class="text-right">
-			<a href="#" id="display_all_button" class="btn btn-success"><i class="fa fa-minus-square" id="display_all_icon" aria-hidden="true"></i> <span id="display_all_text">Cacher tout</span></a>
+			<a href="#" id="display_all_button" class="btn btn-success"><i class="fa fa-plus-square" id="display_all_icon" aria-hidden="true"></i> <span id="display_all_text">Monter tout</span></a>
 		</div>
 		{% for cur_mark in mark_users %}
-		<div class="media media_mark media_mark_{{ cur_mark["user"].id }}">
+		<div class="media media_mark media_mark_{{ cur_mark["user"].id }}" style="background-color:#{{ cur_mark["user"].graph_color }}">
 			<div class="media-left">
 			    <img src="{{ config.AVATARS_URL}}{{ cur_mark["user"].avatar }}" class="img-circle avatar" alt="user profile image">
 			    <div class="h4 text-center">
 				{% if cur_mark["mark"] == "homework_in_progress" %}
-					<a class="disabled btn btn-warning btn-xs">Devoir</a>
+					<a class="disabled btn btn-warning btn-xs fa-bg-white">Devoir</a>
 				{% elif cur_mark["mark"] == None %}
 					{% if g.user.id != (cur_mark["user"]).id %}
 						<a href={{ url_for("add_homework",movie_id=movie.id,user_id=cur_mark["user"].id) }} class="btn btn-success btn-xs">Donner un devoir</a>
@@ -155,7 +155,7 @@ aria-hidden="true">&rarr;</span></a>
 					N/A
 				{% endif %}
 				</p>
-				<div class="comment_toolbar" id="comment_toolbar_{{ cur_mark["user"].id }}">
+				<div class="comment_toolbar" id="comment_toolbar_{{ cur_mark["user"].id }}" style="display:none;">
 					{% if cur_mark["mark"] != None and cur_mark["mark"] != "homework_in_progress" %}
 					<div class="input-group comment_form" id="comment_form_{{ cur_mark["user"].id }}"> 
 					    <input class="form-control comment_text" placeholder="Réagir sur la note de {{ cur_mark["user"].nickname }}" type="text" id="comment_text_{{ cur_mark["user"].id }}">
@@ -167,7 +167,7 @@ aria-hidden="true">&rarr;</span></a>
 						<i>Pas de commentaire possible car pas de note</i>
 					{% endif %}
 					{% for cur_comment in cur_mark["mark_comments"] %}
-					<div class="media media_comment media_comment_{{ cur_comment.user.avatar }}" style="background-color:{{ cur_comment.user.graph_color }}">
+					<div class="media media_comment media_comment_{{ cur_comment.user.id }}" style="background-color:{{ cur_comment.user.graph_color }}">
 						<div class="media-left">
 						    <img src="{{ config.AVATARS_URL}}{{ cur_comment.user.avatar }}" class="img-circle avatar" alt="user profile image">
 						</div>
@@ -175,16 +175,35 @@ aria-hidden="true">&rarr;</span></a>
 							<h4 class="media-heading">{{ cur_comment.user.nickname }}
 								<small><i>{{ cur_comment.posted_when }}</i></small>
 							</h4>
-							<p>
-								{{ cur_comment.message }}
-							</p>
+							<div class="comment_edit_group" id="comment_edit_group_{{cur_comment.markcomment_id}}">
+								<div class="comment_nonedit_text" id="comment_nonedit_text_{{cur_comment.markcomment_id}}">
+									{{ cur_comment.message }}
+								</div>
+								<div class="input-group comment_edit_form" id="comment_edit_form_{{ cur_comment.markcomment_id }}" style="display:none;width:99%"> 
+								    <input class="form-control comment_edit_text" value="{{ cur_comment.message }}" type="text" id="comment_edit_text_{{ cur_comment.markcomment_id }}">
+								    <span class="input-group-addon">
+									<a class="post_comment comment_edit_link" id="comment_edit_link_{{ cur_comment.markcomment_id }}" href="#"><i class="fa fa-edit"></i></a>
+								    </span>
+								</div>
+							{% if g.user.id == cur_comment.user_id %}
+							<div class="comment_tools" id="comment_tools_{{cur_comment.markcomment_id}}">
+								<a href="#" class="btn btn-primary btn-sm edit_comment" id="edit_comment_{{ cur_comment.markcomment_id }}"><span class="glyphicon glyphicon-edit"></span> Editer</a>
+								<a href="#" class="btn btn-danger btn-sm delete_comment" id="delete_comment_{{ cur_comment.markcomment_id }}"><span class="glyphicon glyphicon-trash"></span> Supprimer</a>
+							</div> 
+							{% endif %}
+							</div>
 						</div>
 					</div>
 					{% endfor %}
 				</div>
 			</div>
 			<div class="media-right">
-		            <a href="#" class="display_link" id="display_link_{{ cur_mark["user"].id }}"><i class="display_button fa fa-minus-square fa-2x display" id="display_icon_{{ cur_mark["user"].id }}" style="color:#5cb95c;" aria-hidden="true"></i></a>
+		            <a href="#" class="display_link" id="display_link_{{ cur_mark["user"].id }}">
+				<span class="fa-stack">
+	  				<i class="fa fa-square fa-stack-2x fa-bg-white"></i>
+					<i class="display_button fa fa-plus-square fa-stack-2x display" id="display_icon_{{ cur_mark["user"].id }}" style="color:#5cb95c;" aria-hidden="true"></i>
+				</span>
+		  	    </a>
 			</div>
 		</div>
 		{% endfor %}
@@ -213,7 +232,18 @@ aria-hidden="true">&rarr;</span></a>
 				+ "<div class='media-body'>"
 				+ "<h4 class='media-heading'>" + data.user.nickname
 				+ "<small><i> " + data.mark_comment.posted_when + "</i></small></h4>"
-				+ "<p>" + data.mark_comment.message + "</p>"
+				+ "<div class='comment_edit_group' id='comment_edit_group_" + data.mark_comment.markcomment_id + "'>"
+				+ "<div class='comment_nonedit_text' id='comment_nonedit_text_" + data.mark_comment.markcomment_id + "'>" + data.mark_comment.message +"</div>"
+				+ "<div class='input-group comment_edit_form' id='comment_edit_form_" + data.mark_comment.markcomment_id +"' style='display:none;width:99%'>"
+   			        + "<input class='form-control comment_edit_text' value='" + data.mark_comment.message + "' type='text' id='comment_edit_text_" + data.mark_comment.markcomment_id + "'>"
+			        + "<span class='input-group-addon'>"
+				+ "<a class='post_comment comment_edit_link' id='comment_edit_link_" + data.mark_comment.markcomment_id + "' href='#'><i class='fa fa-edit'></i></a>"
+			        + "</span>"
+				+ "</div>"
+				+ "<div class='comment_tools' id='comment_tools_" + data.mark_comment.markcomment_id + "'>"
+				+ "<a href='#' class='btn btn-primary btn-sm edit_comment' id='edit_comment_" + data.mark_comment.markcomment_id + "'><span class='glyphicon glyphicon-edit'></span> Editer</a>"
+				+ "<a href='#' class='btn btn-danger btn-sm delete_comment' id='delete_comment_" + data.mark_comment.markcomment_id + "'><span class='glyphicon glyphicon-trash'></span> Supprimer</a>"
+				+ "</div>"
 				+ "</div></div>"
 		}
 
@@ -231,6 +261,46 @@ aria-hidden="true">&rarr;</span></a>
 		// Reset the comment text input field
 		$(".comment_text").val("")
 		};
+
+	    // Function that update the comment
+	    function update_comment(data) {
+
+		// Insert the element
+		if (data.error == null) {
+
+			// Do some stuff if we did a delete operation
+			if (data.operation == "delete_mark_comment") {
+
+				// And then delete the buttons since we can't edit or delete the comment anymore
+				$("#comment_tools_" + data.markcomment_id).fadeOut(function() {
+					$(this).remove()
+				});
+			}
+			// Do some stuff if we did an edit operation
+			else if (data.operation == "edit_mark_comment") {
+
+				// Hide the form and display the comment
+				$("#comment_edit_group_" + data.mark_comment.markcomment_id +">div").toggle()
+			}
+
+			// This code allows making a transition fadeOut/Fade in on text update 
+			$("#comment_nonedit_text_" + data.mark_comment.markcomment_id).fadeOut(function() {
+				$(this).text(data.mark_comment.message).fadeIn();
+			});
+
+			// Update the comment number
+			$("#comment_number_text_" + data.mark_comment.mark_user_id).text(data.mark_comment_number)
+		}
+		else {
+			// Let's display an alert
+			var error_message = "<div class='alert alert-danger modal-dialog text-center'>"
+				+ data.error
+				+ "</div>"
+
+			$(error_message).insertAfter('#comment_tools_' + data.markcomment_id).hide().slideDown("slow").delay(1000).fadeTo(500,0).slideUp("slow");
+		}
+
+	    }
 
 	    // Function that buils the AJAX Request
 	    // and send the comment to the server side
@@ -312,6 +382,77 @@ aria-hidden="true">&rarr;</span></a>
 		}
 		});
 
+	    // Comment deletion requested (fn.on is used in order to be able to trigger dynamically created elements)
+	    $(document).on('click','.delete_comment',function (e) {
+
+		// Disable anchor behaviour in order to avoid to go back on the top of the page
+		e.preventDefault()
+
+		// Let's extract the comment id from the link_id
+		var comment_id = $(this).attr("id").replace("delete_comment_","")
+
+		// Let's send the request for deleting the comment
+		$.post(
+			"{{ url_for('delete_mark_comment') }}",
+			{ 
+				comment_id: comment_id
+			},	update_comment
+		);
+
+	    });
+
+	    // Edit comment requested ==> Display the form block
+	    $(document).on('click','.edit_comment',function (e) {
+
+		// Disable anchor behaviour in order to avoid to go back on the top of the page
+		e.preventDefault()
+
+		// Let's extract the comment id from the link_id
+		var comment_id = $(this).attr("id").replace("edit_comment_","")
+
+		// Hide all edit boxes before showing the good one
+		$(".comment_nonedit_text").show()
+		$(".comment_edit_form").hide()
+		$(".comment_tools").show()
+
+		// Display the edit form for the current comment and hide all others
+		$("#comment_nonedit_text_" + comment_id).hide()
+		$("#comment_edit_form_" + comment_id).show()
+		$("#comment_tools_" + comment_id).hide()
+
+		// Set the focus on the input box
+		$("#comment_edit_text_" + comment_id).focus()
+		
+            });
+
+	    // Update edited comment
+	    $(document).on('keyup','.comment_edit_text',function (e) {
+
+		// Let's extract the comment id from the link_id
+		var comment_id = $(this).attr("id").replace("comment_edit_text_","")
+
+		 // Enter is pressed
+                 if(e.keyCode == 13){
+
+			// Fetch the text
+			var comment_text = $("#comment_edit_text_" + comment_id).val()
+
+			// Let's send the request for deleting the comment
+			$.post(
+				"{{ url_for('edit_mark_comment') }}",
+				{ 
+					comment_id: comment_id,
+					comment_text: comment_text,
+				},	update_comment
+			);
+
+                }
+
+		// Echap is pressed
+                if(e.keyCode == 27){ 
+			$("#comment_edit_group_" + comment_id +">div").toggle()
+		}
+            });
 	});
 	</script>
 {% endblock %}
