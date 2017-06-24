@@ -119,6 +119,11 @@ footer {
     z-index: 20;
 }
 
+#spinner_chat {
+    background: url(/static/images/ajax-loader.gif) center center no-repeat;
+    height: 85%;
+}
+
 #container_overlay {
     background: #e9e9e9;
     display: none;
@@ -127,6 +132,11 @@ footer {
     right: 0;
     bottom: 0;
     left: 0;
+    opacity: 0.5;
+}
+
+.overlay {
+    background: #e9e9e9;
     opacity: 0.5;
 }
 
@@ -167,10 +177,14 @@ footer {
 }
 
 #chat_box {
-	position:fixed;
-	bottom:0;
-	right:0;
-	width:325px;
+	width:95%;
+	height:80%;
+	margin: auto;
+}
+
+#chat_messages {
+	height:100%;
+	overflow-y:scroll;
 }
 
 .panel .slidedown .glyphicon, .chat .glyphicon
@@ -187,24 +201,6 @@ footer {
 .btn-comment {
     background-color:#aa66cc;
     color:white;
-}
-
-::-webkit-scrollbar-track
-{
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-    background-color: #F5F5F5;
-}
-
-::-webkit-scrollbar
-{
-    width: 12px;
-    background-color: #F5F5F5;
-}
-
-::-webkit-scrollbar-thumb
-{
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-    background-color: #555;
 }
 
 /* Test Nouveau commentaire */
@@ -272,4 +268,13 @@ footer {
 .comment_tools .btn {
     margin-top:5px;
     margin-right:10px;
+}
+
+#chat_footer{
+	width:95%;
+	margin: 0 auto;
+}
+
+.chat-img {
+	padding-right:10px;
 }

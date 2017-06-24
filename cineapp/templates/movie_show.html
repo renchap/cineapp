@@ -81,8 +81,8 @@ aria-hidden="true">&rarr;</span></a>
 				{{ update_movie_form.hidden_tag() }}
 				{{ update_movie_form.movie_id}}
 				{{ update_movie_form.submit_update_movie(class="btn btn-primary center-block",style="display:inline;") }}
-			{% if marked_flag %}
 			</form>
+			{% if marked_flag %}
 			<a href="{{ url_for("mark_movie",movie_id_form=movie.id) }}" class="btn btn-primary">Mettre à jour la note</a>
 			{% else %}
 			<a href="{{ url_for('mark_movie',movie_id_form=movie.id) }}" class="btn btn-primary">Noter ce film</a>
@@ -167,7 +167,7 @@ aria-hidden="true">&rarr;</span></a>
 						<i>Pas de commentaire possible car pas de note</i>
 					{% endif %}
 					{% for cur_comment in cur_mark["mark_comments"] %}
-					<div class="media media_comment media_comment_{{ cur_comment.user.id }}" style="background-color:{{ cur_comment.user.graph_color }}">
+					<div class="media media_comment" id="media_comment_{{ cur_comment.markcomment_id }}" style="background-color:{{ cur_comment.user.graph_color }}">
 						<div class="media-left">
 						    <img src="{{ config.AVATARS_URL}}{{ cur_comment.user.avatar }}" class="img-circle avatar" alt="user profile image">
 						</div>
@@ -225,7 +225,7 @@ aria-hidden="true">&rarr;</span></a>
 		else {
 
 			// Create the div block for inserting the comment	
-			var new_comment = "<div class='media media_comment' style='background-color:{{ g.user.graph_color }};' media_comment_" + data.mark_comment.mark_user_id + ">"
+			var new_comment = "<div class='media media_comment' style='background-color:#{{ g.user.graph_color }};' id='media_comment_" + data.mark_comment.markcomment_id + "'>"
 				+ "<div class='media-left'>"
 				+ "<img src='{{ config.AVATARS_URL}}{{ g.user.avatar }}' class='img-circle avatar' alt='user profile image'>"
 				+ "</div>"
@@ -235,7 +235,7 @@ aria-hidden="true">&rarr;</span></a>
 				+ "<div class='comment_edit_group' id='comment_edit_group_" + data.mark_comment.markcomment_id + "'>"
 				+ "<div class='comment_nonedit_text' id='comment_nonedit_text_" + data.mark_comment.markcomment_id + "'>" + data.mark_comment.message +"</div>"
 				+ "<div class='input-group comment_edit_form' id='comment_edit_form_" + data.mark_comment.markcomment_id +"' style='display:none;width:99%'>"
-   			        + "<input class='form-control comment_edit_text' value='" + data.mark_comment.message + "' type='text' id='comment_edit_text_" + data.mark_comment.markcomment_id + "'>"
+   			        + "<input class='form-control comment_edit_text' value='" + data.mark_comment.message.replace(/\'/g,"&#39;") + "' type='text' id='comment_edit_text_" + data.mark_comment.markcomment_id + "'>"
 			        + "<span class='input-group-addon'>"
 				+ "<a class='post_comment comment_edit_link' id='comment_edit_link_" + data.mark_comment.markcomment_id + "' href='#'><i class='fa fa-edit'></i></a>"
 			        + "</span>"
@@ -268,28 +268,31 @@ aria-hidden="true">&rarr;</span></a>
 		// Insert the element
 		if (data.error == null) {
 
+			// Update the comment number
+			$("#comment_number_text_" + data.mark_comment.mark_user_id).text(data.mark_comment_number)
+
 			// Do some stuff if we did a delete operation
 			if (data.operation == "delete_mark_comment") {
 
 				// And then delete the buttons since we can't edit or delete the comment anymore
-				$("#comment_tools_" + data.markcomment_id).fadeOut(function() {
+				$("#media_comment_" + data.mark_comment.markcomment_id).delay(2000).slideUp("slow", function() {
 					$(this).remove()
 				});
 			}
 			// Do some stuff if we did an edit operation
 			else if (data.operation == "edit_mark_comment") {
 
-				// Hide the form and display the comment
-				$("#comment_edit_group_" + data.mark_comment.markcomment_id +">div").toggle()
+				// Hide the form and display the comment (Don't do it with toggle Not working :( )
+				$("#comment_nonedit_text_" + data.mark_comment.markcomment_id ).show()
+				$("#comment_edit_form_" + data.mark_comment.markcomment_id).hide()
+				$("#comment_tools_" +  data.mark_comment.markcomment_id).show()
 			}
 
 			// This code allows making a transition fadeOut/Fade in on text update 
 			$("#comment_nonedit_text_" + data.mark_comment.markcomment_id).fadeOut(function() {
-				$(this).text(data.mark_comment.message).fadeIn();
+				$(this).text(data.mark_comment.message).fadeIn()
 			});
 
-			// Update the comment number
-			$("#comment_number_text_" + data.mark_comment.mark_user_id).text(data.mark_comment_number)
 		}
 		else {
 			// Let's display an alert
@@ -324,6 +327,30 @@ aria-hidden="true">&rarr;</span></a>
 		);
      	    };
 
+	    // Function triggered when we want to edit a comment
+	    function edit_comment(type,obj) {
+
+		// Let's extract the comment id from the link_id
+		var comment_id = obj.attr("id").replace("comment_edit_" + type + "_","")
+
+		// Fetch the text
+		var comment_text = $("#comment_edit_text_" + comment_id).val()
+
+		// Let's send the request for deleting the comment
+		$.post(
+			"{{ url_for('edit_mark_comment') }}",
+			{ 
+				comment_id: comment_id,
+				comment_text: comment_text,
+			},	update_comment
+		);
+
+		// Echap is pressed
+                if(e.keyCode == 27){ 
+			$("#comment_edit_group_" + comment_id +">div").toggle()
+		}
+	    }
+
 	    // Send comment if we click on the edit button	
 	    $('.post_comment').click(function (e) {
 
@@ -338,7 +365,7 @@ aria-hidden="true">&rarr;</span></a>
             // Message send from the input field when enter key is pressed
             $('.comment_text').on('keypress', function (e) {
 
-                 if(e.which === 13){
+                 if(e.which == 13){
 
 			// Let's send the comment
 			send_comment("text",$(this))
@@ -425,34 +452,27 @@ aria-hidden="true">&rarr;</span></a>
 		
             });
 
-	    // Update edited comment
-	    $(document).on('keyup','.comment_edit_text',function (e) {
 
-		// Let's extract the comment id from the link_id
-		var comment_id = $(this).attr("id").replace("comment_edit_text_","")
+	    // Edit comment if we press enter
+	    $(document).on('keyup','.comment_edit_text',function (e) {
 
 		 // Enter is pressed
                  if(e.keyCode == 13){
-
-			// Fetch the text
-			var comment_text = $("#comment_edit_text_" + comment_id).val()
-
-			// Let's send the request for deleting the comment
-			$.post(
-				"{{ url_for('edit_mark_comment') }}",
-				{ 
-					comment_id: comment_id,
-					comment_text: comment_text,
-				},	update_comment
-			);
+			edit_comment("text",$(this))
 
                 }
-
-		// Echap is pressed
-                if(e.keyCode == 27){ 
-			$("#comment_edit_group_" + comment_id +">div").toggle()
-		}
             });
+
+	    // Edit comment if we click on the edit button	
+	    $('.comment_edit_link').click(function (e) {
+
+		// Disable anchor behaviour in order to avoid to go back on the top of the page
+		e.preventDefault()
+
+		// Send comment
+		edit_comment("link",$(this))
+
+            }); 
 	});
 	</script>
 {% endblock %}

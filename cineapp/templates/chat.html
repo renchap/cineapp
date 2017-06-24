@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+	   <div id="chat_box">
+		   <div class="panel panel-default">
+			    <div class="panel-heading">
+				Trollbox
+			    </div>
+			    <div class="panel-body overlay" id="chat_messages">
+				    <div id="spinner"></div>
+				    <ul class="chat" id="chat_window">
+				    </ul>
+			    </div>
+			<div class="panel-footer">
+			    <div class="input-group">
+				<input id="chat_field" type="text" class="form-control input-sm" placeholder="Saisir le message ici..." />
+				<span class="input-group-btn">
+				    <button class="btn btn-warning btn-sm" id="btn-chat">
+					Envoyer
+				</button>
+				</span>
+			    </div>
+			</div>
+		    </div>
+		</div>
+	<script>
+	$(document).ready(function(){
+	    var socket = io.connect('http://' + document.domain + ':' + location.port + '/chat_ws',{'sync disconnect on unload': true });
+
+	    // Function that send message using WebSocket
+	    function send_message() {
+		socket.emit('chat_message', { data: $('#chat_field').val() });
+		$('#chat_field').val('')
+      	    }
+
+	    // Message reception
+            socket.on('message', function(data) {
+
+		// Remove the spinner
+		$("#spinner").remove()
+
+		$("#chat_window").append('<li tabindex="1" class="right clearfix"><span class="chat-img pull-left"><img src="/static/avatars/' + data.avatar + '" alt="User Avatar" class="img-circle" height="40" width="40" /></span><div class="chat-body clearfix"><div class="header"><strong class="primary-font">' + data.user + '</strong> <small class="text-muted"><span class="glyphicon glyphicon-time"></span>' + data.date + '</small></div><p>' + data.msg +'</p></div></li>');
+
+		$('li').last().addClass('active-li').focus();
+		$('#chat_field').focus();
+		$('#chat_messages').removeClass("overlay")
+            });
+
+	    // Message send from the input field when enter key is pressed
+	    $('#chat_field').on('keypress', function (e) {
+	         if(e.which === 13){
+			send_message()
+         	}
+            }); 
+
+	    // Message send from the input field when send button is lciked
+	    $('#btn-chat').on('click', function (e) {
+			send_message()
+            }); 
+	});
+	</script>
+{% endblock %}
