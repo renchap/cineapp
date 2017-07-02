@@ -9,7 +9,7 @@ from wtforms.ext.sqlalchemy.orm import model_form
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from cineapp import app, db, lm
 from cineapp.forms import LoginForm, AddUserForm, AddMovieForm, MarkMovieForm, SearchMovieForm, SelectMovieForm, ConfirmMovieForm, FilterForm, UserForm, PasswordForm, HomeworkForm, UpdateMovieForm, DashboardGraphForm
-from cineapp.models import User, Movie, Mark, Origin, Type
+from cineapp.models import User, Movie, Mark, Origin, Type, FavoriteMovie, FavoriteType
 from cineapp.tvmdb import search_movies,get_movie,download_poster, search_page_number
 from cineapp.emails import add_movie_notification, mark_movie_notification, add_homework_notification, update_movie_notification
 from cineapp.utils import frange, get_activity_list, resize_avatar
@@ -120,14 +120,14 @@ def list_movies():
 		# We come from the filter form above the datatable
 		# Build the filter request
 
-		if filter_form.origin.data == None and filter_form.type.data == None and filter_form.where.data == None:
+		if filter_form.origin.data == None and filter_form.type.data == None and filter_form.where.data == None and filter_form.favorite.data == None:
 			# All filter are empty => Let's display the list
 			session['search_type']="list"
 		else:
 
 			# Put the forms parameter into a session object in order to be handled by the datatable
 			session['search_type']="filter_origin_type"
-			filter_dict = {'origin' : None, 'type': None, 'seen_where' : None}
+			filter_dict = {'origin' : None, 'type': None, 'seen_where' : None, 'favorite': None}
 
 			if filter_form.origin.data != None:
 				filter_dict['origin'] = filter_form.origin.data.id
@@ -137,6 +137,9 @@ def list_movies():
 
 			if filter_form.where.data != None:
 				filter_dict['seen_where'] = filter_form.where.data.id
+
+			if filter_form.favorite.data != None:
+				filter_dict['favorite'] = filter_form.favorite.data.id
 
 			session['query']=filter_dict
 
@@ -164,6 +167,11 @@ def list_movies():
 			seen_where=None
 		else:
 			seen_where=User.query.get(session_query['seen_where'])
+
+		if session_query['favorite'] == None:
+			favorite=None
+		else:
+			favorite=User.query.get(session_query['favorite'])
 
 		# Recreate the form with the set default values
 		filter_form=FilterForm(origin=origin,type=type,where=seen_where)
@@ -248,6 +256,9 @@ def update_datatable():
 				# Finally let's build the filter that will be used later building the query
 				movies_query = movies_query.filter(Mark.movie_id.in_(array_movies_seen_in_theater))
 
+			if filter_fields['favorite'] !=None:
+				movies_query = movies_query.join(FavoriteMovie).filter(FavoriteMovie.user_id==filter_fields['favorite'])
+
 		# Sort my desc marks
 		if order_dir == "desc":
 			if session.get('search_type') == 'list': 
@@ -301,6 +312,9 @@ def update_datatable():
 
 			if filter_fields['seen_where'] !=None:
 				movies_query = movies_query.filter_by(user_id=filter_fields['seen_where']).filter(Mark.seen_where=='C')
+
+			if filter_fields['favorite'] !=None:
+				movies_query = movies_query.join(FavoriteMovie).filter(FavoriteMovie.user_id==filter_fields['favorite'])
 
 			# Build the request
 			if order_column == "average":
@@ -458,10 +472,13 @@ def show_movie(movie_id):
 	# Let's check if the movie has already been marked by the user
 	marked_movie=Mark.query.get((g.user.id,movie_id))
 
+	# Get the favorite types list
+	favorite_type_list = FavoriteType.query.all()
+
 	if marked_movie is None or marked_movie.mark == None:
-		return render_template('movie_show.html', movie=movie, mark_users=mark_users, movie_next=movie.next(),movie_prev=movie.prev(),marked_flag=False,update_movie_form=update_movie_form)
+		return render_template('movie_show.html', movie=movie, mark_users=mark_users, movie_next=movie.next(),movie_prev=movie.prev(),marked_flag=False,update_movie_form=update_movie_form,favorite_type_list=favorite_type_list)
 	else:
-		return render_template('movie_show.html', movie=movie, mark_users=mark_users, movie_next=movie.next(),movie_prev=movie.prev(),marked_flag=True, update_movie_form=update_movie_form)
+		return render_template('movie_show.html', movie=movie, mark_users=mark_users, movie_next=movie.next(),movie_prev=movie.prev(),marked_flag=True, update_movie_form=update_movie_form,favorite_type_list=favorite_type_list)
 
 @app.route('/movies/mark/<int:movie_id_form>', methods=['GET','POST'])
 @login_required
@@ -937,6 +954,7 @@ def edit_user_profile():
 		g.user.notifications["notif_homework_add"] = form.notif_homework_add.data
 		g.user.notifications["notif_mark_add"] = form.notif_mark_add.data
 		g.user.notifications["notif_comment_add"] = form.notif_comment_add.data
+		g.user.notifications["notif_favorite_update"] = form.notif_favorite_update.data
 
 		# Update the avatar if we have to
 		if 'upload_avatar' in request.files:
@@ -1475,6 +1493,12 @@ def update_activity_flow():
 
 			# Define the text that will be shown on the datatable
 			entry_text=cur_activity["object"].user.nickname + " vient de poster un <span title=\"Commentaire\" data-toggle=\"popover\" data-placement=\"top\" data-trigger=\"hover\" data-content=\"" + cur_activity["object"].message + "\"><strong>commentaire</strong></span> sur le film <a href=\"" + url_for('show_movie', movie_id=cur_activity["object"].mark.movie.id) + "\">" +  cur_activity["object"].mark.movie.name + u"</a> en réponse à <strong><span title=\"Commentaire\" data-toggle=\"popover\" data-placement=\"top\" data-trigger=\"hover\" data-html=\"true\" data-content=\"" + cur_activity["object"].mark.comment + "\">" + cur_activity["object"].mark.user.nickname + "</strong></span>"
+
+		elif cur_activity["entry_type"] == "favorites":
+			entry_type="<a class=\"disabled btn btn-favorite btn-xs\">Favori</a>"
+
+			# Define the text that will be shown on the datatable
+			entry_text=cur_activity["object"].user.nickname + " vient d'ajouter en favori <a href=\"" + url_for('show_movie', movie_id=cur_activity["object"].movie_id) + "\">" +  cur_activity["object"].movie.name + "</a> - Niveau <i class=\"fa fa-star " + cur_activity["object"].star_type + "\"</i>"
 
 		# Append the processed entry to the dictionnary that will be used by the datatable
 		activity_dict["data"].append({"entry_type" : entry_type, "entry_text" : entry_text })

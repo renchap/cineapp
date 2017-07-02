@@ -98,4 +98,4 @@ app.logger.setLevel(logging.INFO)
 app.logger.addHandler(file_handler)
 app.logger.info('Cineapp startup')
 
-from cineapp import views, models, jinja_filters, chat, comments
+from cineapp import views, models, jinja_filters, chat, comments, favorites

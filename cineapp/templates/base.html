@@ -67,6 +67,7 @@
 					  </ul>
 					  </li>
 					{% endif %}
+   				        <li><a href="{{ url_for('chat') }}">Chat</a></li>
 				</ul>
 				{% if g.user.is_authenticated %}
 					{%from "_formhelpers.html" import render_field %}
@@ -111,85 +112,6 @@
 	{% endif %}
 	{% endwith %}
 	{% block content %} {% endblock %}
-
-	{% if g.user.is_authenticated %}
-        <div id="chat_box">
-            <div class="panel panel-primary">
-                <div class="panel-heading" id="accordion">
-                    <span class="glyphicon glyphicon-comment"></span> TrollBox
-                    <div class="btn-group pull-right">
-                        <a type="button" id="chat_collapse" class="btn btn-default btn-xs" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-                            <span class="glyphicon glyphicon-chevron-down"></span>
-                        </a>
-                    </div>
-                </div>
-            <div class="panel-collapse collapse" id="collapseOne">
-                <div id="chat_body" class="panel-body">
-                    <ul class="chat" id="chat_window">
-                    </ul>
-                </div>
-                <div class="panel-footer">
-                    <div class="input-group">
-                        <input id="chat_field" type="text" class="form-control input-sm" placeholder="Saisir le message ici..." />
-                        <span class="input-group-btn">
-                            <button class="btn btn-warning btn-sm" id="btn-chat">
-                                Envoyer</button>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            </div>
-        </div>
-	<script>
-	$(document).ready(function(){
-	    var socket = io.connect('http://' + document.domain + ':' + location.port + '/chat_ws');
-
-	    // Function that send message using WebSocket
-	    function send_message() {
-		socket.emit('chat_message', { data: $('#chat_field').val() });
-		$('#chat_field').val('')
-      	    }
-
-	    // Message reception
-            socket.on('message', function(data) {
-		$("#chat_window").append('<li tabindex="1" class="right clearfix"><span class="chat-img pull-right"><img src="/static/avatars/' + data.avatar + '" alt="User Avatar" class="img-circle" height="40" width="40" /></span><div class="chat-body clearfix"><div class="header"><small class=" text-muted"><span class="glyphicon glyphicon-time"></span>' + data.date + '</small><strong class="pull-right primary-font">' + data.user + '</strong></div><p>' + data.msg +'</p></div></li>');
-
-		$('li').last().addClass('active-li').focus();
-		$('#chat_field').focus();
-            });
-
-	    // Message send from the input field when enter key is pressed
-	    $('#chat_field').on('keypress', function (e) {
-	         if(e.which === 13){
-			send_message()
-         	}
-            }); 
-
-	    // Message send from the input field when send button is lciked
-	    $('#btn-chat').on('click', function (e) {
-			send_message()
-            }); 
-
-	    $('#collapseOne').on('shown.bs.collapse', function (e) {
-		$('li').last().addClass('active-li').focus();
-		$('#chat_field').focus();
-		$.cookie("activeAccordionGroup", 'shown', { path: '/' });
-	    });
-
-	    $('#collapseOne').on('hidden.bs.collapse', function (e) {
-		$.removeCookie("activeAccordionGroup", { path: '/' });
-	    });
-
-	    var last = $.cookie('activeAccordionGroup');
-		if (last != null) {
-		    //remove default collapse settings
-		    $("#collapseOne .panel-collapse").removeClass('in');
-		    //show the account_last visible group
-		    $("#collapseOne").addClass("in");
-	   } 
-	});
-	</script>
-	{% endif %}
 
     <!-- Footer navbar for credits -->
     <footer class="footer">

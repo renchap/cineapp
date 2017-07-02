@@ -186,3 +186,36 @@ def mark_comment_notification(mark_comment,notif_type):
 
 			send_email('[Cineapp] - ' + mail_title , app.config['MAIL_SENDER'],[ cur_user.email ] ,
 			render_template(notif_template, dest_user=cur_user, mark_comment=mark_comment, you_user=you_user,you_dest_user=you_dest_user,own_mark_user=own_mark_user))
+
+# Function which sends notification to user when the favorite/star status has been updated for a movie
+def favorite_update_notification(favorite_movie,notif_type):
+	users = User.query.filter_by().all()
+
+	for cur_user in users:
+
+		send_own_activity_mail=True
+
+		# Check if the logged user posted the comment
+		if cur_user.id==g.user.id:
+			you_user=True
+
+			# Check if we must send an email for user own activity	
+			if cur_user.notifications != None and "notif_own_activity" in cur_user.notifications and cur_user.notifications["notif_own_activity"] == False:
+				send_own_activity_mail=False
+		else:
+			you_user=False
+
+		# Send the mail if we have too	
+		if cur_user.notifications != None and "notif_favorite_update" in cur_user.notifications and cur_user.notifications["notif_favorite_update"] == True and send_own_activity_mail==True:
+
+			# Check the kind of mail we must send considering the notification type
+			if notif_type == "add":
+				mail_title = "Ajout d\'un film en favori"
+				notif_template = "favorite_update_notification.txt"
+
+			elif notif_type == "delete":
+				mail_title = "Suppression d\'un film favori"
+				notif_template = "favorite_update_notification.txt"
+
+			send_email('[Cineapp] - ' + mail_title , app.config['MAIL_SENDER'],[ cur_user.email ] ,
+			render_template(notif_template, dest_user=cur_user, favorite_movie=favorite_movie, you_user=you_user, notif_type=notif_type))

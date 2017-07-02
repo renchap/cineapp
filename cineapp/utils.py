@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from cineapp import db
-from cineapp.models import Movie, Mark, MarkComment
+from cineapp.models import Movie, Mark, MarkComment, FavoriteMovie
 from sqlalchemy.sql.expression import literal, desc
 import PIL, os
 from PIL import Image
@@ -34,9 +34,12 @@ def get_activity_list(start, length):
 	# Comment Query
 	comment_query=db.session.query(MarkComment.markcomment_id.label("id"),MarkComment.user_id.label("user_id"),MarkComment.posted_when.label("entry_date"),literal("comments").label("entry_type"))
 
+	# Favorite Query
+	favorite_query=db.session.query(FavoriteMovie.movie_id.label("id"),FavoriteMovie.user_id.label("user_id"),FavoriteMovie.added_when.label("entry_date"),literal("favorites").label("entry_type")).filter(FavoriteMovie.deleted_when == None)
+
 	# Build the union request
-	activity_list = movies_query.union(marks_query,homework_query,comment_query).order_by(desc("entry_date")).slice(int(start),int(start) + int(length))
-	
+	activity_list = movies_query.union(marks_query,homework_query,comment_query,favorite_query).order_by(desc("entry_date")).slice(int(start),int(start) + int(length))
+
 	for cur_item in activity_list:
 		if cur_item.entry_type == "movies":
 			object_list.append({"entry_type": "movies", "object" : Movie.query.get(cur_item.id)})
@@ -46,6 +49,8 @@ def get_activity_list(start, length):
 			object_list.append({"entry_type" : "homeworks", "object" : Mark.query.get((cur_item.user_id,cur_item.id))}) 
 		elif cur_item.entry_type == "comments":
 			object_list.append({"entry_type" : "comments", "object" : MarkComment.query.get((cur_item.id))}) 
+		elif cur_item.entry_type == "favorites":
+			object_list.append({"entry_type": "favorites", "object" : FavoriteMovie.query.get((cur_item.id,cur_item.user_id))})
 
 	# Count activity number (Will be used for the datatable pagination)
 	object_dict["count"]=movies_query.union(marks_query,homework_query).order_by(desc("entry_date")).count()

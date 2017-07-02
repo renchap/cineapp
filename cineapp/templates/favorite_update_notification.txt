@@ -1,0 +1,8 @@
+Yo {{ dest_user.nickname }},
+
+{% if you_user == True %}Tu viens{% else %}{{ favorite_movie.user.nickname }} vient{% endif %} de {% if notif_type=="add" %}mettre en favori avec le niveau "{{ favorite_movie.star_type_obj.star_message }}"{% elif notif_type == "delete" %}supprimer{% endif %} le film {{ favorite_movie.movie.name }}
+
+Fiche du film : {{ url_for('show_movie', movie_id=favorite_movie.movie.id, _external=True) }}
+
+--
+CineApp

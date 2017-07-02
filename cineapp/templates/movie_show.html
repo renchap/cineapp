@@ -1,7 +1,7 @@
 {% extends "base.html" %} 
 {% block content %}
 	{% if not mark %}
-	<div class="container">	
+	<div class="container" id="movie_navbar">	
 	<nav>
 		<ul class="pager">
         {% if movie_prev %}
@@ -34,6 +34,20 @@ aria-hidden="true">&rarr;</span></a>
 			{% else %}
 			<div class="jumbotron text-center">Pas d'affiche</div>
 			{% endif %}
+			<div class="dropdown text-center">
+				{% if movie.favorite_users|selectattr("user_id","equalto",g.user.id)|list|length > 0 and (movie.favorite_users|selectattr("user_id","equalto",g.user.id)|list)[0].star_type != None %}
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><h1><i id="star_icon" class="fa fa-2x fa-star {{ (movie.favorite_users|selectattr("user_id","equalto",g.user.id)|list)[0].star_type }}" aria-hidden="true"></i></h1></a><span id="star_label" class="{{ (movie.favorite_users|selectattr("user_id","equalto",g.user.id)|list)[0].star_type }}">{{ (movie.favorite_users|selectattr("user_id","equalto",g.user.id)|list)[0].star_type_obj.star_message }}</span>
+				{% else %}
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><h1><i id="star_icon" class="fa fa-2x fa-star-o nofavorite_star" aria-hidden="true"></i></h1></a><span id="star_label" class="nofavorite_star">Pas de favori</span>
+				{% endif %}
+				<ul class="dropdown-menu">
+					<li class="text-center nofavorite_star"><h1><a href="#" class="list_star" id="empty_star"><i class="fa fa-2x fa-star-o nofavorite_star" aria-hidden="true"></i></a></h1>Pas de favori</li>
+					{% for cur_favorite_type in favorite_type_list %}
+					<li class="text-center  {{ cur_favorite_type.star_type }}" ><h1><a href="#" class="list_star" id="{{ cur_favorite_type.star_type }}"><i class="fa fa-2x fa-star {{ cur_favorite_type.star_type }}" aria-hidden="true"></i></a></h1>{{ cur_favorite_type.star_message }}</li>
+					{% endfor %}
+				</ul>
+			</div>
+
 		</div>
 		<div class="col-md-10">
 			<table class="table table-striped">
@@ -75,6 +89,7 @@ aria-hidden="true">&rarr;</span></a>
 				</tr>
 			</table>
 		</div>
+	</div>
 		{% if not mark %}
 		<div class="text-center">
 			<form method="post" action="{{url_for("update_movie") }}" name="updatemovie" style="display:inline;">
@@ -89,7 +104,6 @@ aria-hidden="true">&rarr;</span></a>
 			{% endif %}
 		</div>
 		{% endif %}
-	</div>
 	<div class="container" id="mark_container">
 	{% if mark %}
 		{%from "_formhelpers.html" import render_field %}
@@ -129,18 +143,21 @@ aria-hidden="true">&rarr;</span></a>
 					<div>
 						<h3><span class="label label-success">{{ cur_mark["mark"] }}</span></h3>
 					</div>
-					{% endif %}
+				{% endif %}
 		    	    </div>
 			</div>
 			<div class="media-body">
-				<h4 class="media-heading">{{ (cur_mark["user"]).nickname }}
-					<small><i>	
+				<h4 class="media-heading">{{ cur_mark["user"].nickname }}
+					<span id="seen_when_{{ cur_mark["user"].id }}"><small><i>	
 						{% if cur_mark["seen_where"] != None %}
 							<span id="seen_when">{{ cur_mark["seen_when"] }}</span> <span id="seen_where">({{ cur_mark["seen_where"] }})</span>
 						{% else %}
 							N/A
 						{% endif %}
-					</i></small>
+					</i></small></span>
+					{% if movie.favorite_users|selectattr("user_id","equalto",cur_mark["user"].id)|list|length > 0 and (movie.favorite_users|selectattr("user_id","equalto",cur_mark["user"].id)|list)[0].star_type != None %}
+						<i class="fa fa-star {{ (movie.favorite_users|selectattr("user_id","equalto",cur_mark["user"].id)|list)[0].star_type }} " id="favorite_{{ cur_mark["user"].id }}"></i>
+					{% endif %}
 					{% if cur_mark["homework_who"] %}
 						<img src="{{ config.AVATARS_URL}}{{  cur_mark["homework_who"].avatar }}" height="30" width="30" alt="homework_avatar" class="avatar img-circle"/>
 					{% endif %}
@@ -473,6 +490,67 @@ aria-hidden="true">&rarr;</span></a>
 		edit_comment("link",$(this))
 
             }); 
+
+	    // Set or unset favorite movie
+	    $(document).on('click','.list_star',function (e) {
+
+		if ($(this).attr("id") != "empty_star" ) {
+
+			// We want to set a favorite level
+			$.post(
+				"{{ url_for('set_favorite_movie',movie=movie.id,user=g.user.id) }}",
+				{ "star_type": $(this).attr("id") },
+				function(data) { favorite_update(data,"set") }
+			);
+		}
+		else {
+
+			// We want to remove the favorite level
+			$.get(
+				"{{ url_for('delete_favorite_movie',movie=movie.id,user=g.user.id) }}",
+				function(data) { favorite_update(data,"delete") }
+			);
+		}
+            }); 
+
+	    // Favorite update function
+	    function favorite_update(data,event) {
+		var favorite_message = '<div class="msg-alert alert alert-' + data.status +' modal-dialog text-center">'
+				     + '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'
+			  	     + '<span aria-hidden="true">&times;</span>'
+				     + '</button>'
+				     + data.message 
+			             + '</div>'
+
+		// Display the alert box
+		$(favorite_message).insertBefore('#movie_navbar').hide().slideDown("slow").delay(1000).fadeTo(500,0).slideUp("slow");
+
+		// Change the star display only if the transaction is a success
+		if (data.status == "success") {
+			if (event == "set") {
+	
+				// Fill the star and update the label
+				$("#star_icon").removeClass().addClass("fa fa-star fa-2x " + data.star_type.star_type)
+				$("#star_label").removeClass().addClass(data.star_type.star_type).text(data.star_type.star_message)
+
+				// Remove the star from the mark and add the new one
+				$("#favorite_{{ g.user.id }}").remove()
+
+				var star_html = '<i class="fa fa-star ' + data.star_type.star_type + '" id="favorite_{{ g.user.id }}"></i>'
+				$(star_html).insertAfter("#seen_when_{{ g.user.id }}")
+			}
+			else if (event == "delete") {
+
+				// Empty the star and update the label
+				$("#star_icon").removeClass().addClass("fa fa-2x nofavorite_star fa-star-o")
+				$("#star_label").removeClass().addClass("nofavorite_star").text("Pas de favori")
+
+				// Remove the star from the mark
+				$("#favorite_{{ g.user.id }}").remove()
+			}
+
+		}
+	    }
 	});
 	</script>
 {% endblock %}

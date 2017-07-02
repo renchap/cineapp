@@ -203,6 +203,11 @@ footer {
     color:white;
 }
 
+.btn-favorite {
+    background-color:#66bb6a;
+    color:white;
+}
+
 /* Test Nouveau commentaire */
 .btn {
 	white-space: normal;
@@ -277,4 +282,20 @@ footer {
 
 .chat-img {
 	padding-right:10px;
+}
+
+.nofavorite_star {
+	color:#bdbdbd;
+}
+
+.favorite_star {
+	color:#ffd600;
+}
+
+.homework_star {
+	color:red;
+}
+
+.mustsee_star {
+	color:black;
 }

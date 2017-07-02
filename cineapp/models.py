@@ -51,6 +51,7 @@ class User(db.Model):
 			"notif_mark_add": None,
 			"notif_homework_add": None,
 			"notif_comment_add": None,
+			"notif_favorite_update": None
 		}
 
 	def serialize(self):
@@ -177,6 +178,32 @@ class MarkComment(db.Model):
 			"posted_when": self.posted_when,
 			"message": self.message
 		}
-        
+
+class FavoriteMovie(db.Model):
+	__tablename__ = "favorite_movies"
+	__table_args__ = {'mysql_charset': 'utf8', 'mysql_collate': 'utf8_general_ci'}
+
+	movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), primary_key=True)
+	user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+	movie = db.relationship('Movie', backref='favorite_users',lazy="joined")
+	user = db.relationship('User', backref='favorite_movies',foreign_keys='FavoriteMovie.user_id',lazy="joined")
+	star_type = db.Column(db.String(100),db.ForeignKey('favorite_types.star_type'))
+        added_when = db.Column(db.DateTime())
+        deleted_when = db.Column(db.DateTime())
+
+class FavoriteType(db.Model):
+	__tablename__ = "favorite_types"
+	__table_args__ = {'mysql_charset': 'utf8', 'mysql_collate': 'utf8_general_ci'}
+
+	star_type = db.Column(db.String(20), primary_key=True)
+	star_message = db.Column(db.String(100))
+	movies = db.relationship('FavoriteMovie',backref='star_type_obj',lazy="dynamic")
+
+	def serialize(self):
+		return {
+			"star_type": self.star_type,
+			"star_message": self.star_message,
+		}
+
 # Enable FTS indexation
 whooshalchemy.whoosh_index(app, Movie)

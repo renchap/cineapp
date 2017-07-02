@@ -103,6 +103,11 @@
 								{% elif cur_object["entry_type"] == "comments" %}
 								<td><a class="disabled btn btn-comment btn-xs">Commentaire</a></td>
 								<td>{{ cur_object["object"].user.nickname }} vient de poster un <span title="Commentaire" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="{{ cur_object["object"].message}}"><strong>commentaire</strong></span> sur le film  <a href="{{ url_for('show_movie', movie_id=cur_object["object"].mark.movie.id) }}"> {{ cur_object["object"].mark.movie.name }}</a> en réponse à <span title="Commentaire" data-toggle="popover" data-placement="top" data-html="true" data-trigger="hover" data-content="{{ cur_object["object"].mark.comment}}"><strong>{{ cur_object["object"].mark.user.nickname }}</strong></td>
+
+								{% elif cur_object["entry_type"] == "favorites" %}
+								<td><a class="disabled btn btn-favorite btn-xs">Favori</a></td>
+								<td>{{ cur_object["object"].user.nickname }} vient d'ajouter en favori <a href="{{ url_for('show_movie', movie_id=cur_object["object"].movie_id) }}"> {{ cur_object["object"].movie.name }}</a> - Niveau <i class="fa fa-star {{ cur_object["object"].star_type }}"></i></td>
+ 
 								{% endif %}
 							</tr>
 							{% endfor %}

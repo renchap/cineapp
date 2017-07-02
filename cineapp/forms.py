@@ -103,6 +103,7 @@ class FilterForm(Form):
 	origin = QuerySelectField('Origine',query_factory=get_origins, get_label='origin',allow_blank=True,blank_text=u'--Pas de filtre--')
 	type = QuerySelectField('Type',query_factory=get_types,get_label='type',allow_blank=True,blank_text=u'--Pas de filtre--')
 	where = QuerySelectField('Vu au cine par',query_factory=get_users,get_label='nickname',allow_blank=True,blank_text=u'--Pas de filtre--')
+	favorite = QuerySelectField('Favori de',query_factory=get_users,get_label='nickname',allow_blank=True,blank_text=u'--Pas de filtre--')
 	submit_filter = SubmitField("Filtrer")
 
 class UserForm(Form):
@@ -112,6 +113,7 @@ class UserForm(Form):
 	notif_mark_add = BooleanField()
 	notif_homework_add = BooleanField()
 	notif_comment_add = BooleanField()
+	notif_favorite_update = BooleanField()
 	submit_user = SubmitField("Sauver")
 	upload_avatar = FileField("Image de profil")
 
@@ -138,6 +140,9 @@ class UserForm(Form):
 
 			if "notif_comment_add" in user.notifications and user.notifications["notif_comment_add"] != None:
 				self.notif_comment_add.data=user.notifications["notif_comment_add"]
+
+			if "notif_favorite_update" in user.notifications and user.notifications["notif_favorite_update"] != None:
+				self.notif_favorite_update.data=user.notifications["notif_favorite_update"]
 
 class PasswordForm(Form):
 	password = PasswordField('Mot de passe',[DataRequired('Champ Requis'), EqualTo('confirm',message='Les mots de passe ne correspondent pas')])
