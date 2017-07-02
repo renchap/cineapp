@@ -191,6 +191,15 @@ class FavoriteMovie(db.Model):
         added_when = db.Column(db.DateTime())
         deleted_when = db.Column(db.DateTime())
 
+	def serialize(self):
+		return {
+			"movie_id": self.movie_id,
+			"user_id": self.user_id,
+			"star_type": self.star_type,
+			"added_when": self.added_when,
+			"deleted_when": self.deleted_when
+		}
+
 class FavoriteType(db.Model):
 	__tablename__ = "favorite_types"
 	__table_args__ = {'mysql_charset': 'utf8', 'mysql_collate': 'utf8_general_ci'}
