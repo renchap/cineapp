@@ -350,6 +350,7 @@ def update_datatable():
 		my_when="-"
 		my_where=""
 		my_comment=""
+		my_fav=None
 
 		# Calculate the average mark for each movie
 		average_mark_query=db.session.query(db.func.avg(Mark.mark).label("average")).filter(Mark.movie_id==cur_movie.id).one()
@@ -361,6 +362,7 @@ def update_datatable():
 			# There is no average because no mark recorded
 			average_mark="-"
 
+		# Get the cur_mark for the user
 		for cur_mark in cur_movie.marked_by_users:
 			if cur_mark.user_id == g.user.id:
 				my_mark=cur_mark.mark
@@ -372,17 +374,24 @@ def update_datatable():
 
 				my_where=cur_mark.seen_where
 
+		# Check if the user has set the movie as favorite
+		tmp_fav = [x for x in cur_movie.favorite_users if x.user_id == g.user.id]
+		if len(tmp_fav) != 0:
+			my_fav = tmp_fav[0].star_type
+
 		# Fill a dictionnary with marks for all the others users
 		dict_mark = {}
 		dict_where = {}
 		dict_when = {}
 		dict_homework = {}
 		dict_comments = {}
+		dict_favs = {}
 		for cur_user in users:
 			dict_mark[cur_user.id]=None
 			dict_comments[cur_user.id]=None
 			dict_where[cur_user.id]="-"
 			dict_when[cur_user.id]="-"
+			dict_favs[cur_user.id]=None
 			dict_homework[cur_user.id]={ "when" : None, "who:" : None, "link" : url_for("add_homework",movie_id=cur_movie.id,user_id=cur_user.id)}
 			for cur_mark in cur_movie.marked_by_users:
 				if cur_mark.user.id == cur_user.id:
@@ -398,6 +407,11 @@ def update_datatable():
 					if cur_mark.seen_when != None:
 						dict_when[cur_user.id]=str(cur_mark.seen_when.strftime("%Y"))
 
+			# Check if the user has set the movie as favorite
+			tmp_fav = [x for x in cur_movie.favorite_users if x.user_id == cur_user.id]
+			if len(tmp_fav) != 0:
+				dict_favs[cur_user.id]=tmp_fav[0].star_type
+
 		# Create the json object for the datatable
 		dict_movie["data"].append({"DT_RowData": { "link": url_for("show_movie",movie_id=cur_movie.id), "mark_link": url_for("mark_movie",movie_id_form=cur_movie.id),"homework_link": dict_homework},
 		"id": cur_movie.id,"name": cur_movie.name, 
@@ -407,10 +421,12 @@ def update_datatable():
 		"my_when": my_when,
 		"my_where": my_where, 
 		"my_comment": my_comment,
+		"my_fav": my_fav,
 		"other_marks": dict_mark, 
 		"other_where": dict_where,
 		"other_when": dict_when,
 		"other_comments": dict_comments,
+		"other_favs": dict_favs,
 		"other_homework_when" : dict_homework })
 
 	# Send the json object to the browser
