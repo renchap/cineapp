@@ -13,7 +13,6 @@ before_install:
 - mkdir -p /home/travis/build/ptitoliv/cineapp/migrations/versions
 - mysql -e 'create database cineapp_ci;'
 script:
-- python manage.py db migrate
 - python manage.py db upgrade
 - python tests/unit_tests.py
 - coverage run --omit=/home/travis/virtualenv/* tests/unit_tests.py
