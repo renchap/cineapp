@@ -25,7 +25,7 @@
 		</div>
 	<script>
 	$(document).ready(function(){
-	    var socket = io.connect('http://' + document.domain + ':' + location.port + '/chat_ws',{'sync disconnect on unload': true });
+	    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/chat_ws',{'sync disconnect on unload': true });
 
 	    // Function that send message using WebSocket
 	    function send_message() {
