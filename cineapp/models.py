@@ -51,7 +51,8 @@ class User(db.Model):
 			"notif_mark_add": None,
 			"notif_homework_add": None,
 			"notif_comment_add": None,
-			"notif_favorite_update": None
+			"notif_favorite_update": None,
+			"notif_chat_message": None
 		}
 
 	def serialize(self):

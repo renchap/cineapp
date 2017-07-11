@@ -114,6 +114,7 @@ class UserForm(Form):
 	notif_homework_add = BooleanField()
 	notif_comment_add = BooleanField()
 	notif_favorite_update = BooleanField()
+	notif_chat_message = BooleanField()
 	submit_user = SubmitField("Sauver")
 	upload_avatar = FileField("Image de profil")
 
@@ -143,6 +144,9 @@ class UserForm(Form):
 
 			if "notif_favorite_update" in user.notifications and user.notifications["notif_favorite_update"] != None:
 				self.notif_favorite_update.data=user.notifications["notif_favorite_update"]
+
+			if "notif_chat_message" in user.notifications and user.notifications["notif_chat_message"] != None:
+				self.notif_chat_message.data=user.notifications["notif_chat_message"]
 
 class PasswordForm(Form):
 	password = PasswordField('Mot de passe',[DataRequired('Champ Requis'), EqualTo('confirm',message='Les mots de passe ne correspondent pas')])

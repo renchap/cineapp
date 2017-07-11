@@ -971,6 +971,7 @@ def edit_user_profile():
 		g.user.notifications["notif_mark_add"] = form.notif_mark_add.data
 		g.user.notifications["notif_comment_add"] = form.notif_comment_add.data
 		g.user.notifications["notif_favorite_update"] = form.notif_favorite_update.data
+		g.user.notifications["notif_chat_message"] = form.notif_chat_message.data
 
 		# Update the avatar if we have to
 		if 'upload_avatar' in request.files:

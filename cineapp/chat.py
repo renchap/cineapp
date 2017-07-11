@@ -5,13 +5,23 @@ from flask import render_template, flash, redirect, url_for, g, request, session
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from flask.ext.socketio import SocketIO, emit
 from cineapp.models import ChatMessage, User
+from cineapp.emails import chat_message_notification
 from datetime import datetime, timedelta
 from sqlalchemy import desc
+import re
 
-def transmit_message(message):
+def transmit_message(message,notify=False):
 	""" This functions sends a message on the socket
 	    formatting the message correctly
 	"""
+	# Fetch the user we have in session
+	# Since we can't use g here
+	logged_user = session.get("user", None)
+
+	# Check if a user is registered in the session
+	if logged_user is None or not isinstance(logged_user, User):
+		app.logger.error("Incorrect user object into the session")
+		return False
 
 	# Format the message adding the day if needed
 	cur_date = datetime.now()
@@ -19,6 +29,25 @@ def transmit_message(message):
 		message_date_formatted = "Aujourd'hui - " + message.posted_when.strftime("%H:%M")
 	else:
 		message_date_formatted = message.posted_when.strftime("%d/%m/%Y - %H:%M")
+
+	# Notify users only if we have to
+	if notify==True:
+	
+		# Check if we have a user name into the message
+		user_named = set(re.findall(r'@\w+',message.message))
+
+		# We found potentials users => Let's try to check if they are real one
+		for cur_user in user_named:
+			try:
+				# Check if we have a registered user with that nickname
+				user=User.query.filter(User.nickname==cur_user[1:]).first()
+				
+				if user != None and user.id != logged_user.id:
+					# We found a user, let's send him a notification who is not ourself
+					chat_message_notification(message,user)
+
+			except Exception,e:
+				print e
 
 	# Send the message
 	emit('message', { 'user': message.posted_by.nickname, 'date': message_date_formatted, 'avatar': message.posted_by.avatar, 'msg' : message.message })
@@ -77,7 +106,7 @@ def chat_message(message):
 			return False
 
 		# Transmit the message
-		transmit_message(chat_message)
+		transmit_message(chat_message,notify=True)
 
 	else:
 		# Let's log a warning message

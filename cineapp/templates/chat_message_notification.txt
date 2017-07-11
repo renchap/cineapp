@@ -1,0 +1,12 @@
+Yo {{ dest_user.nickname }},
+
+Tu viens d'être cité sur le chat.
+
+Détail du message
+-----------------
+{{ message.message }}
+
+URL du chat  : {{ url_for('chat', _external=True) }}
+
+--
+CineApp
