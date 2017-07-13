@@ -14,7 +14,7 @@ from flask_socketio import SocketIO
 app = Flask(__name__)
 
 # Global Variables
-app.config['VERSION'] = "1.1.0"
+app.config['VERSION'] = "2.0.0"
 app.config['GRAVATAR_URL'] = "https://www.gravatar.com/avatar/"
 app.config['GRAPH_LIST'] = [
 		{ "graph_endpoint": "graph_by_mark", "graph_label": u"Répartition par note" },

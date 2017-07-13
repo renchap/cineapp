@@ -1,3 +1,18 @@
+Version 2.0.0 (2017-07-14)
+-------------
+* [FEAT]: WYSIWYG editor integration for mark post (#38)
+* [FEAT]: Comment marks feature (#31)
+* [FEAT]: Year navigation for the seen movies dashboard graph (#49)
+* [FEAT]: User navigation for the seen movies dashboard graph (#50)
+* [FEAT]: Favorite status for movies (#62)
+* [FEAT]: Online chat (#60)
+* [FEAT]: Movie title in the browser title bar (#46)
+* [ENHA]: Movie screen page setting (#55)
+* [FIX]: Display errors on an erroneous mark update (#61)
+* [FIX]: Fix typo in filter engine which blocked the movie filtering (#54)
+* [FIX]: Fix typos (#53)
+* [FIX]: Prev and next buttons on movie film handle now movies with the same name (#45)
+
 Version 1.1.0 (2016-08-19)
 -------------
 * [FEAT]: Graph navigation buttons (#2)
