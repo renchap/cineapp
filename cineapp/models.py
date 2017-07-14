@@ -136,7 +136,7 @@ class Mark(db.Model):
 	seen_where = db.Column(db.String(4))
 	mark = db.Column(db.Float)
 	updated_when = db.Column(db.DateTime())
-	comment = db.Column(db.String(1000))
+	comment = db.Column(db.String(2000))
 	homework_when = db.Column(db.DateTime)
 	# Server_default allow to put the column with DEFAULT VALUE to NULL which is mandatory if we want the foreign key to be added
 	# If the value is not NULL, the default value is O so the foreign constraint is violated
