@@ -1,3 +1,10 @@
+Version 2.0.1 (2017-07-14)
+-------------
+* [FIX]: Chat messages are not broadcasted (#68)
+* [FIX]: SocketIO chat not working using a HTTPS connection behind apache. (#69)
+* [FIX]: External url generated with url_for are not in HTTPS mode (#70)
+* [FIX]: Incorrect size for mark message in the DB Model (#71)
+
 Version 2.0.0 (2017-07-14)
 -------------
 * [FEAT]: WYSIWYG editor integration for mark post (#38)
