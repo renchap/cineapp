@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from werkzeug.contrib.fixers import ProxyFix
 from flask import Flask
 from flask.ext.login import login_user, logout_user, current_user, login_required, LoginManager
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -12,6 +13,10 @@ from logging.handlers import RotatingFileHandler
 from flask_socketio import SocketIO
 
 app = Flask(__name__)
+
+# Create ProxyFix middleware in order to handle the HTTP headers sent by apache
+# Used for correct url_for generation
+app.wsgi_app = ProxyFix(app.wsgi_app)
 
 # Global Variables
 app.config['VERSION'] = "2.0.0"
