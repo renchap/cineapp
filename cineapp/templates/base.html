@@ -66,8 +66,8 @@
 					    {% endfor %}
 					  </ul>
 					  </li>
+   				          <li><a href="{{ url_for('chat') }}">Chat</a></li>
 					{% endif %}
-   				        <li><a href="{{ url_for('chat') }}">Chat</a></li>
 				</ul>
 				{% if g.user.is_authenticated %}
 					{%from "_formhelpers.html" import render_field %}
