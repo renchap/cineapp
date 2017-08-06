@@ -302,7 +302,7 @@ def update_datatable():
 		elif session.get('search_type') == 'filter_origin_type':
 			# Let's build the filtered requested following what has been posted in the filter form
 			filter_fields=session.get('query')
-			movies_query = Movie.query.join(Mark)
+			movies_query = Movie.query.outerjoin(Mark)
 
 			if filter_fields['origin'] != None:
 				movies_query = movies_query.filter(Movie.origin==filter_fields['origin'])
@@ -314,7 +314,7 @@ def update_datatable():
 				movies_query = movies_query.filter_by(user_id=filter_fields['seen_where']).filter(Mark.seen_where=='C')
 
 			if filter_fields['favorite'] !=None:
-				movies_query = movies_query.join(FavoriteMovie).filter(FavoriteMovie.user_id==filter_fields['favorite'])
+				movies_query = movies_query.outerjoin(FavoriteMovie).filter(FavoriteMovie.user_id==filter_fields['favorite'])
 
 			# Build the request
 			if order_column == "average":
