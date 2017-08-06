@@ -34,6 +34,7 @@ aria-hidden="true">&rarr;</span></a>
 			{% else %}
 			<div class="jumbotron text-center">Pas d'affiche</div>
 			{% endif %}
+			{% if not mark %}
 			<div class="dropdown text-center">
 				{% if movie.favorite_users|selectattr("user_id","equalto",g.user.id)|list|length > 0 and (movie.favorite_users|selectattr("user_id","equalto",g.user.id)|list)[0].star_type != None %}
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><h1><i id="star_icon" class="fa fa-2x fa-star {{ (movie.favorite_users|selectattr("user_id","equalto",g.user.id)|list)[0].star_type }}" aria-hidden="true"></i></h1></a><span id="star_label" class="{{ (movie.favorite_users|selectattr("user_id","equalto",g.user.id)|list)[0].star_type }}">{{ (movie.favorite_users|selectattr("user_id","equalto",g.user.id)|list)[0].star_type_obj.star_message }}</span>
@@ -47,6 +48,7 @@ aria-hidden="true">&rarr;</span></a>
 					{% endfor %}
 				</ul>
 			</div>
+			{% endif %}
 
 		</div>
 		<div class="col-md-10">
