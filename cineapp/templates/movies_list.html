@@ -157,45 +157,47 @@
 		</div>
 	</div>
 	<div class="container" style="width:70%;">
-		<table class="table table-striped" id="movielist">
-		<!-- Display the users name -->
-		<thead>
-			<tr>
-				<th class="text-center" style="border:0;width:35%;"></th>
-				<th class="text-center" style="border:0;width:25%;"></th>
-				<th class="text-center" style="border:0;"></th>
-				<th colspan="3" class="text-center">
-					<div>
-						<img src="{{ config.AVATARS_URL }}{{ g.user.avatar }}" height="50" width="50" class="avatar img-circle" alt="avatar">
-					</div>
-					<strong>Mes Notes</strong>
-				</th>
+		<div class="table-responsive">
+			<table class="table table-striped" width="100%" id="movielist">
+			<!-- Display the users name -->
+			<thead>
+				<tr>
+					<th class="text-center" style="border:0;width:35%;"></th>
+					<th class="text-center" style="border:0;width:25%;"></th>
+					<th class="text-center" style="border:0;"></th>
+					<th colspan="3" class="text-center hidden-xs">
+						<div>
+							<img src="{{ config.AVATARS_URL }}{{ g.user.avatar }}" height="50" width="50" class="avatar img-circle" alt="avatar">
+						</div>
+						<strong>Mes Notes</strong>
+					</th>
+						{% for cur_user in users %}
+							{% if g.user.id != cur_user.id %}
+							<th colspan="3" class="text-center hidden-xs">
+							<div>
+								<img src="{{ config.AVATARS_URL }}{{ cur_user.avatar }}" height="50" width="50" class="avatar img-circle" alt="avatar">
+							</div>
+							<strong>{{ cur_user.nickname }}</strong></th>
+							{% endif %}
+						{% endfor %}
+				</tr>
+				<tr>
+					<th class="text-center" style="border:0;width:35%;">Titre</th>
+					<th class="text-center" style="border:0;width:35%;">Realisateur</th>
+					<th class="text-center" style="border:0;">Moyenne</th>
+					<th class="text-center" style="border:0;">Favori</th>
+					<th class="text-center" style="border:0;">Note</th>
+					<th class="text-center" style="border:0;">Date</th>
 					{% for cur_user in users %}
 						{% if g.user.id != cur_user.id %}
-						<th colspan="3" class="text-center">
-						<div>
-							<img src="{{ config.AVATARS_URL }}{{ cur_user.avatar }}" height="50" width="50" class="avatar img-circle" alt="avatar">
-						</div>
-						<strong>{{ cur_user.nickname }}</strong></th>
+						<th class="text-center" style="border:0;">Favori</th>
+						<th class="text-center" style="border:0;"><strong>Note</strong></th>
+						<th class="text-center" style="border:0;"><strong>Date</strong></th>
 						{% endif %}
 					{% endfor %}
-			</tr>
-			<tr>
-				<th class="text-center" style="border:0;width:35%;">Titre</th>
-				<th class="text-center" style="border:0;width:35%;">Realisateur</th>
-				<th class="text-center" style="border:0;">Moyenne</th>
-				<th class="text-center" style="border:0;">Favori</th>
-				<th class="text-center" style="border:0;">Note</th>
-				<th class="text-center" style="border:0;">Date</th>
-				{% for cur_user in users %}
-					{% if g.user.id != cur_user.id %}
-					<th class="text-center" style="border:0;">Favori</th>
-					<th class="text-center" style="border:0;"><strong>Note</strong></th>
-					<th class="text-center" style="border:0;"><strong>Date</strong></th>
-					{% endif %}
-				{% endfor %}
-			</tr>
-		</thead>
-		</table>
+				</tr>
+			</thead>
+			</table>
+		</div>
 	</div>
 {% endblock %}
