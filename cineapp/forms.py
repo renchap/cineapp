@@ -6,7 +6,7 @@ from wtforms import StringField, PasswordField, RadioField, SubmitField, HiddenF
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import Required,DataRequired, EqualTo, Email, URL, ValidationError
 from cineapp.models import Origin, Type, User
-from cineapp.widgets import CKTextAreaField
+from cineapp.fields import CKTextAreaField, SearchButtonField
 from datetime import datetime
 
 def get_origins():
@@ -58,7 +58,7 @@ class MarkMovieForm(Form):
 
 class SearchMovieForm(Form):
 	search = StringField('Nom du film', [DataRequired()])
-	submit_search = SubmitField('Chercher')
+	submit_search = SearchButtonField(u"Chercher")
 
 class SelectMovieForm(Form):
 	movie = RadioField('Film',[Required(message="Veuillez sélectionner un film")],choices=[], coerce=int)
