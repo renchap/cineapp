@@ -87,8 +87,13 @@ div.dataTables_filter {
 
 /* END - Styles for the login page */
 
+html { 
+    height:100%; 
+}
+
 body {
     padding-bottom: 20px;
+    height:100%;
 }
 
 footer {
@@ -177,25 +182,19 @@ footer {
 }
 
 #chat_box {
-	width:95%;
-	height:80%;
-	margin: auto;
+    width:95%;
+    height:80vh;
+    margin:auto;
 }
 
 #chat_messages {
-	height:100%;
-	overflow-y:scroll;
+    height:78vh;
+    overflow-y:scroll;
 }
 
 .panel .slidedown .glyphicon, .chat .glyphicon
 {
     margin-right: 5px;
-}
-
-#chat_body
-{
-    overflow-y: scroll;
-    height: 250px;
 }
 
 .btn-comment {
@@ -297,4 +296,41 @@ footer {
 
 .mustsee_star {
 	color:black;
+}
+
+@media (max-width: 992px) {
+    .navbar-header {
+        float: none;
+    }
+    .navbar-left,.navbar-right {
+        float: none !important;
+    }
+    .navbar-toggle {
+        display: block;
+    }
+    .navbar-collapse {
+        border-top: 1px solid transparent;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .navbar-fixed-top {
+        top: 0;
+        border-width: 0 0 1px;
+    }
+    .navbar-collapse.collapse {
+        display: none!important;
+    }
+    .navbar-nav {
+        float: none!important;
+        margin-top: 7.5px;
+    }
+    .navbar-nav>li {
+        float: none;
+    }
+    .navbar-nav>li>a {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .collapse.in{
+        display:block !important;
+    }
 }

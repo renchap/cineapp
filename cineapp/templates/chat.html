@@ -1,28 +1,26 @@
 {% extends "base.html" %}
 
 {% block content %}
-	   <div id="chat_box">
-		   <div class="panel panel-default">
-			    <div class="panel-heading">
-				Trollbox
-			    </div>
-			    <div class="panel-body overlay" id="chat_messages">
-				    <div id="spinner"></div>
-				    <ul class="chat" id="chat_window">
-				    </ul>
-			    </div>
-			<div class="panel-footer">
-			    <div class="input-group">
-				<input id="chat_field" type="text" class="form-control input-sm" placeholder="Saisir le message ici..." />
-				<span class="input-group-btn">
-				    <button class="btn btn-warning btn-sm" id="btn-chat">
-					Envoyer
-				</button>
-				</span>
-			    </div>
-			</div>
-		    </div>
-		</div>
+	<div id="chat_box">
+		<div class="panel panel-default">
+			 <div class="panel-heading">Trollbox</div>
+			 <div class="panel-body overlay" id="chat_messages">
+			    <div id="spinner"></div>
+			    <ul class="chat" id="chat_window">
+			    </ul>
+			 </div>
+			 <div class="panel-footer">
+				<div class="input-group">
+					<input id="chat_field" type="text" class="form-control input-sm" placeholder="Saisir le message ici..." />
+					<span class="input-group-btn">
+					    <button class="btn btn-warning btn-sm" id="btn-chat">
+						Envoyer
+					</button>
+					</span>
+				</div>
+			 </div>
+		 </div>
+	</div>
 	<script>
 	$(document).ready(function(){
 	    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/chat_ws',{'sync disconnect on unload': true });
