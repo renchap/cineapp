@@ -297,3 +297,7 @@ footer {
 .mustsee_star {
 	color:black;
 }
+
+.form-inline {
+	padding-bottom:20px;
+}
