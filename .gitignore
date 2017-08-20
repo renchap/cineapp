@@ -63,3 +63,6 @@ target/
 
 # Vim swapfiles
 *.swp
+
+# Node stuff
+node_modules

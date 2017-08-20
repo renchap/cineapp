@@ -1,0 +1,22 @@
+{
+  "name": "cineapp",
+  "private": true,
+  "browserslist": [
+    "> 1%",
+    "not ie < 11"
+  ],
+  "dependencies": {
+    "css-loader": "^0.28.5",
+    "extract-text-webpack-plugin": "^3.0.0",
+    "node-sass": "^4.5.3",
+    "postcss-loader": "^2.0.6",
+    "sass-loader": "^6.0.6",
+    "style-loader": "^0.18.2",
+    "webpack": "^3.5.5",
+    "webpack-dev-server": "^2.7.1",
+    "webpack-merge": "^4.1.0"
+  },
+  "scripts": {
+    "build": "webpack"
+  }
+}
