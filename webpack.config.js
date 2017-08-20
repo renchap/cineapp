@@ -38,7 +38,7 @@ const config = {
   },
 
   devServer: {
-    contentBase: './',
+    contentBase: false,
     hot: !isProduction
   },
 
