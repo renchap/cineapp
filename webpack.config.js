@@ -1,4 +1,5 @@
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const webpack = require('webpack')
 const path = require('path')
 const { env } = require('process')
 
@@ -20,30 +21,43 @@ const loaders = {
   }
 }
 
+var styleLoader = [];
+
+if(isProduction) {
+  styleLoader = ExtractTextPlugin.extract({
+    fallback: 'style-loader',
+    use: [loaders.css, loaders.postcss, loaders.sass]
+  })
+} else {
+  styleLoader = ['style-loader', loaders.css, loaders.postcss, loaders.sass]
+}
+
 const config = {
   entry: {
-    app: ['./cineapp/static/styles']
+    app: ['./cineapp/static/index.js']
+  },
+
+  devServer: {
+    contentBase: './',
+    hot: !isProduction
   },
 
   module: {
     rules: [
       {
         test: /\.(sass|scss|css)$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: [loaders.css, loaders.postcss, loaders.sass]
-        })
+        use: styleLoader
       },
     ]
   },
 
   output: {
     filename: '[name].js',
-    path: path.join(__dirname, './build'),
-    publicPath: '/build'
+    path: path.join(__dirname, './cineapp/static/build'),
+    publicPath: '/cineapp/static/build'
   },
 
-  plugins: [new ExtractTextPlugin('[name].css')],
+  plugins: !isProduction ? [new webpack.HotModuleReplacementPlugin()] : [new ExtractTextPlugin('[name].css')],
 
   resolve: {
     extensions: ['.scss', '.css', '.js'],

@@ -17,6 +17,7 @@
     "webpack-merge": "^4.1.0"
   },
   "scripts": {
+    "devserver": "webpack-dev-server",
     "build": "webpack"
   }
 }
