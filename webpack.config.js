@@ -48,13 +48,22 @@ const config = {
         test: /\.(sass|scss|css)$/,
         use: styleLoader
       },
+      {
+        test: /\.(jpg|jpeg|png|gif|svg|eot|ttf|woff|woff2)$/i,
+        use: [{
+          loader: 'file-loader',
+          options: {
+            name: '[name]-[hash].[ext]'
+          }
+        }]
+      }
     ]
   },
 
   output: {
     filename: '[name].js',
-    path: path.join(__dirname, './cineapp/static/build'),
-    publicPath: '/cineapp/static/build'
+    path: path.join(__dirname, 'build'),
+    publicPath: '/build/'
   },
 
   plugins: !isProduction ? [new webpack.HotModuleReplacementPlugin()] : [new ExtractTextPlugin('[name].css')],

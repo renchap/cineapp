@@ -1,5 +1,7 @@
+$fa-font-path: "~font-awesome/fonts";
+@import '~font-awesome/scss/font-awesome';
+
 emodal-footer { border-top: 0px; }
-		
 
 #login_modal {
 	top:15%
@@ -59,7 +61,7 @@ th.dt-center, td.dt-center { text-align: center; }
         font-weight: bold;
 }
 
-/* Datatable style sheet in order to 
+/* Datatable style sheet in order to
 have some spaces between the page status display
 and the record display filter */
 div.dataTables_length,
@@ -72,8 +74,8 @@ div.dataTables_filter {
     margin-top: 30px;
 }
 
-#loginbox > div:first-child {        
-    padding-bottom: 10px;    
+#loginbox > div:first-child {
+    padding-bottom: 10px;
 }
 
 #login > div {
@@ -87,8 +89,8 @@ div.dataTables_filter {
 
 /* END - Styles for the login page */
 
-html { 
-    height:100%; 
+html {
+    height:100%;
 }
 
 body {
